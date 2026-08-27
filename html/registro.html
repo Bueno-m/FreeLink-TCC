@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreeLink | Cadastro</title>
+  <link rel="stylesheet" href="../css/Style.css">
+  <link rel="stylesheet" href="../css/registro.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- NAVEGAÇÃO / HEADER -->
+  <header class="navbar">
+    <div class="logo">
+      <a href="index.html"><img src="../logo-light.svg" alt="FreeLink" class="brand-logo"></a>
+      <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
+    </div>
+    <nav class="nav-links">
+      <a href="configuracoes.html">Configurações</a>
+      <a href="index.html">Início</a>
+      <a href="postar-trabalho.html">Postar Projeto</a>
+      <a href="perfil.html">Meu Perfil</a>
+    </nav>
+    <div class="auth-buttons" id="auth-buttons-container">
+      <a href="login.html" class="btn-login">Entrar</a>
+      <a href="registro.html" class="btn-register">Cadastrar</a>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <div class="login-card">
+      <div class="brand">
+        <img src="../logo-light.svg" alt="Logo FreeLink" class="brand-logo">
+      </div>
+
+      <div class="login-header">
+        <h1>Criar conta</h1>
+        <p>Junte-se ao FreeLink e encontre novos projetos</p>
+      </div>
+
+      <form id="form-registro" class="login-form">
+        <label class="input-group">
+          <span>Nome completo *</span>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-user"></i>
+            <input type="text" id="reg-nome" placeholder="Seu nome completo" required>
+          </div>
+        </label>
+
+        <label class="input-group">
+          <span>E-mail *</span>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-envelope"></i>
+            <input type="email" id="reg-email" placeholder="seuemail@email.com" required>
+          </div>
+        </label>
+
+        <label class="input-group">
+          <span>Senha (mínimo 6 caracteres) *</span>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="reg-senha" placeholder="Crie uma senha" required minlength="6">
+          </div>
+        </label>
+
+        <label class="input-group">
+          <span>Confirmar senha *</span>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-shield-halved"></i>
+            <input type="password" id="reg-confirma-senha" placeholder="Repita a senha" required minlength="6">
+          </div>
+        </label>
+
+        <button type="submit" class="login-btn">Cadastrar</button>
+      </form>
+
+      <div class="divider">
+        <span>ou</span>
+      </div>
+
+      <button type="button" class="social-btn" onclick="alert('Simulação de cadastro social: Utilize o formulário acima que salva seus dados localmente no LocalStorage!');">
+        <i class="fa-brands fa-google"></i>
+        Continuar com Google
+      </button>
+
+      <p class="register-text">
+        Já tem uma conta? <a href="login.html">Entrar</a>
+      </p>
+    </div>
+  </div>
+  <script src="../js/main.js"></script>
+</body>
+</html>

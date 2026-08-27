@@ -1,0 +1,223 @@
+/* ====================================================================
+   ESTILOS DE LOGIN, CADASTRO E FORMULÁRIOS (FREELINK)
+   Integrado com as variáveis de Modo Claro (padrão) e Modo Escuro
+   ==================================================================== */
+
+.page-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  flex: 1;
+  animation: slideUpFade 0.5s ease-out;
+  background-color: var(--bg-page);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 36px 30px;
+  box-shadow: var(--shadow-card);
+}
+
+.brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+.login-header h1 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin-bottom: 6px;
+}
+
+.login-header p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group span {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0 14px;
+  transition: all 0.2s ease;
+}
+
+.input-wrapper:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.input-wrapper i {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.input-wrapper input,
+.input-wrapper select,
+.input-wrapper textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 14px 0;
+  font-size: 0.96rem;
+  color: var(--text-color);
+  font-family: inherit;
+}
+
+.input-wrapper select option {
+  background-color: var(--bg-card);
+  color: var(--text-color);
+}
+
+.input-wrapper input::placeholder,
+.input-wrapper textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.login-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.remember-me input {
+  accent-color: var(--primary-color);
+}
+
+.login-options a,
+.register-text a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-options a:hover,
+.register-text a:hover {
+  text-decoration: underline;
+  color: var(--primary-dark);
+}
+
+.login-btn {
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: #ffffff;
+  padding: 14px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.25);
+}
+
+.login-btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 8px 22px rgba(16, 185, 129, 0.35);
+  transform: translateY(-1px);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 14px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.divider span {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: lowercase;
+}
+
+.social-btn {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.social-btn:hover {
+  border-color: var(--primary-color);
+  background: var(--bg-card-hover);
+  transform: translateY(-1px);
+}
+
+.social-btn i {
+  color: #ea4335;
+}
+
+.register-text {
+  text-align: center;
+  margin-top: 20px;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 480px) {
+  .page-shell { padding: 20px 14px; }
+  .login-card { padding: 24px 18px; border-radius: 16px; }
+  .login-header h1 { font-size: 1.6rem; }
+}

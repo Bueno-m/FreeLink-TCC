@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreeLink | Perfil do Freelancer</title>
+  <link rel="stylesheet" href="../css/Style.css">
+  <link rel="stylesheet" href="../css/perfil.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- NAVEGAÇÃO / HEADER -->
+  <header class="navbar">
+    <div class="logo">
+      <a href="index.html"><img src="../logo.png" alt="FreeLink" class="brand-logo"></a>
+      <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
+    </div>
+    <nav class="nav-links">
+      <a href="configuracoes.html">Configurações</a>
+      <a href="index.html">Início</a>
+      <a href="postar-trabalho.html">Postar Projeto</a>
+      <a href="perfil.html" class="active">Meu Perfil</a>
+    </nav>
+    <div class="auth-buttons" id="auth-buttons-container">
+      <a href="login.html" class="btn-login">Entrar</a>
+      <a href="registro.html" class="btn-register">Cadastrar</a>
+    </div>
+  </header>
+
+  <!-- BANNER DE CAPA DO PERFIL -->
+  <section class="profile-banner">
+    <div class="banner-background"></div>
+    <button class="edit-banner-btn" title="Editar capa">
+      <i class="fa-solid fa-camera"></i>
+    </button>
+  </section>
+
+  <!-- CONTEÚDO PRINCIPAL DO PERFIL -->
+  <main class="profile-container">
+    <!-- SEÇÃO DE INFORMAÇÕES PRINCIPAIS -->
+    <section class="profile-header">
+      <div class="profile-avatar-wrapper">
+        <img src="" alt="Foto de Perfil" class="profile-avatar">
+        <button class="edit-avatar-btn" title="Editar foto">
+          <i class="fa-solid fa-camera"></i>
+        </button>
+      </div>
+
+      <div class="profile-info">
+        <div class="name-section">
+          <h1 class="profile-name" id="profileName"></h1>
+          <button class="edit-profile-btn" onclick="openEditModal()">
+            <i class="fa-solid fa-pen"></i> Editar Perfil
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL DE EDIÇÃO DO PERFIL -->
+    <div id="editModal" class="edit-modal hidden">
+      <div class="edit-modal-content">
+        <div class="edit-modal-header">
+          <h2>Editar Perfil</h2>
+          <button class="close-modal-btn" onclick="closeEditModal()">
+            <i class="fa-solid fa-times"></i>
+          </button>
+        </div>
+
+        <form class="edit-form" id="editForm">
+          <!-- SEÇÃO: INFORMAÇÕES BÁSICAS -->
+          <fieldset class="form-section">
+            <legend>Informações Básicas</legend>
+            
+            <label class="form-group">
+              <span>Nome Completo</span>
+              <input type="text" id="editName" value="" placeholder="Seu nome completo">
+            </label>
+
+            <label class="form-group">
+              <span>Especialidade</span>
+              <input type="text" id="editSpecialty" value="" placeholder="Sua especialidade">
+            </label>
+
+            <label class="form-group">
+              <span>Foto de Perfil</span>
+              <div class="file-input-wrapper">
+                <input type="file" id="editAvatar" accept="image/*" onchange="previewAvatar(event)">
+                <div class="file-input-label">
+                  <i class="fa-solid fa-image"></i>
+                  <span>Clique para selecionar uma foto</span>
+                </div>
+              </div>
+              <img id="avatarPreview" class="preview-image hidden" alt="Preview avatar">
+            </label>
+
+            <label class="form-group">
+              <span>Capa do Perfil</span>
+              <div class="file-input-wrapper">
+                <input type="file" id="editBanner" accept="image/*" onchange="previewBanner(event)">
+                <div class="file-input-label">
+                  <i class="fa-solid fa-image"></i>
+                  <span>Clique para selecionar uma capa</span>
+                </div>
+              </div>
+              <img id="bannerPreview" class="preview-image hidden" alt="Preview banner">
+            </label>
+          </fieldset>
+
+          <!-- SEÇÃO: SOBRE MIM -->
+          <fieldset class="form-section">
+            <legend>Sobre Mim</legend>
+            
+            <label class="form-group">
+              <span>Descrição Profissional</span>
+              <textarea id="editBio" rows="5" placeholder="Conte um pouco sobre você..."></textarea>
+            </label>
+          </fieldset>
+
+          <!-- SEÇÃO: DISPONIBILIDADE -->
+          <fieldset class="form-section">
+            <legend>Disponibilidade</legend>
+            
+            <label class="form-group">
+              <span>Taxa Horária (R$)</span>
+              <input type="number" id="editHourlyRate" value="" placeholder="120">
+            </label>
+
+            <label class="form-group">
+              <span>Disponibilidade Semanal</span>
+              <input type="text" id="editAvailability" value="" placeholder="30-40h por semana">
+            </label>
+
+            <label class="form-group">
+              <span>Tempo de Resposta</span>
+              <input type="text" id="editResponseTime" value="" placeholder="< 4 horas">
+            </label>
+          </fieldset>
+
+          <!-- SEÇÃO: HABILIDADES -->
+          <fieldset class="form-section">
+            <legend>Habilidades</legend>
+            
+            <label class="form-group">
+              <span>Adicione suas habilidades (separadas por vírgula)</span>
+              <textarea id="editSkills" rows="3" placeholder="JavaScript, React, Node.js, TypeScript..."></textarea>
+            </label>
+          </fieldset>
+
+          <!-- SEÇÃO: IDIOMAS -->
+          <fieldset class="form-section">
+            <legend>Idiomas</legend>
+            
+            <label class="form-group">
+              <span>Idiomas (formato: Idioma - Nível)</span>
+              <textarea id="editLanguages" rows="3" placeholder="Português - Nativo, Inglês - Profissional..."></textarea>
+            </label>
+          </fieldset>
+
+          <!-- SEÇÃO: CERTIFICAÇÕES -->
+          <fieldset class="form-section">
+            <legend>Certificações</legend>
+            
+            <label class="form-group">
+              <span>Certificações (formato: Certificação - Validade)</span>
+              <textarea id="editCertifications" rows="3" placeholder="AWS Certified Solutions Architect - 2024-2026..."></textarea>
+            </label>
+          </fieldset>
+
+          <!-- BOTÕES DE AÇÃO -->
+          <div class="form-actions">
+            <button type="submit" class="btn-save">
+              <i class="fa-solid fa-check"></i> Salvar Alterações
+            </button>
+            <button type="button" class="btn-cancel" onclick="closeEditModal()">
+              <i class="fa-solid fa-times"></i> Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="profile-layout">
+      <!-- COLUNA ESQUERDA -->
+      <aside class="profile-sidebar">
+        <!-- RESUMO DE TAXAS -->
+        <div class="info-card">
+          <h3>Disponibilidade</h3>
+          <div class="availability-item">
+            <span class="label">Taxa Horária:</span>
+            <span class="value">-</span>
+          </div>
+          <div class="availability-item">
+            <span class="label">Disponibilidade:</span>
+            <span class="value">-</span>
+          </div>
+          <div class="availability-item">
+            <span class="label">Tempo de Resposta:</span>
+            <span class="value">-</span>
+          </div>
+        </div>
+
+        <!-- COMPETÊNCIAS -->
+        <div class="info-card">
+          <h3>Principais Habilidades</h3>
+          <div class="skills-list">
+            <p style="color: var(--text-muted); text-align: center;">Nenhuma habilidade adicionada</p>
+          </div>
+          <a href="#" class="see-all-skills">Ver todas as habilidades →</a>
+        </div>
+
+        <!-- LINGUAGENS -->
+        <div class="info-card">
+          <h3>Idiomas</h3>
+          <div class="languages-list">
+            <p style="color: var(--text-muted); text-align: center;">Nenhum idioma adicionado</p>
+          </div>
+        </div>
+
+        <!-- CERTIFICAÇÕES -->
+        <div class="info-card">
+          <h3>Certificações</h3>
+          <div class="certifications-list">
+            <p style="color: var(--text-muted); text-align: center;">Nenhuma certificação adicionada</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- COLUNA CENTRAL/DIREITA -->
+      <div class="profile-main">
+        <!-- SOBRE MIM -->
+        <section class="profile-section">
+          <div class="section-header">
+            <h2 class="section-title">Sobre Mim</h2>
+            <button class="edit-section-btn" onclick="toggleSectionEdit(this)">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
+          
+          <div class="section-content" id="bioSection">
+            <p class="bio-text">Nenhuma informação adicionada</p>
+          </div>
+
+          <div class="section-edit hidden" id="bioEdit">
+            <textarea class="section-textarea" id="bioEditText" rows="6"></textarea>
+            <div class="edit-actions">
+              <button type="button" class="btn-save-inline" onclick="saveSectionEdit('bioSection', 'bioEditText')">Salvar</button>
+              <button type="button" class="btn-cancel-inline" onclick="cancelSectionEdit('bioSection')">Cancelar</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- EXPERIÊNCIA -->
+        <section class="profile-section">
+          <div class="section-header">
+            <h2 class="section-title">Experiência Profissional</h2>
+            <button class="edit-section-btn" onclick="toggleSectionEdit(this)">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
+          
+          <div class="experience-list" id="experienceSection">
+            <p class="bio-text" style="text-align: center; color: var(--text-muted);">Nenhuma experiência adicionada</p>
+          </div>
+
+          <div class="section-edit hidden" id="experienceEdit">
+            <textarea class="section-textarea" id="experienceEditText" rows="10"></textarea>
+            <div class="edit-actions">
+              <button type="button" class="btn-save-inline" onclick="saveSectionEdit('experienceSection', 'experienceEditText')">Salvar</button>
+              <button type="button" class="btn-cancel-inline" onclick="cancelSectionEdit('experienceSection')">Cancelar</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- PORTFÓLIO / PROJETOS DESTAQUE -->
+        <section class="profile-section">
+          <div class="section-header">
+            <h2 class="section-title">Portfólio Destacado</h2>
+            <a href="#" class="view-all">Ver todos os projetos →</a>
+          </div>
+
+          <div class="portfolio-grid">
+            <p class="bio-text" style="text-align: center; color: var(--text-muted); grid-column: 1/-1;">Nenhum projeto adicionado</p>
+          </div>
+        </section>
+
+        <!-- AVALIAÇÕES / REVIEWS -->
+        <section class="profile-section">
+          <div class="section-header">
+            <h2 class="section-title">Avaliações dos Clientes</h2>
+            <a href="#" class="view-all">Ver todas →</a>
+          </div>
+
+          <div class="reviews-list">
+            <p class="bio-text" style="text-align: center; color: var(--text-muted);">Nenhuma avaliação adicionada</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/main.js"></script>
+  <script>
+    // ========== FUNCIONALIDADES DE EDIÇÃO DO PERFIL ==========
+    
+    /* Preview da foto de perfil antes de salvar */
+    function previewAvatar(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('avatarPreview');
+          preview.src = e.target.result;
+          preview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    /* Preview da capa do perfil antes de salvar */
+    function previewBanner(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('bannerPreview');
+          preview.src = e.target.result;
+          preview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    /* Abre o modal de edição completo */
+    function openEditModal() {
+      const modal = document.getElementById('editModal');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    /* Fecha o modal de edição */
+    function closeEditModal() {
+      const modal = document.getElementById('editModal');
+      modal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    /* Fecha modal ao clicar fora dele */
+    window.addEventListener('click', function(event) {
+      const modal = document.getElementById('editModal');
+      if (event.target === modal) {
+        closeEditModal();
+      }
+    });
+
+    /* Toggle entre modo view e edit para seção específica */
+    function toggleSectionEdit(button) {
+      const header = button.closest('.section-header');
+      const section = button.closest('.profile-section');
+      
+      const sectionContent = section.querySelector('.section-content');
+      const sectionEdit = section.querySelector('.section-edit');
+
+      if (sectionContent && sectionEdit) {
+        sectionContent.classList.toggle('hidden');
+        sectionEdit.classList.toggle('hidden');
+        
+        /* Muda ícone do botão */
+        if (sectionEdit.classList.contains('hidden')) {
+          button.innerHTML = '<i class="fa-solid fa-pen"></i>';
+        } else {
+          button.innerHTML = '<i class="fa-solid fa-times"></i>';
+        }
+      }
+    }
+
+    /* Salva edição de seção específica */
+    function saveSectionEdit(sectionId, textareaId) {
+      const section = document.getElementById(sectionId);
+      const textarea = document.getElementById(textareaId);
+      const text = textarea.value;
+
+      if (sectionId === 'bioSection') {
+        /* Atualiza conteúdo Sobre Mim */
+        const paragraphs = text.split('\n\n');
+        section.innerHTML = paragraphs
+          .map(p => `<p class="bio-text">${p.trim()}</p>`)
+          .join('');
+      } else if (sectionId === 'experienceSection') {
+        /* Atualiza Experiência (formato simplificado) */
+        const experiences = text.split('\n\n').filter(e => e.trim());
+        section.innerHTML = experiences.map(exp => {
+          const lines = exp.split('\n');
+          const [title, company, period] = lines;
+          const description = lines.slice(3).join(' ');
+          
+          return `
+            <div class="experience-item">
+              <div class="exp-header">
+                <h3>${title || ''}</h3>
+                <span class="exp-company">${company || ''}</span>
+              </div>
+              <p class="exp-period"><i class="fa-regular fa-calendar"></i> ${period || ''}</p>
+              <p class="exp-description">${description || ''}</p>
+            </div>
+          `;
+        }).join('');
+      }
+
+      /* Esconde área de edição e mostra conteúdo */
+      const sectionEdit = section.closest('.profile-section').querySelector('.section-edit');
+      const sectionContent = section.closest('.profile-section').querySelector('.section-content');
+      const editBtn = section.closest('.profile-section').querySelector('.edit-section-btn');
+
+      if (sectionEdit) sectionEdit.classList.add('hidden');
+      if (sectionContent) sectionContent.classList.remove('hidden');
+      if (editBtn) editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+
+      alert('Seção atualizada com sucesso!');
+    }
+
+    /* Cancela edição de seção (sem salvar) */
+    function cancelSectionEdit(sectionId) {
+      const section = document.getElementById(sectionId);
+      const sectionEdit = section.closest('.profile-section').querySelector('.section-edit');
+      const sectionContent = section.closest('.profile-section').querySelector('.section-content');
+      const editBtn = section.closest('.profile-section').querySelector('.edit-section-btn');
+
+      if (sectionEdit) sectionEdit.classList.add('hidden');
+      if (sectionContent) sectionContent.classList.remove('hidden');
+      if (editBtn) editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+    }
+
+    /* Submete o formulário principal de edição */
+    document.addEventListener('DOMContentLoaded', function() {
+      const usuarioLogado = typeof obterUsuarioLogado === 'function' ? obterUsuarioLogado() : null;
+      const profileNameElem = document.getElementById('profileName');
+      if (profileNameElem) {
+        profileNameElem.textContent = usuarioLogado ? usuarioLogado.nome : "Carlos Eduardo Santos";
+      }
+      const editNameInput = document.getElementById('editName');
+      if (editNameInput) {
+        editNameInput.value = profileNameElem ? profileNameElem.textContent : "Carlos Eduardo Santos";
+      }
+
+      const editForm = document.getElementById('editForm');
+      if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          /* Atualiza nome */
+          const newName = document.getElementById('editName').value;
+          document.getElementById('profileName').textContent = newName;
+
+          /* Atualiza avatar se novo arquivo foi selecionado */
+          const avatarFile = document.getElementById('editAvatar').files[0];
+          if (avatarFile) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              document.querySelector('.profile-avatar').src = e.target.result;
+            };
+            reader.readAsDataURL(avatarFile);
+          }
+
+          /* Atualiza banner se novo arquivo foi selecionado */
+          const bannerFile = document.getElementById('editBanner').files[0];
+          if (bannerFile) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              document.querySelector('.banner-background').style.backgroundImage = `url(${e.target.result})`;
+              document.querySelector('.banner-background').style.backgroundSize = 'cover';
+              document.querySelector('.banner-background').style.backgroundPosition = 'center';
+            };
+            reader.readAsDataURL(bannerFile);
+          }
+          
+          closeEditModal();
+          alert('Perfil atualizado com sucesso!');
+        });
+      }
+
+      /* Menu toggle para mobile */
+      const navToggle = document.querySelector('.nav-toggle');
+      if (navToggle) {
+        navToggle.addEventListener('click', function(){
+          const nav = document.querySelector('.nav-links');
+          nav.classList.toggle('open');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

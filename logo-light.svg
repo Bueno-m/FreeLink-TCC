@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 84" fill="none">
+  <defs>
+    <linearGradient id="flGreenGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <filter id="glowLight" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#10b981" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Símbolo / Ícone FreeLink -->
+  <g transform="translate(6, 6)" filter="url(#glowLight)">
+    <rect x="0" y="0" width="72" height="72" rx="18" fill="url(#flGreenGradLight)" />
+    <path d="M 24 20 L 50 20 C 53 20 56 23 56 26 L 56 34 C 56 37 53 40 50 40 L 32 40 L 32 48 L 48 48 C 51 48 53 50 53 53 L 53 56 L 24 56 C 20 56 18 53 18 49 L 18 27 C 18 23 20 20 24 20 Z" fill="#ffffff" />
+    <path d="M 32 28 L 46 28 C 47 28 48 29 48 30 L 48 32 C 48 33 47 34 46 34 L 32 34 Z" fill="#10b981" />
+  </g>
+
+  <!-- Tipografia "FreeLink" para Modo Claro -->
+  <text x="96" y="58" font-family="'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif" font-size="52" font-weight="800" fill="#1e293b" letter-spacing="-1">Free<tspan fill="#10b981">Link</tspan></text>
+</svg>

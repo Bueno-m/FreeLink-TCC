@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreeLink | Detalhes do Projeto</title>
+  <link rel="stylesheet" href="../css/Style.css">
+  <link rel="stylesheet" href="../css/login.css">
+  <!-- Ícones FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- NAVEGAÇÃO / HEADER -->
+  <header class="navbar">
+    <div class="logo">
+      <a href="index.html"><img src="../logo-light.svg" alt="FreeLink" class="brand-logo"></a>
+      <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
+    </div>
+    <nav class="nav-links">
+      <a href="configuracoes.html">Configurações</a>
+      <a href="index.html">Início</a>
+      <a href="postar-trabalho.html">Postar Projeto</a>
+      <a href="perfil.html">Meu Perfil</a>
+    </nav>
+    <div class="auth-buttons" id="auth-buttons-container">
+      <a href="login.html" class="btn-login">Entrar</a>
+      <a href="registro.html" class="btn-register">Cadastrar</a>
+    </div>
+  </header>
+
+  <!-- CONTAINER DE DETALHES DO PROJETO -->
+  <main class="container" style="max-width: 950px; margin: 40px auto;">
+    
+    <div id="detalhe-conteudo" class="card-section" style="padding: 35px; border-radius: 16px;">
+      
+      <!-- Link de navegação para voltar -->
+      <div style="margin-bottom: 20px;">
+        <a href="index.html" class="see-more" style="display: inline-flex; align-items: center; gap: 8px; font-size: 15px;">
+          <i class="fa-solid fa-arrow-left"></i> Voltar para Trabalhos Disponíveis
+        </a>
+      </div>
+
+      <!-- Cabeçalho do Projeto -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+        <div style="flex: 1; min-width: 280px;">
+          <span id="detalhe-categoria" style="display: inline-block; background: var(--primary-light); color: var(--primary-color); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 12px; border: 1px solid var(--primary-border);">
+            Carregando...
+          </span>
+          <h1 id="detalhe-titulo" style="font-size: 26px; color: var(--text-heading); line-height: 1.3; margin-bottom: 10px;">
+            Carregando detalhes do projeto...
+          </h1>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; color: var(--text-muted); font-size: 14px;">
+            <span><i class="fa-regular fa-building" style="color: var(--primary-color);"></i> <span id="detalhe-empresa">-</span></span>
+            <span><i class="fa-solid fa-location-dot" style="color: var(--primary-color);"></i> <span id="detalhe-localizacao">-</span></span>
+            <span><i class="fa-regular fa-calendar" style="color: var(--primary-color);"></i> <span id="detalhe-data">-</span></span>
+          </div>
+        </div>
+
+        <!-- Box de Orçamento -->
+        <div style="background: var(--bg-input); border: 1px solid var(--border-color); padding: 18px 24px; border-radius: 12px; text-align: right; min-width: 200px;">
+          <span style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 4px;">Orçamento Estimado</span>
+          <div id="detalhe-orcamento" class="price" style="font-size: 24px; font-weight: bold; color: var(--primary-color); margin-bottom: 4px;">
+            R$ 0,00
+          </div>
+          <span style="font-size: 13px; color: var(--text-muted); display: block;">
+            <i class="fa-regular fa-clock"></i> Prazo: <strong id="detalhe-prazo">-</strong>
+          </span>
+        </div>
+      </div>
+
+      <hr style="border: none; border-top: 1px solid var(--border-color); margin: 25px 0;">
+
+      <!-- Descrição do Projeto -->
+      <section style="margin-bottom: 35px;">
+        <h2 style="font-size: 19px; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-align-left"></i> Descrição do Projeto
+        </h2>
+        <div id="detalhe-descricao" style="color: var(--text-color); line-height: 1.8; font-size: 15px; white-space: pre-line; background: var(--bg-input); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+          Carregando conteúdo...
+        </div>
+      </section>
+
+      <!-- Seção de Ação e Envio de Proposta -->
+      <div style="background: var(--bg-input); border: 1px solid var(--primary-border); padding: 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div>
+          <h3 style="font-size: 18px; color: var(--text-heading); margin-bottom: 4px;">Ficou interessado neste projeto?</h3>
+          <p style="color: var(--text-muted); font-size: 14px;">
+            <i class="fa-regular fa-user" style="color: var(--primary-color);"></i> <span id="detalhe-propostas">0 propostas recebidas</span> até o momento.
+          </p>
+        </div>
+
+        <button id="btn-enviar-proposta" class="login-btn" style="padding: 14px 28px; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+          <i class="fa-solid fa-paper-plane"></i> Enviar Proposta
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL DE ENVIO DE PROPOSTA (SIMULAÇÃO VISUAL) -->
+  <div id="modal-proposta" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+    <div class="login-card" style="max-width: 500px; width: 100%; position: relative; animation: slideUpFade 0.3s ease-out;">
+      
+      <button id="btn-fechar-modal" type="button" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted);" title="Fechar">
+        <i class="fa-solid fa-times"></i>
+      </button>
+
+      <div class="login-header" style="margin-bottom: 20px;">
+        <h2 style="font-size: 22px; color: var(--text-heading); margin-bottom: 6px;">Enviar Proposta</h2>
+        <p style="font-size: 14px;">Informe os detalhes da sua oferta para o cliente</p>
+      </div>
+
+      <form id="form-proposta-envio" class="login-form">
+        <label class="input-group">
+          <span>Seu Valor Proposto (R$) *</span>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-dollar-sign"></i>
+            <input type="text" id="proposta-valor" placeholder="Ex: 850,00" required>
+          </div>
+        </label>
+
+        <label class="input-group">
+          <span>Tempo estimado de entrega *</span>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-clock"></i>
+            <input type="text" id="proposta-prazo" placeholder="Ex: 7 dias" required>
+          </div>
+        </label>
+
+        <label class="input-group">
+          <span>Carta de Apresentação / Mensagem *</span>
+          <div class="input-wrapper" style="align-items: flex-start; padding-top: 10px;">
+            <i class="fa-regular fa-comment-dots" style="margin-top: 5px;"></i>
+            <textarea id="proposta-mensagem" rows="4" placeholder="Explique sua experiência relevante e como pretende realizar o projeto..." required style="width: 100%; border: none; outline: none; background: transparent; padding: 5px 0 10px 0; font-size: 0.95rem; font-family: inherit; color: var(--text-color); resize: vertical;"></textarea>
+          </div>
+        </label>
+
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <button type="button" id="btn-cancelar-modal" class="social-btn" style="flex: 1; padding: 12px;">
+            Cancelar
+          </button>
+          <button type="submit" class="login-btn" style="flex: 1; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fa-solid fa-paper-plane"></i> Confirmar Envio
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Script principal do projeto -->
+  <script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreeLink - Encontre Freelancers para o seu Projeto</title>
+  <link rel="stylesheet" href="../css/Style.css">
+  <!-- Ícones do FontAwesome para busca, pastas, relógios e categorias -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- NAVEGAÇÃO / HEADER -->
+  <header class="navbar">
+    <div class="logo">
+      <a href="index.html"><img src="../logo-light.svg" alt="FreeLink" class="brand-logo"></a>
+      <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
+    </div>
+    <nav class="nav-links">
+      <a href="configuracoes.html">Configurações</a>
+      <a href="index.html" class="active">Início</a>
+      <a href="postar-trabalho.html">Postar Projeto</a>
+      <a href="perfil.html">Meu Perfil</a>
+    </nav>
+    <div class="auth-buttons" id="auth-buttons-container">
+      <a href="login.html" class="btn-login">Entrar</a>
+      <a href="registro.html" class="btn-register">Cadastrar</a>
+    </div>
+  </header>
+
+  <!-- HERO SECTION (Banner de Busca) -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Encontre <span>Freelancers</span> para o seu <span>Projeto</span></h1>
+      <p>Conecte-se com profissionais talentosos para qualquer tipo de trabalho</p>
+      
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="O que você precisa? (Ex: Landing Page, Logotipo, Vídeo...)">
+        <select id="search-category">
+          <option value="" selected>Todas as categorias</option>
+          <option value="Design & Multimídia">Design & Multimídia</option>
+          <option value="Programação & TI">Programação & TI</option>
+          <option value="Redação & Tradução">Redação & Tradução</option>
+          <option value="Marketing Digital">Marketing Digital</option>
+          <option value="Suporte Administrativo">Suporte Administrativo</option>
+        </select>
+        <button class="btn-search" id="btn-search">Buscar</button>
+      </div>
+    </div>
+  </section>
+
+  <main class="container">
+
+    <!-- CATEGORIAS POPULARES -->
+    <section class="card-section">
+      <h2 class="section-title">Categorias populares</h2>
+      <div class="categories-grid">
+        <div class="category-item" style="cursor: pointer;" title="Filtrar por Design & Multimídia">
+          <div class="category-icon"><i class="fa-solid fa-palette"></i></div>
+          <p>Design & Multimídia</p>
+        </div>
+        <div class="category-item" style="cursor: pointer;" title="Filtrar por Redação & Tradução">
+          <div class="category-icon"><i class="fa-solid fa-file-pen"></i></div>
+          <p>Redação & Tradução</p>
+        </div>
+        <div class="category-item" style="cursor: pointer;" title="Filtrar por Programação & TI">
+          <div class="category-icon"><i class="fa-solid fa-laptop-code"></i></div>
+          <p>Programação & TI</p>
+        </div>
+        <div class="category-item" style="cursor: pointer;" title="Filtrar por Marketing Digital">
+          <div class="category-icon"><i class="fa-solid fa-bullhorn"></i></div>
+          <p>Marketing Digital</p>
+        </div>
+        <div class="category-item" style="cursor: pointer;" title="Filtrar por Suporte Administrativo">
+          <div class="category-icon"><i class="fa-solid fa-headset"></i></div>
+          <p>Suporte Administrativo</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRABALHOS DISPONÍVEIS (RENDERIZADOS DINAMICAMENTE VIA JAVASCRIPT) -->
+    <section class="card-section" id="secao-trabalhos">
+      <div class="section-header">
+        <h2 class="section-title">Trabalhos Disponíveis</h2>
+        <a href="postar-trabalho.html" class="see-more">+ Postar Projeto &gt;</a>
+      </div>
+      <div class="jobs-grid" id="jobs-container">
+        <!-- Os cards de projetos serão gerados dinamicamente pelo JavaScript (main.js) a partir do LocalStorage -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Script principal do projeto -->
+  <script src="../js/main.js"></script>
+</body>
+</html>
