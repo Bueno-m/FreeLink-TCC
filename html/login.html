@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FreeLink | Login</title>
-  <link rel="stylesheet" href="../css/Style.css">
+  <title>FreeLink | Entrar na Plataforma</title>
+  <link rel="stylesheet" href="../css/Style.css?v=3">
   <link rel="stylesheet" href="../css/login.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -12,14 +12,13 @@
   <!-- NAVEGAÇÃO / HEADER -->
   <header class="navbar">
     <div class="logo">
-      <a href="index.html"><img src="../logo-light.svg" alt="FreeLink" class="brand-logo"></a>
+      <a href="index.html"><img src="../img/imagem.png" alt="FreeLink" class="brand-logo"></a>
       <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
     </div>
     <nav class="nav-links">
-      <a href="configuracoes.html">Configurações</a>
       <a href="index.html">Início</a>
-      <a href="postar-trabalho.html">Postar Projeto</a>
-      <a href="perfil.html">Meu Perfil</a>
+      <a href="login.html" class="active">Entrar</a>
+      <a href="registro.html">Cadastrar</a>
     </nav>
     <div class="auth-buttons" id="auth-buttons-container">
       <a href="login.html" class="btn-login">Entrar</a>
@@ -30,56 +29,135 @@
   <div class="page-shell">
     <div class="login-card">
       <div class="brand">
-        <img src="../logo-light.svg" alt="Logo FreeLink" class="brand-logo">
+        <img src="../img/imagem.png" alt="Logo FreeLink" class="brand-logo">
       </div>
 
       <div class="login-header">
-        <h1>Entrar</h1>
+        <h1>Acessar Conta</h1>
         <p>Bem-vindo de volta ao FreeLink</p>
       </div>
 
+      <!-- Container de Alerta Visual para Erro de Credenciais -->
+      <div id="login-alert" class="form-alert-error" style="display: none; margin-bottom: 16px;"></div>
+
       <form id="form-login" class="login-form">
         <label class="input-group">
-          <span>E-mail</span>
+          <span>E-mail *</span>
           <div class="input-wrapper">
             <i class="fa-regular fa-envelope"></i>
-            <input type="email" id="login-email" placeholder="seuemail@email.com" required>
+            <input type="email" id="login-email" placeholder="seuemail@email.com" required autocomplete="email">
           </div>
         </label>
 
         <label class="input-group">
-          <span>Senha</span>
+          <span>Senha *</span>
           <div class="input-wrapper">
             <i class="fa-solid fa-lock"></i>
-            <input type="password" id="login-senha" placeholder="Sua senha" required>
+            <input type="password" id="login-senha" placeholder="Sua senha cadastrada" required autocomplete="current-password">
           </div>
         </label>
 
         <div class="login-options">
           <label class="remember-me">
-            <input type="checkbox" id="login-lembrar">
+            <input type="checkbox" id="login-lembrar" checked>
             <span>Lembrar-me</span>
           </label>
-          <a href="#" onclick="alert('Dica para apresentação do TCC: utilize seu e-mail cadastrado ou crie uma conta em Cadastre-se!'); return false;">Esqueci a senha</a>
+          <a href="#" onclick="alert('Dica para apresentação do TCC: utilize o e-mail padrão aluno@freelink.com (senha: 123456) ou crie sua própria conta no botão Cadastre-se!'); return false;">Esqueci a senha</a>
         </div>
 
-        <button type="submit" class="login-btn">Entrar</button>
+        <button type="submit" class="login-btn">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar
+        </button>
       </form>
 
       <div class="divider">
         <span>ou</span>
       </div>
 
-      <button type="button" class="social-btn" onclick="alert('Simulação de login social: Para o TCC, utilize o formulário acima que salva e valida diretamente no LocalStorage!');">
-        <i class="fa-brands fa-google"></i>
-        Continuar com Google
-      </button>
+      <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+      <div id="g_id_onload"
+           data-client_id="653331190197-u7s4vkp2v3rsqgroelqtcojb5fvuc4jj.apps.googleusercontent.com"
+           data-context="signin"
+           data-ux_mode="popup"
+           data-callback="lidarComRespostaDoGoogle"
+           data-auto_prompt="false">
+      </div>
+
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="rectangular"
+           data-theme="outline"
+           data-text="signin_with"
+           data-size="large"
+           data-logo_alignment="left">
+      </div>
+
+      <!-- ACESSOS RÁPIDOS PARA APRESENTAÇÃO E TESTES -->
+      <div style="margin-top: 18px; padding: 14px; background: var(--bg-input); border-radius: 12px; border: 1px dashed var(--border-color); text-align: center;">
+        <span style="display: block; margin-bottom: 8px; font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+          <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> Demonstração Rápida (TCC)
+        </span>
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+          <button type="button" onclick="preencherLoginDemo('contato@techstart.com', '123456')" class="chat-quick-chip" style="font-size: 11.5px; padding: 5px 12px;">
+            <i class="fa-solid fa-briefcase" style="color: var(--primary-color);"></i> Contratante (TechStart)
+          </button>
+          <button type="button" onclick="preencherLoginDemo('lucas@freelink.com', '123456')" class="chat-quick-chip" style="font-size: 11.5px; padding: 5px 12px;">
+            <i class="fa-solid fa-code" style="color: var(--primary-color);"></i> Freelancer (Lucas)
+          </button>
+        </div>
+      </div>
 
       <p class="register-text">
-        Não tem uma conta? <a href="registro.html">Cadastre-se</a>
+        Ainda não tem uma conta? <a href="registro.html">Cadastre-se grátis</a>
       </p>
     </div>
   </div>
-  <script src="../js/main.js"></script>
+
+  <script src="../js/main.js?v=3"></script>
+  <script>
+    // Chamada automaticamente pelo Google quando o usuário autoriza
+    async function lidarComRespostaDoGoogle(response) {
+      try {
+        const res = await fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: response.credential, tipo_usuario: 'FREELANCER' })
+        });
+        const texto = await res.text();
+        let dados = {};
+        try { dados = JSON.parse(texto); } catch (e) { throw new Error('Resposta inválida do servidor (HTTP ' + res.status + ')'); }
+
+        if (res.ok) {
+          const u = dados.usuario;
+          const fnSync = typeof registrarUsuarioServidor === 'function'
+            ? registrarUsuarioServidor
+            : (typeof registrarUsuarioGoogle === 'function' ? registrarUsuarioGoogle : null);
+          const usuarioFinal = fnSync ? fnSync(u, dados.token) : {
+            id: 'db_' + u.id,
+            dbId: u.id,
+            googleId: u.id,
+            nome: u.nome,
+            email: u.email,
+            tipo: u.tipo_usuario === 'CLIENTE' ? 'contratante' : 'freelancer',
+            foto: u.foto_perfil || '',
+            ...(u.perfil || {})
+          };
+          if (dados.token) localStorage.setItem('freelink_token', dados.token);
+          login(usuarioFinal);
+          if (dados.novo_usuario && typeof marcarContaRecemCriada === 'function') {
+            marcarContaRecemCriada(usuarioFinal.email);
+          }
+
+          window.location.href = 'index.html';
+        } else {
+          alert('Erro: ' + (dados.erro || ('HTTP ' + res.status)));
+        }
+      } catch (erro) {
+        console.error('Erro no login com Google:', erro);
+        alert('Erro ao entrar com Google: ' + (erro && erro.message ? erro.message : 'Servidor indisponível na porta 3000.'));
+      }
+    }
+  </script>
 </body>
 </html>

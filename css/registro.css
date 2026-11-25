@@ -86,7 +86,9 @@
   font-size: 1rem;
 }
 
-.input-wrapper input {
+.input-wrapper input,
+.input-wrapper select,
+.input-wrapper textarea {
   width: 100%;
   background: transparent;
   border: none;
@@ -97,8 +99,47 @@
   font-family: inherit;
 }
 
-.input-wrapper input::placeholder {
+.input-wrapper textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.input-wrapper select option {
+  background-color: var(--bg-card);
+  color: var(--text-color);
+}
+
+.input-wrapper input::placeholder,
+.input-wrapper textarea::placeholder {
   color: var(--text-muted);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 0;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border-color);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.campos-tipo {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+@media (max-width: 520px) {
+  .form-row { grid-template-columns: 1fr; }
 }
 
 .login-btn {

@@ -3,23 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FreeLink | Perfil do Freelancer</title>
-  <link rel="stylesheet" href="../css/Style.css">
+  <title>FreeLink | Perfil Profissional</title>
+  <link rel="stylesheet" href="../css/Style.css?v=3">
   <link rel="stylesheet" href="../css/perfil.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
   <!-- NAVEGAÇÃO / HEADER -->
   <header class="navbar">
     <div class="logo">
-      <a href="index.html"><img src="../logo.png" alt="FreeLink" class="brand-logo"></a>
+      <a href="index.html"><img src="../img/imagem.png" alt="FreeLink" class="brand-logo"></a>
       <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
     </div>
     <nav class="nav-links">
-      <a href="configuracoes.html">Configurações</a>
       <a href="index.html">Início</a>
       <a href="postar-trabalho.html">Postar Projeto</a>
       <a href="perfil.html" class="active">Meu Perfil</a>
+      <a href="configuracoes.html">Configurações</a>
     </nav>
     <div class="auth-buttons" id="auth-buttons-container">
       <a href="login.html" class="btn-login">Entrar</a>
@@ -27,465 +28,1518 @@
     </div>
   </header>
 
-  <!-- BANNER DE CAPA DO PERFIL -->
-  <section class="profile-banner">
-    <div class="banner-background"></div>
-    <button class="edit-banner-btn" title="Editar capa">
-      <i class="fa-solid fa-camera"></i>
-    </button>
-  </section>
+  <main class="profile-page-wrapper">
 
-  <!-- CONTEÚDO PRINCIPAL DO PERFIL -->
-  <main class="profile-container">
-    <!-- SEÇÃO DE INFORMAÇÕES PRINCIPAIS -->
-    <section class="profile-header">
-      <div class="profile-avatar-wrapper">
-        <img src="" alt="Foto de Perfil" class="profile-avatar">
-        <button class="edit-avatar-btn" title="Editar foto">
-          <i class="fa-solid fa-camera"></i>
+    <!-- BANNER DE MODO DE VISUALIZAÇÃO PÚBLICA -->
+    <div id="previewBannerMode" class="preview-mode-banner hidden">
+      <span>
+        <i class="fa-solid fa-eye"></i> 
+        <strong>Modo de Visualização Público:</strong> Este é o modo como outros usuários e clientes veem o seu perfil no FreeLink.
+      </span>
+      <button type="button" class="btn-exit-preview" onclick="toggleModoVisualizacao(false)">
+        <i class="fa-solid fa-pen-to-square"></i> Voltar ao Modo de Edição
+      </button>
+    </div>
+
+    <!-- ====================================================================
+         1. HERO CARD DO PERFIL (CABEÇALHO LIMPO, ELEGANTE E MODERNO)
+         ==================================================================== -->
+    <section class="profile-hero-card">
+      
+      <!-- Banner de Capa -->
+      <div class="profile-cover" id="profileCoverBg">
+        <button type="button" class="profile-cover-btn edit-only" onclick="openEditModal('editBanner', 'pane-midia')">
+          <i class="fa-solid fa-camera"></i> Alterar Capa
         </button>
       </div>
 
-      <div class="profile-info">
-        <div class="name-section">
-          <h1 class="profile-name" id="profileName"></h1>
-          <button class="edit-profile-btn" onclick="openEditModal()">
-            <i class="fa-solid fa-pen"></i> Editar Perfil
-          </button>
+      <!-- Corpo Principal do Topo -->
+      <div class="profile-hero-body">
+        
+        <div class="profile-avatar-row">
+          <!-- Avatar Circular com Borda Flutuante -->
+          <div class="profile-avatar-container" id="profileAvatarWrapper">
+            <div id="profileAvatarContainer">
+              <div class="profile-avatar-default" id="profileAvatarDefault">
+                <span id="profileAvatarInitial">U</span>
+              </div>
+            </div>
+            <button type="button" class="profile-avatar-edit-btn edit-only" title="Alterar foto de perfil" onclick="openEditModal('editAvatar', 'pane-midia')">
+              <i class="fa-solid fa-camera"></i>
+            </button>
+          </div>
+
+          <!-- Ações Rápidas -->
+          <div class="profile-actions-top">
+            <button type="button" class="btn-chat-publico" id="btnChatPerfilPublico" style="display: none;">
+              <i class="fa-solid fa-comments"></i> Enviar Mensagem
+            </button>
+            <button type="button" class="btn-view-mode" id="btnTogglePreview" onclick="toggleModoVisualizacao(true)">
+              <i class="fa-regular fa-eye"></i> Visualizar Perfil
+            </button>
+            <button type="button" class="btn-share-profile" onclick="compartilharPerfil()">
+              <i class="fa-solid fa-share-nodes"></i> Compartilhar
+            </button>
+            <button type="button" class="btn-edit-profile edit-only" onclick="openEditModal()">
+              <i class="fa-solid fa-pen-to-square"></i> Editar Perfil
+            </button>
+          </div>
         </div>
+
+        <!-- Identificação e Títulos -->
+        <div class="profile-titles">
+          <div class="profile-name-badge-row">
+            <h1 class="profile-main-name" id="profileName">Seu Nome</h1>
+            <span class="profile-verified-badge" id="profileStatusBadge">
+              <span class="status-dot"></span> <span id="profileStatusText">Freelancer Ativo</span>
+            </span>
+          </div>
+          <p class="profile-specialty-title" id="profileSpecialty">Adicione sua especialidade / título profissional</p>
+          
+          <div class="profile-meta-info">
+            <span><i class="fa-solid fa-location-dot"></i> <span id="profileLocation">Localização não informada</span></span>
+            <span><i class="fa-regular fa-envelope"></i> <span id="profileEmail">-</span></span>
+            <span><i class="fa-solid fa-shield-halved"></i> Perfil Cadastrado</span>
+          </div>
+        </div>
+
+        <!-- Quick Stats Bar (Métricas Rápidas) -->
+        <div class="profile-quick-stats">
+          <div class="stat-item">
+            <span class="stat-label">Taxa Horária</span>
+            <div class="stat-value highlight-green" id="dispTaxa">-</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Disponibilidade</span>
+            <div class="stat-value" id="dispHoras">-</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Tempo de Resposta</span>
+            <div class="stat-value" id="dispTempo">-</div>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Avaliações</span>
+            <div class="stat-value" id="dispAvaliacao" style="font-size: 14px; color: var(--text-muted); font-weight: 600;">Sem avaliações</div>
+          </div>
+        </div>
+
       </div>
     </section>
 
-    <!-- MODAL DE EDIÇÃO DO PERFIL -->
-    <div id="editModal" class="edit-modal hidden">
-      <div class="edit-modal-content">
-        <div class="edit-modal-header">
-          <h2>Editar Perfil</h2>
-          <button class="close-modal-btn" onclick="closeEditModal()">
-            <i class="fa-solid fa-times"></i>
-          </button>
-        </div>
-
-        <form class="edit-form" id="editForm">
-          <!-- SEÇÃO: INFORMAÇÕES BÁSICAS -->
-          <fieldset class="form-section">
-            <legend>Informações Básicas</legend>
-            
-            <label class="form-group">
-              <span>Nome Completo</span>
-              <input type="text" id="editName" value="" placeholder="Seu nome completo">
-            </label>
-
-            <label class="form-group">
-              <span>Especialidade</span>
-              <input type="text" id="editSpecialty" value="" placeholder="Sua especialidade">
-            </label>
-
-            <label class="form-group">
-              <span>Foto de Perfil</span>
-              <div class="file-input-wrapper">
-                <input type="file" id="editAvatar" accept="image/*" onchange="previewAvatar(event)">
-                <div class="file-input-label">
-                  <i class="fa-solid fa-image"></i>
-                  <span>Clique para selecionar uma foto</span>
-                </div>
-              </div>
-              <img id="avatarPreview" class="preview-image hidden" alt="Preview avatar">
-            </label>
-
-            <label class="form-group">
-              <span>Capa do Perfil</span>
-              <div class="file-input-wrapper">
-                <input type="file" id="editBanner" accept="image/*" onchange="previewBanner(event)">
-                <div class="file-input-label">
-                  <i class="fa-solid fa-image"></i>
-                  <span>Clique para selecionar uma capa</span>
-                </div>
-              </div>
-              <img id="bannerPreview" class="preview-image hidden" alt="Preview banner">
-            </label>
-          </fieldset>
-
-          <!-- SEÇÃO: SOBRE MIM -->
-          <fieldset class="form-section">
-            <legend>Sobre Mim</legend>
-            
-            <label class="form-group">
-              <span>Descrição Profissional</span>
-              <textarea id="editBio" rows="5" placeholder="Conte um pouco sobre você..."></textarea>
-            </label>
-          </fieldset>
-
-          <!-- SEÇÃO: DISPONIBILIDADE -->
-          <fieldset class="form-section">
-            <legend>Disponibilidade</legend>
-            
-            <label class="form-group">
-              <span>Taxa Horária (R$)</span>
-              <input type="number" id="editHourlyRate" value="" placeholder="120">
-            </label>
-
-            <label class="form-group">
-              <span>Disponibilidade Semanal</span>
-              <input type="text" id="editAvailability" value="" placeholder="30-40h por semana">
-            </label>
-
-            <label class="form-group">
-              <span>Tempo de Resposta</span>
-              <input type="text" id="editResponseTime" value="" placeholder="< 4 horas">
-            </label>
-          </fieldset>
-
-          <!-- SEÇÃO: HABILIDADES -->
-          <fieldset class="form-section">
-            <legend>Habilidades</legend>
-            
-            <label class="form-group">
-              <span>Adicione suas habilidades (separadas por vírgula)</span>
-              <textarea id="editSkills" rows="3" placeholder="JavaScript, React, Node.js, TypeScript..."></textarea>
-            </label>
-          </fieldset>
-
-          <!-- SEÇÃO: IDIOMAS -->
-          <fieldset class="form-section">
-            <legend>Idiomas</legend>
-            
-            <label class="form-group">
-              <span>Idiomas (formato: Idioma - Nível)</span>
-              <textarea id="editLanguages" rows="3" placeholder="Português - Nativo, Inglês - Profissional..."></textarea>
-            </label>
-          </fieldset>
-
-          <!-- SEÇÃO: CERTIFICAÇÕES -->
-          <fieldset class="form-section">
-            <legend>Certificações</legend>
-            
-            <label class="form-group">
-              <span>Certificações (formato: Certificação - Validade)</span>
-              <textarea id="editCertifications" rows="3" placeholder="AWS Certified Solutions Architect - 2024-2026..."></textarea>
-            </label>
-          </fieldset>
-
-          <!-- BOTÕES DE AÇÃO -->
-          <div class="form-actions">
-            <button type="submit" class="btn-save">
-              <i class="fa-solid fa-check"></i> Salvar Alterações
-            </button>
-            <button type="button" class="btn-cancel" onclick="closeEditModal()">
-              <i class="fa-solid fa-times"></i> Cancelar
+    <!-- ====================================================================
+         2. GRID DE CONTEÚDO (2 COLUNAS LIMPAS)
+         ==================================================================== -->
+    <div class="profile-grid-layout">
+      
+      <!-- COLUNA LATERAL ESQUERDA -->
+      <aside class="profile-sidebar-clean">
+        
+        <!-- CARD: HABILIDADES -->
+        <div class="clean-card">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title">
+              <i class="fa-solid fa-tags"></i> Habilidades
+            </h3>
+            <button type="button" class="btn-card-action edit-only" onclick="openEditModal('editSkills', 'pane-skills')" title="Editar habilidades">
+              <i class="fa-solid fa-pen"></i>
             </button>
           </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="profile-layout">
-      <!-- COLUNA ESQUERDA -->
-      <aside class="profile-sidebar">
-        <!-- RESUMO DE TAXAS -->
-        <div class="info-card">
-          <h3>Disponibilidade</h3>
-          <div class="availability-item">
-            <span class="label">Taxa Horária:</span>
-            <span class="value">-</span>
-          </div>
-          <div class="availability-item">
-            <span class="label">Disponibilidade:</span>
-            <span class="value">-</span>
-          </div>
-          <div class="availability-item">
-            <span class="label">Tempo de Resposta:</span>
-            <span class="value">-</span>
+          <div id="profileSkillsList">
+            <!-- Pílulas de tags ou empty state -->
           </div>
         </div>
 
-        <!-- COMPETÊNCIAS -->
-        <div class="info-card">
-          <h3>Principais Habilidades</h3>
-          <div class="skills-list">
-            <p style="color: var(--text-muted); text-align: center;">Nenhuma habilidade adicionada</p>
+        <!-- CARD: IDIOMAS -->
+        <div class="clean-card">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title">
+              <i class="fa-solid fa-language"></i> Idiomas
+            </h3>
+            <button type="button" class="btn-card-action edit-only" onclick="openEditModal('editLanguages', 'pane-skills')" title="Editar idiomas">
+              <i class="fa-solid fa-pen"></i>
+            </button>
           </div>
-          <a href="#" class="see-all-skills">Ver todas as habilidades →</a>
-        </div>
-
-        <!-- LINGUAGENS -->
-        <div class="info-card">
-          <h3>Idiomas</h3>
-          <div class="languages-list">
-            <p style="color: var(--text-muted); text-align: center;">Nenhum idioma adicionado</p>
+          <div id="profileLanguagesList">
+            <!-- Linhas de idiomas ou empty state -->
           </div>
         </div>
 
-        <!-- CERTIFICAÇÕES -->
-        <div class="info-card">
-          <h3>Certificações</h3>
-          <div class="certifications-list">
-            <p style="color: var(--text-muted); text-align: center;">Nenhuma certificação adicionada</p>
+        <!-- CARD: CERTIFICAÇÕES -->
+        <div class="clean-card">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title">
+              <i class="fa-solid fa-award"></i> Certificações
+            </h3>
+            <button type="button" class="btn-card-action edit-only" onclick="openEditModal('editCertifications', 'pane-skills')" title="Editar certificações">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
+          <div id="profileCertificationsList">
+            <!-- Certificações ou empty state -->
           </div>
         </div>
+
       </aside>
 
-      <!-- COLUNA CENTRAL/DIREITA -->
-      <div class="profile-main">
-        <!-- SOBRE MIM -->
-        <section class="profile-section">
-          <div class="section-header">
-            <h2 class="section-title">Sobre Mim</h2>
-            <button class="edit-section-btn" onclick="toggleSectionEdit(this)">
+      <!-- COLUNA PRINCIPAL DIREITA -->
+      <div class="profile-main-clean">
+        
+        <!-- SEÇÃO: SOBRE MIM -->
+        <section class="clean-card">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title">
+              <i class="fa-regular fa-user"></i> Sobre Mim
+            </h3>
+            <button type="button" class="btn-card-action edit-only" onclick="openEditModal('editBio', 'pane-sobre')" title="Editar biografia">
               <i class="fa-solid fa-pen"></i>
             </button>
           </div>
-          
-          <div class="section-content" id="bioSection">
-            <p class="bio-text">Nenhuma informação adicionada</p>
-          </div>
-
-          <div class="section-edit hidden" id="bioEdit">
-            <textarea class="section-textarea" id="bioEditText" rows="6"></textarea>
-            <div class="edit-actions">
-              <button type="button" class="btn-save-inline" onclick="saveSectionEdit('bioSection', 'bioEditText')">Salvar</button>
-              <button type="button" class="btn-cancel-inline" onclick="cancelSectionEdit('bioSection')">Cancelar</button>
-            </div>
+          <div id="bioSection">
+            <!-- Biografia ou empty state -->
           </div>
         </section>
 
-        <!-- EXPERIÊNCIA -->
-        <section class="profile-section">
-          <div class="section-header">
-            <h2 class="section-title">Experiência Profissional</h2>
-            <button class="edit-section-btn" onclick="toggleSectionEdit(this)">
+        <!-- SEÇÃO: EXPERIÊNCIA PROFISSIONAL -->
+        <section class="clean-card">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title">
+              <i class="fa-solid fa-briefcase"></i> Trajetória &amp; Experiência
+            </h3>
+            <button type="button" class="btn-card-action edit-only" onclick="openEditModal('editExperience', 'pane-experiencia')" title="Editar experiências">
               <i class="fa-solid fa-pen"></i>
             </button>
           </div>
-          
-          <div class="experience-list" id="experienceSection">
-            <p class="bio-text" style="text-align: center; color: var(--text-muted);">Nenhuma experiência adicionada</p>
-          </div>
-
-          <div class="section-edit hidden" id="experienceEdit">
-            <textarea class="section-textarea" id="experienceEditText" rows="10"></textarea>
-            <div class="edit-actions">
-              <button type="button" class="btn-save-inline" onclick="saveSectionEdit('experienceSection', 'experienceEditText')">Salvar</button>
-              <button type="button" class="btn-cancel-inline" onclick="cancelSectionEdit('experienceSection')">Cancelar</button>
-            </div>
+          <div id="experienceSection">
+            <!-- Timeline ou empty state -->
           </div>
         </section>
 
-        <!-- PORTFÓLIO / PROJETOS DESTAQUE -->
-        <section class="profile-section">
-          <div class="section-header">
-            <h2 class="section-title">Portfólio Destacado</h2>
-            <a href="#" class="view-all">Ver todos os projetos →</a>
+        <!-- SEÇÃO: PORTFÓLIO -->
+        <section class="clean-card">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title">
+              <i class="fa-solid fa-folder-open"></i> Portfólio
+            </h3>
+            <button type="button" class="btn-card-action edit-only" onclick="openEditModal('editPortfolio', 'pane-experiencia')" title="Editar portfólio">
+              <i class="fa-solid fa-pen"></i>
+            </button>
           </div>
+          <div id="portfolioSection">
+            <!-- Projetos do usuário ou empty state -->
+          </div>
+        </section>
 
-          <div class="portfolio-grid">
-            <p class="bio-text" style="text-align: center; color: var(--text-muted); grid-column: 1/-1;">Nenhum projeto adicionado</p>
+        <!-- SEÇÃO: AVALIAÇÕES DE CLIENTES -->
+        <section class="clean-card">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title">
+              <i class="fa-solid fa-comments"></i> Avaliações de Clientes
+            </h3>
+          </div>
+          <div id="reviewsSection">
+            <!-- Avaliações recebidas ou empty state -->
           </div>
         </section>
 
-        <!-- AVALIAÇÕES / REVIEWS -->
-        <section class="profile-section">
-          <div class="section-header">
-            <h2 class="section-title">Avaliações dos Clientes</h2>
-            <a href="#" class="view-all">Ver todas →</a>
-          </div>
-
-          <div class="reviews-list">
-            <p class="bio-text" style="text-align: center; color: var(--text-muted);">Nenhuma avaliação adicionada</p>
-          </div>
-        </section>
       </div>
     </div>
+
   </main>
 
-  <script src="../js/main.js"></script>
-  <script>
-    // ========== FUNCIONALIDADES DE EDIÇÃO DO PERFIL ==========
-    
-    /* Preview da foto de perfil antes de salvar */
-    function previewAvatar(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const preview = document.getElementById('avatarPreview');
-          preview.src = e.target.result;
-          preview.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    /* Preview da capa do perfil antes de salvar */
-    function previewBanner(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const preview = document.getElementById('bannerPreview');
-          preview.src = e.target.result;
-          preview.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-    
-    /* Abre o modal de edição completo */
-    function openEditModal() {
-      const modal = document.getElementById('editModal');
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-
-    /* Fecha o modal de edição */
-    function closeEditModal() {
-      const modal = document.getElementById('editModal');
-      modal.classList.add('hidden');
-      document.body.style.overflow = 'auto';
-    }
-
-    /* Fecha modal ao clicar fora dele */
-    window.addEventListener('click', function(event) {
-      const modal = document.getElementById('editModal');
-      if (event.target === modal) {
-        closeEditModal();
-      }
-    });
-
-    /* Toggle entre modo view e edit para seção específica */
-    function toggleSectionEdit(button) {
-      const header = button.closest('.section-header');
-      const section = button.closest('.profile-section');
+  <!-- ====================================================================
+       3. MODAL DE EDIÇÃO DO PERFIL MODERNO (DESIGN PREMIUM COM ABAS)
+       ==================================================================== -->
+  <div id="editModal" class="modern-modal-overlay hidden">
+    <div class="modern-modal-content">
       
-      const sectionContent = section.querySelector('.section-content');
-      const sectionEdit = section.querySelector('.section-edit');
+      <!-- Cabeçalho do Modal -->
+      <div class="modern-modal-header">
+        <div class="modal-header-titles">
+          <h2><i class="fa-solid fa-user-pen" style="color: var(--primary-color);"></i> Editar Meu Perfil</h2>
+          <p>Personalize suas informações públicas, competências e apresentação</p>
+        </div>
+        <button type="button" class="modern-modal-close" onclick="closeEditModal()" title="Fechar modal (Esc)">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
 
-      if (sectionContent && sectionEdit) {
-        sectionContent.classList.toggle('hidden');
-        sectionEdit.classList.toggle('hidden');
-        
-        /* Muda ícone do botão */
-        if (sectionEdit.classList.contains('hidden')) {
-          button.innerHTML = '<i class="fa-solid fa-pen"></i>';
+      <!-- Barra de Abas de Navegação -->
+      <div class="modal-tabs-nav" id="modalTabsNav">
+        <button type="button" class="modal-tab-btn active" data-tab="pane-identificacao" onclick="switchModalTab('pane-identificacao')">
+          <i class="fa-regular fa-id-card"></i> Identificação
+        </button>
+        <button type="button" class="modal-tab-btn" data-tab="pane-midia" onclick="switchModalTab('pane-midia')">
+          <i class="fa-regular fa-image"></i> Fotos &amp; Mídia
+        </button>
+        <button type="button" class="modal-tab-btn" data-tab="pane-condicoes" onclick="switchModalTab('pane-condicoes')">
+          <i class="fa-regular fa-clock"></i> Condições
+        </button>
+        <button type="button" class="modal-tab-btn" data-tab="pane-sobre" onclick="switchModalTab('pane-sobre')">
+          <i class="fa-regular fa-file-lines"></i> Sobre Mim
+        </button>
+        <button type="button" class="modal-tab-btn" data-tab="pane-skills" onclick="switchModalTab('pane-skills')">
+          <i class="fa-solid fa-tags"></i> Competências
+        </button>
+        <button type="button" class="modal-tab-btn" data-tab="pane-experiencia" onclick="switchModalTab('pane-experiencia')">
+          <i class="fa-solid fa-briefcase"></i> Carreira &amp; Portfólio
+        </button>
+      </div>
+
+      <form id="editForm" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+        <div class="modern-modal-body">
+          
+          <!-- ==========================================
+               ABA 1: DADOS DE IDENTIFICAÇÃO BÁSICA
+               ========================================== -->
+          <div id="pane-identificacao" class="modal-tab-pane active">
+            <div class="tip-box-clean">
+              <i class="fa-solid fa-circle-info"></i>
+              <div>Seu nome e especialidade aparecem em destaque nas buscas de freelancers, cards de projetos e propostas no FreeLink.</div>
+            </div>
+
+            <div class="modal-section-title"><i class="fa-regular fa-id-card"></i> Dados Pessoais &amp; Visibilidade</div>
+            
+            <div class="modal-grid-2">
+              <label class="input-group">
+                <span>Nome Completo *</span>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-user"></i>
+                  <input type="text" id="editName" required placeholder="Seu nome completo">
+                </div>
+              </label>
+
+              <label class="input-group">
+                <span>Título / Especialidade Principal</span>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-briefcase"></i>
+                  <input type="text" id="editSpecialty" placeholder="Ex: Desenvolvedor Front-End, Designer UI/UX...">
+                </div>
+              </label>
+            </div>
+
+            <div class="modal-grid-2" style="margin-top: 14px;">
+              <label class="input-group">
+                <span>Tipo de Conta</span>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-user-gear"></i>
+                  <select id="editTipo" style="width: 100%; border: none; outline: none; background: transparent; padding: 12px 0; font-size: 0.95rem; color: var(--text-color); cursor: pointer;">
+                    <option value="freelancer">Freelancer (Presto serviços)</option>
+                    <option value="contratante">Contratante (Publico projetos)</option>
+                  </select>
+                </div>
+              </label>
+
+              <label class="input-group">
+                <span>Cidade e Estado / Localização</span>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-location-dot"></i>
+                  <input type="text" id="editLocation" placeholder="Ex: São Paulo - SP, Remoto...">
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               ABA 2: FOTOS & MÍDIA
+               ========================================== -->
+          <div id="pane-midia" class="modal-tab-pane">
+            <div class="tip-box-clean">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <div>Perfis com foto nítida e capa personalizada transmitem mais confiança e recebem maior volume de contatos.</div>
+            </div>
+
+            <div class="modal-section-title"><i class="fa-regular fa-image"></i> Imagens do Perfil</div>
+            
+            <div class="modal-grid-2">
+              <!-- Dropzone Avatar -->
+              <div class="upload-card-box">
+                <input type="file" id="editAvatar" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
+                <label for="editAvatar" class="upload-dropzone-label">
+                  <div class="upload-icon-circle"><i class="fa-solid fa-camera"></i></div>
+                  <strong style="color: var(--text-heading); font-size: 14px;">Alterar Foto de Perfil</strong>
+                  <span style="font-size: 12px; color: var(--text-muted);">Formatos aceitos: JPG, PNG ou WEBP</span>
+                </label>
+
+                <div id="avatarPreviewWrapper" class="upload-preview-wrapper hidden">
+                  <img id="avatarPreview" src="" class="avatar-preview-circle" alt="Preview Foto">
+                  <button type="button" class="btn-remove-media" onclick="removerFotoPerfil()">
+                    <i class="fa-solid fa-trash-can"></i> Remover Foto
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dropzone Banner -->
+              <div class="upload-card-box">
+                <input type="file" id="editBanner" accept="image/*" style="display: none;" onchange="previewBanner(event)">
+                <label for="editBanner" class="upload-dropzone-label">
+                  <div class="upload-icon-circle"><i class="fa-solid fa-panorama"></i></div>
+                  <strong style="color: var(--text-heading); font-size: 14px;">Alterar Capa do Perfil</strong>
+                  <span style="font-size: 12px; color: var(--text-muted);">Recomendado: 1200x300 (Panorâmico)</span>
+                </label>
+
+                <div id="bannerPreviewWrapper" class="upload-preview-wrapper hidden">
+                  <img id="bannerPreview" src="" class="banner-preview-box" alt="Preview Capa">
+                  <button type="button" class="btn-remove-media" onclick="removerCapaPerfil()">
+                    <i class="fa-solid fa-trash-can"></i> Remover Capa
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               ABA 3: VALORES & CONDIÇÕES
+               ========================================== -->
+          <div id="pane-condicoes" class="modal-tab-pane">
+            <div class="tip-box-clean">
+              <i class="fa-solid fa-handshake"></i>
+              <div>Defina suas condições de atendimento para alinhar expectativas com clientes logo no primeiro contato.</div>
+            </div>
+
+            <div class="modal-section-title"><i class="fa-regular fa-clock"></i> Condições de Atendimento</div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+              <!-- Taxa Horária -->
+              <div>
+                <label class="input-group">
+                  <span>Taxa Horária Base (R$)</span>
+                  <div class="input-wrapper">
+                    <i class="fa-solid fa-dollar-sign"></i>
+                    <input type="text" id="editHourlyRate" placeholder="Ex: 80,00">
+                  </div>
+                </label>
+                <span class="quick-pills-label">Sugestões rápidas:</span>
+                <div class="quick-pills-row">
+                  <button type="button" class="quick-pill-choice" onclick="definirTaxaRapida('40,00')">R$ 40/h</button>
+                  <button type="button" class="quick-pill-choice" onclick="definirTaxaRapida('80,00')">R$ 80/h</button>
+                  <button type="button" class="quick-pill-choice" onclick="definirTaxaRapida('120,00')">R$ 120/h</button>
+                  <button type="button" class="quick-pill-choice" onclick="definirTaxaRapida('A combinar')">A combinar</button>
+                </div>
+              </div>
+
+              <!-- Disponibilidade -->
+              <div>
+                <label class="input-group">
+                  <span>Disponibilidade</span>
+                  <div class="input-wrapper">
+                    <i class="fa-regular fa-calendar"></i>
+                    <input type="text" id="editAvailability" placeholder="Ex: 20-30h / sem">
+                  </div>
+                </label>
+                <span class="quick-pills-label">Sugestões rápidas:</span>
+                <div class="quick-pills-row">
+                  <button type="button" class="quick-pill-choice" onclick="definirDispRapida('10-20h / sem')">10-20h / sem</button>
+                  <button type="button" class="quick-pill-choice" onclick="definirDispRapida('20-30h / sem')">20-30h / sem</button>
+                  <button type="button" class="quick-pill-choice" onclick="definirDispRapida('30-40h / sem')">30-40h / sem</button>
+                  <button type="button" class="quick-pill-choice" onclick="definirDispRapida('Tempo Integral')">Tempo Integral</button>
+                </div>
+              </div>
+
+              <!-- Tempo de Resposta -->
+              <div>
+                <label class="input-group">
+                  <span>Tempo Médio de Resposta</span>
+                  <div class="input-wrapper">
+                    <i class="fa-solid fa-bolt"></i>
+                    <input type="text" id="editResponseTime" placeholder="Ex: < 2 horas">
+                  </div>
+                </label>
+                <span class="quick-pills-label">Sugestões rápidas:</span>
+                <div class="quick-pills-row">
+                  <button type="button" class="quick-pill-choice" onclick="definirTempoRapido('< 1 hora')">&lt; 1 hora</button>
+                  <button type="button" class="quick-pill-choice" onclick="definirTempoRapido('< 2 horas')">&lt; 2 horas</button>
+                  <button type="button" class="quick-pill-choice" onclick="definirTempoRapido('< 4 horas')">&lt; 4 horas</button>
+                  <button type="button" class="quick-pill-choice" onclick="definirTempoRapido('No mesmo dia')">No mesmo dia</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               ABA 4: SOBRE MIM (APRESENTAÇÃO)
+               ========================================== -->
+          <div id="pane-sobre" class="modal-tab-pane">
+            <div class="tip-box-clean">
+              <i class="fa-solid fa-pen-nib"></i>
+              <div>Dica: Conte um resumo sobre sua trajetória, metodologia de desenvolvimento e diferenciais que você oferece.</div>
+            </div>
+
+            <div class="modal-section-title"><i class="fa-regular fa-file-lines"></i> Biografia Profissional</div>
+            
+            <label class="input-group">
+              <div class="input-wrapper" style="align-items: flex-start; padding-top: 10px;">
+                <i class="fa-solid fa-quote-left" style="margin-top: 4px;"></i>
+                <textarea id="editBio" rows="6" oninput="atualizarContadorBio()" placeholder="Descreva sua experiência, diferenciais técnicos, ferramentas favoritas e como você ajuda seus clientes a atingirem seus objetivos..." style="width: 100%; border: none; outline: none; background: transparent; padding: 4px 0 10px; font-family: inherit; font-size: 0.95rem; color: var(--text-color); resize: vertical; min-height: 140px;"></textarea>
+              </div>
+            </label>
+
+            <div class="field-helper-info">
+              <span id="bioCharCount">0 caracteres digitados</span>
+              <span>Recomendado: 100 a 600 caracteres</span>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               ABA 5: COMPETÊNCIAS & HABILIDADES
+               ========================================== -->
+          <div id="pane-skills" class="modal-tab-pane">
+            <div class="tip-box-clean">
+              <i class="fa-solid fa-tags"></i>
+              <div>Adicione suas principais tecnologias, linguagens e ferramentas. Elas serão exibidas como pílulas no seu perfil.</div>
+            </div>
+
+            <div class="modal-section-title"><i class="fa-solid fa-list-check"></i> Habilidades Técnicas</div>
+            
+            <label class="input-group">
+              <span>Habilidades (digite separando por vírgula)</span>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-tag"></i>
+                <input type="text" id="editSkills" oninput="atualizarLiveSkills()" placeholder="Ex: HTML5, CSS3, JavaScript, React, Figma, UI/UX, Node.js...">
+              </div>
+            </label>
+
+            <!-- Box de visualização dinâmica de tags em tempo real -->
+            <div class="live-skills-preview-box" id="liveSkillsBox">
+              <span class="live-skills-title"><i class="fa-regular fa-eye"></i> Pré-visualização em Tempo Real das Tags:</span>
+              <div id="liveSkillsContainer" class="skills-pills-list">
+                <span style="font-size: 12px; color: var(--text-muted);">As tags geradas aparecerão aqui enquanto você digita.</span>
+              </div>
+            </div>
+
+            <div class="modal-grid-2" style="margin-top: 20px;">
+              <label class="input-group">
+                <span>Idiomas (formato: Idioma - Nível, um por linha)</span>
+                <div class="input-wrapper" style="align-items: flex-start; padding-top: 10px;">
+                  <i class="fa-solid fa-language" style="margin-top: 4px;"></i>
+                  <textarea id="editLanguages" rows="3" placeholder="Português - Nativo&#10;Inglês - Intermediário" style="width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 0.92rem; color: var(--text-color); resize: vertical;"></textarea>
+                </div>
+              </label>
+
+              <label class="input-group">
+                <span>Certificações (formato: Nome - Ano, uma por linha)</span>
+                <div class="input-wrapper" style="align-items: flex-start; padding-top: 10px;">
+                  <i class="fa-solid fa-award" style="margin-top: 4px;"></i>
+                  <textarea id="editCertifications" rows="3" placeholder="Desenvolvimento Front-End - 2025&#10;UI/UX Specialist - 2024" style="width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 0.92rem; color: var(--text-color); resize: vertical;"></textarea>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               ABA 6: CARREIRA & PORTFÓLIO
+               ========================================== -->
+          <div id="pane-experiencia" class="modal-tab-pane">
+            <div class="tip-box-clean">
+              <i class="fa-solid fa-briefcase"></i>
+              <div>Destaque seus projetos mais relevantes e sua trajetória para impressionar potenciais contratantes.</div>
+            </div>
+
+            <div class="modal-section-title"><i class="fa-solid fa-timeline"></i> Trajetória Profissional</div>
+            <label class="input-group">
+              <div class="input-wrapper" style="align-items: flex-start; padding-top: 10px;">
+                <i class="fa-solid fa-laptop-code" style="margin-top: 4px;"></i>
+                <textarea id="editExperience" rows="4" placeholder="Cargo ou Função&#10;Nome da Empresa&#10;Período (Ex: 2023 - Presente)&#10;Breve descrição das responsabilidades..." style="width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 0.92rem; color: var(--text-color); resize: vertical;"></textarea>
+              </div>
+            </label>
+            <div class="field-helper-info" style="margin-bottom: 18px;">
+              <span>Formato recomendado: Cargo [Enter] Empresa [Enter] Período [Enter] Descrição. Separe experiências com 2 Enters.</span>
+            </div>
+
+            <div class="modal-section-title"><i class="fa-solid fa-folder-plus"></i> Projetos de Portfólio</div>
+            <label class="input-group">
+              <div class="input-wrapper" style="align-items: flex-start; padding-top: 10px;">
+                <i class="fa-solid fa-code" style="margin-top: 4px;"></i>
+                <textarea id="editPortfolio" rows="4" placeholder="Título do Projeto&#10;Breve descrição do projeto e resultados obtidos&#10;Tags separadas por vírgula (Ex: React, CSS3, API)" style="width: 100%; border: none; outline: none; background: transparent; font-family: inherit; font-size: 0.92rem; color: var(--text-color); resize: vertical;"></textarea>
+              </div>
+            </label>
+            <div class="field-helper-info">
+              <span>Formato recomendado: Título [Enter] Descrição [Enter] Tags separadas por vírgula. Separe projetos com 2 Enters.</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Rodapé Moderno do Modal -->
+        <div class="modern-modal-footer">
+          <span class="modal-footer-nav-hint">
+            <i class="fa-solid fa-circle-check" style="color: var(--primary-color);"></i>
+            Alterações salvas instantaneamente no navegador
+          </span>
+          <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn-share-profile" onclick="closeEditModal()">Cancelar</button>
+            <button type="submit" class="btn-edit-profile" id="btnSalvarModal">
+              <i class="fa-solid fa-floppy-disk"></i> Salvar Alterações
+            </button>
+          </div>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- SCRIPT PRINCIPAL & CONTROLADOR DO PERFIL -->
+  <script src="../js/main.js?v=3"></script>
+  <script>
+    // ====================================================================
+    // GERENCIAMENTO DINÂMICO E LIMPO DO PERFIL (FREELINK)
+    // Sem dados mockados: exibe apenas o que o usuário preencheu ou empty states elegantes
+    // ====================================================================
+
+    // Fallback de segurança para escapeHtml
+    if (typeof escapeHtml !== 'function') {
+      window.escapeHtml = function(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      };
+    }
+
+    // Variáveis em memória para remoção intencional de mídias
+    let fotoRemovida = false;
+    let bannerRemovido = false;
+
+    function obterUsuarioPerfil() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const idParam = urlParams.get('id');
+      const emailParam = urlParams.get('email');
+
+      if (idParam || emailParam) {
+        let usuarios = [];
+        if (typeof obterUsuarios === 'function') {
+          usuarios = obterUsuarios();
         } else {
-          button.innerHTML = '<i class="fa-solid fa-times"></i>';
+          try {
+            const d = localStorage.getItem('freelink_users') || localStorage.getItem('freelink_usuarios');
+            usuarios = d ? JSON.parse(d) : [];
+          } catch(e) {}
+        }
+        const userEncontrado = usuarios.find(u => (idParam && String(u.id) === String(idParam)) || (emailParam && u.email && u.email.toLowerCase() === emailParam.toLowerCase()));
+        if (userEncontrado) return userEncontrado;
+      }
+
+      if (typeof getCurrentUser === 'function') {
+        const u = getCurrentUser();
+        if (u) return u;
+      }
+      if (typeof obterUsuarioLogado === 'function') {
+        const u = obterUsuarioLogado();
+        if (u) return u;
+      }
+      try {
+        const dados = localStorage.getItem('freelink_user') || localStorage.getItem('freelink_usuario_logado');
+        if (dados) return JSON.parse(dados);
+      } catch(e) {}
+      return {
+        nome: "Seu Nome",
+        email: "usuario@freelink.com",
+        tipo: "freelancer",
+        especialidade: ""
+      };
+    }
+
+    function carregarDadosPerfil(usuarioForcado) {
+      const usuario = usuarioForcado || obterUsuarioPerfil();
+      if (!usuario) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const idParam = urlParams.get('id');
+      const emailParam = urlParams.get('email');
+      const isOutroUsuario = Boolean(idParam || emailParam);
+      const usuarioLogado = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+      const isMeuProprioPerfil = !isOutroUsuario || (usuarioLogado && ((usuario.id && usuario.id === usuarioLogado.id) || (usuario.email && usuario.email === usuarioLogado.email)));
+
+      const btnChatPub = document.getElementById('btnChatPerfilPublico');
+      if (!isMeuProprioPerfil) {
+        window.toggleModoVisualizacao(true);
+        const banner = document.getElementById('previewBannerMode');
+        if (banner) {
+          banner.classList.remove('hidden');
+          banner.innerHTML = `
+            <span>
+              <i class="fa-solid fa-user-check"></i> 
+              <strong>Perfil Público:</strong> Você está visualizando o perfil de <strong>${escapeHtml(usuario.nome)}</strong>.
+            </span>
+            <button type="button" class="btn-exit-preview" onclick="window.history.length > 1 ? window.history.back() : window.location.href='index.html'">
+              <i class="fa-solid fa-arrow-left"></i> Voltar ao FreeLink
+            </button>
+          `;
+        }
+        if (btnChatPub && usuario.email) {
+          btnChatPub.style.display = 'inline-flex';
+          btnChatPub.onclick = () => {
+            if (typeof abrirChatDireto === 'function') {
+              abrirChatDireto(usuario.email, usuario.nome, 'Contato via Perfil');
+            }
+          };
+        }
+      } else if (btnChatPub) {
+        btnChatPub.style.display = 'none';
+      }
+
+      // 1. Nome
+      const elemNome = document.getElementById('profileName');
+      if (elemNome) {
+        elemNome.textContent = usuario.nome || 'Seu Nome';
+      }
+
+      // 2. Email
+      const elemEmail = document.getElementById('profileEmail');
+      if (elemEmail) {
+        elemEmail.textContent = usuario.email || '-';
+      }
+
+      // 3. Localização
+      const elemLoc = document.getElementById('profileLocation');
+      if (elemLoc) {
+        elemLoc.textContent = usuario.localizacao || 'Localização não informada';
+      }
+
+      // 4. Tipo / Status
+      const elemStatus = document.getElementById('profileStatusText');
+      if (elemStatus) {
+        elemStatus.textContent = usuario.tipo === 'contratante' ? 'Contratante Ativo' : 'Freelancer Ativo';
+      }
+
+      // 5. Especialidade
+      const elemEspec = document.getElementById('profileSpecialty');
+      if (elemEspec) {
+        if (usuario.especialidade && usuario.especialidade.trim() !== '') {
+          elemEspec.textContent = usuario.especialidade;
+          elemEspec.style.color = 'var(--primary-color)';
+        } else {
+          elemEspec.textContent = 'Adicione sua especialidade / título profissional';
+          elemEspec.style.color = 'var(--text-muted)';
+        }
+      }
+
+      // 6. Foto de Avatar
+      const containerAvatar = document.getElementById('profileAvatarContainer');
+      const foto = usuario.foto || usuario.avatar;
+      if (containerAvatar) {
+        if (foto && foto.trim() !== '') {
+          containerAvatar.innerHTML = `<img src="${foto}" alt="${usuario.nome || 'Avatar'}" class="profile-avatar-img">`;
+        } else {
+          const inicial = (usuario.nome && usuario.nome.trim() !== '') ? usuario.nome.charAt(0).toUpperCase() : 'U';
+          containerAvatar.innerHTML = `
+            <div class="profile-avatar-default">
+              <span>${inicial}</span>
+            </div>
+          `;
+        }
+      }
+
+      // 7. Capa do Perfil
+      const coverBg = document.getElementById('profileCoverBg');
+      if (coverBg) {
+        if (usuario.banner && usuario.banner.trim() !== '') {
+          coverBg.style.backgroundImage = `url('${usuario.banner}')`;
+        } else {
+          coverBg.style.backgroundImage = '';
+        }
+      }
+
+      // 8. Quick Stats Bar
+      const elemTaxa = document.getElementById('dispTaxa');
+      if (elemTaxa) {
+        elemTaxa.textContent = (usuario.taxaHoraria && usuario.taxaHoraria.trim() !== '') ? (usuario.taxaHoraria.startsWith('R$') ? usuario.taxaHoraria : `R$ ${usuario.taxaHoraria}/h`) : '-';
+      }
+
+      const elemDisp = document.getElementById('dispHoras');
+      if (elemDisp) {
+        elemDisp.textContent = (usuario.disponibilidade && usuario.disponibilidade.trim() !== '') ? usuario.disponibilidade : '-';
+      }
+
+      const elemTempo = document.getElementById('dispTempo');
+      if (elemTempo) {
+        elemTempo.textContent = (usuario.tempoResposta && usuario.tempoResposta.trim() !== '') ? usuario.tempoResposta : '-';
+      }
+
+      const elemAval = document.getElementById('dispAvaliacao');
+      if (elemAval) {
+        if (Array.isArray(usuario.avaliacoes) && usuario.avaliacoes.length > 0) {
+          elemAval.innerHTML = `<i class="fa-solid fa-star" style="color: #f59e0b; margin-right: 4px;"></i> 5.0 (${usuario.avaliacoes.length})`;
+        } else {
+          elemAval.textContent = 'Sem avaliações';
+        }
+      }
+
+      // 9. Sobre Mim
+      const elemBio = document.getElementById('bioSection');
+      if (elemBio) {
+        if (usuario.bio && usuario.bio.trim() !== '') {
+          elemBio.innerHTML = `<div class="bio-formatted-text">${escapeHtml(usuario.bio)}</div>`;
+        } else {
+          elemBio.innerHTML = `
+            <div class="empty-state-clean">
+              <i class="fa-regular fa-id-card empty-state-icon"></i>
+              <p class="empty-state-text">Nenhuma apresentação profissional adicionada ainda.</p>
+              <button type="button" class="btn-add-section edit-only" onclick="openEditModal('editBio', 'pane-sobre')">
+                <i class="fa-solid fa-plus"></i> Adicionar Sobre Mim
+              </button>
+            </div>
+          `;
+        }
+      }
+
+      // 10. Habilidades
+      renderizarHabilidades(usuario.habilidades || '');
+
+      // 11. Idiomas
+      renderizarIdiomas(usuario.idiomas || '');
+
+      // 12. Certificações
+      renderizarCertificacoes(usuario.certificações || usuario.certificacoes || '');
+
+      // 13. Experiências
+      renderizarExperiencias(usuario.experienciaTexto || '');
+
+      // 14. Portfólio
+      renderizarPortfolio(usuario.portfolioTexto || usuario.portfolio || '');
+
+      // 15. Avaliações
+      renderizarAvaliacoes(usuario.avaliacoes || []);
+
+      // Preenche os campos do formulário no modal com os dados atuais
+      preencherCamposModal(usuario);
+    }
+
+    function renderizarHabilidades(habsTexto) {
+      const container = document.getElementById('profileSkillsList');
+      if (!container) return;
+
+      const tags = (habsTexto || '').split(',').map(s => s.trim()).filter(Boolean);
+      if (tags.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-clean">
+            <i class="fa-solid fa-tags empty-state-icon"></i>
+            <p class="empty-state-text">Nenhuma habilidade adicionada ainda.</p>
+            <button type="button" class="btn-add-section edit-only" onclick="openEditModal('editSkills', 'pane-skills')">
+              <i class="fa-solid fa-plus"></i> Adicionar Habilidades
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="skills-pills-list">
+          ${tags.map(tag => `<span class="skill-pill">${escapeHtml(tag)}</span>`).join('')}
+        </div>
+      `;
+    }
+
+    function renderizarIdiomas(idiomasTexto) {
+      const container = document.getElementById('profileLanguagesList');
+      if (!container) return;
+
+      const linhas = (idiomasTexto || '').split('\n').map(l => l.trim()).filter(Boolean);
+      if (linhas.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-clean">
+            <i class="fa-solid fa-language empty-state-icon"></i>
+            <p class="empty-state-text">Nenhum idioma adicionado ainda.</p>
+            <button type="button" class="btn-add-section edit-only" onclick="openEditModal('editLanguages', 'pane-skills')">
+              <i class="fa-solid fa-plus"></i> Adicionar Idiomas
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="languages-clean-list">
+          ${linhas.map(item => {
+            const partes = item.split('-');
+            const nome = partes[0] ? partes[0].trim() : item;
+            const nivel = partes[1] ? partes[1].trim() : 'Básico';
+            return `
+              <div class="language-row">
+                <span class="language-name">${escapeHtml(nome)}</span>
+                <span class="language-badge">${escapeHtml(nivel)}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderizarCertificacoes(certTexto) {
+      const container = document.getElementById('profileCertificationsList');
+      if (!container) return;
+
+      const itens = (certTexto || '').split('\n').map(c => c.trim()).filter(Boolean);
+      if (itens.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-clean">
+            <i class="fa-solid fa-award empty-state-icon"></i>
+            <p class="empty-state-text">Nenhuma certificação adicionada ainda.</p>
+            <button type="button" class="btn-add-section edit-only" onclick="openEditModal('editCertifications', 'pane-skills')">
+              <i class="fa-solid fa-plus"></i> Adicionar Certificação
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="certifications-clean-list">
+          ${itens.map(item => {
+            const partes = item.split('-');
+            const nome = partes[0] ? partes[0].trim() : item;
+            const data = partes[1] ? partes[1].trim() : '';
+            return `
+              <div class="cert-item-clean">
+                <div class="cert-icon-circle"><i class="fa-solid fa-award"></i></div>
+                <div>
+                  <div class="cert-title-clean">${escapeHtml(nome)}</div>
+                  ${data ? `<div class="cert-year-clean">${escapeHtml(data)}</div>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderizarExperiencias(expTexto) {
+      const container = document.getElementById('experienceSection');
+      if (!container) return;
+
+      const blocos = (expTexto || '').split('\n\n').filter(e => e.trim());
+      if (blocos.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-clean">
+            <i class="fa-solid fa-briefcase empty-state-icon"></i>
+            <p class="empty-state-text">Nenhuma experiência profissional cadastrada ainda.</p>
+            <button type="button" class="btn-add-section edit-only" onclick="openEditModal('editExperience', 'pane-experiencia')">
+              <i class="fa-solid fa-plus"></i> Adicionar Experiência
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="experience-timeline">
+          ${blocos.map(bloco => {
+            const linhas = bloco.split('\n').map(l => l.trim()).filter(Boolean);
+            const cargo = linhas[0] || 'Experiência Profissional';
+            const empresa = linhas[1] || '';
+            const periodo = linhas[2] || '';
+            const descricao = linhas.slice(3).join(' ');
+
+            return `
+              <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <h4>${escapeHtml(cargo)}</h4>
+                  <div class="timeline-meta">
+                    ${empresa ? `<span class="timeline-company"><i class="fa-regular fa-building"></i> ${escapeHtml(empresa)}</span>` : ''}
+                    ${periodo ? `<span><i class="fa-regular fa-calendar"></i> ${escapeHtml(periodo)}</span>` : ''}
+                  </div>
+                  ${descricao ? `<p class="timeline-desc">${escapeHtml(descricao)}</p>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderizarPortfolio(portfolioTexto) {
+      const container = document.getElementById('portfolioSection');
+      if (!container) return;
+
+      const blocos = (portfolioTexto || '').split('\n\n').filter(p => p.trim());
+      if (blocos.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-clean">
+            <i class="fa-solid fa-folder-open empty-state-icon"></i>
+            <p class="empty-state-text">Nenhum projeto adicionado ao portfólio ainda.</p>
+            <button type="button" class="btn-add-section edit-only" onclick="openEditModal('editPortfolio', 'pane-experiencia')">
+              <i class="fa-solid fa-plus"></i> Adicionar ao Portfólio
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="portfolio-modern-grid">
+          ${blocos.map(bloco => {
+            const linhas = bloco.split('\n').map(l => l.trim()).filter(Boolean);
+            const titulo = linhas[0] || 'Projeto';
+            const desc = linhas[1] || '';
+            const tags = (linhas[2] || '').split(',').map(t => t.trim()).filter(Boolean);
+
+            return `
+              <div class="portfolio-card-clean">
+                <div class="portfolio-img-thumb">
+                  <i class="fa-solid fa-laptop-code"></i>
+                </div>
+                <div class="portfolio-card-body">
+                  <h4 class="portfolio-card-title">${escapeHtml(titulo)}</h4>
+                  ${desc ? `<p class="portfolio-card-desc">${escapeHtml(desc)}</p>` : ''}
+                  ${tags.length ? `
+                    <div class="portfolio-card-tags">
+                      ${tags.map(t => `<span class="skill-pill" style="font-size: 11px; padding: 3px 8px;">${escapeHtml(t)}</span>`).join('')}
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderizarAvaliacoes(avaliacoes) {
+      const container = document.getElementById('reviewsSection');
+      if (!container) return;
+
+      if (!Array.isArray(avaliacoes) || avaliacoes.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state-clean">
+            <i class="fa-regular fa-star empty-state-icon"></i>
+            <p class="empty-state-text">Ainda não há avaliações registradas para este perfil. Conclua projetos com clientes para receber depoimentos e notas.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="reviews-clean-list">
+          ${avaliacoes.map(av => `
+            <div class="review-item-card">
+              <div class="review-header">
+                <div class="reviewer-info">
+                  <div class="reviewer-avatar">${escapeHtml(av.autor ? av.autor.substring(0, 2).toUpperCase() : 'CL')}</div>
+                  <div>
+                    <div class="reviewer-name">${escapeHtml(av.autor || 'Cliente')}</div>
+                    <div class="reviewer-company">${escapeHtml(av.projeto || 'Projeto Concluído')}</div>
+                  </div>
+                </div>
+                <div class="review-stars">
+                  ${'<i class="fa-solid fa-star"></i>'.repeat(av.estrelas || 5)}
+                </div>
+              </div>
+              <p class="review-text">"${escapeHtml(av.comentario || '')}"</p>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function preencherCamposModal(usuario) {
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || '';
+      };
+
+      setVal('editName', usuario.nome || '');
+      setVal('editSpecialty', usuario.especialidade || '');
+      setVal('editLocation', usuario.localizacao || '');
+      setVal('editHourlyRate', usuario.taxaHoraria || '');
+      setVal('editAvailability', usuario.disponibilidade || '');
+      setVal('editResponseTime', usuario.tempoResposta || '');
+      setVal('editBio', usuario.bio || '');
+      setVal('editSkills', usuario.habilidades || '');
+      setVal('editLanguages', usuario.idiomas || '');
+      setVal('editCertifications', usuario.certificações || usuario.certificacoes || '');
+      setVal('editExperience', usuario.experienciaTexto || '');
+      setVal('editPortfolio', usuario.portfolioTexto || usuario.portfolio || '');
+
+      const selTipo = document.getElementById('editTipo');
+      if (selTipo) selTipo.value = usuario.tipo || 'freelancer';
+
+      // Carrega fotos existentes no preview do modal
+      const avatarWrap = document.getElementById('avatarPreviewWrapper');
+      const avatarImg = document.getElementById('avatarPreview');
+      const foto = usuario.foto || usuario.avatar;
+      if (foto && foto.trim() !== '') {
+        if (avatarImg) avatarImg.src = foto;
+        if (avatarWrap) avatarWrap.classList.remove('hidden');
+      } else {
+        if (avatarWrap) avatarWrap.classList.add('hidden');
+      }
+
+      const bannerWrap = document.getElementById('bannerPreviewWrapper');
+      const bannerImg = document.getElementById('bannerPreview');
+      if (usuario.banner && usuario.banner.trim() !== '') {
+        if (bannerImg) bannerImg.src = usuario.banner;
+        if (bannerWrap) bannerWrap.classList.remove('hidden');
+      } else {
+        if (bannerWrap) bannerWrap.classList.add('hidden');
+      }
+
+      atualizarContadorBio();
+      atualizarLiveSkills();
+    }
+
+    // ====================================================================
+    // NAVEGAÇÃO POR ABAS NO MODAL DE EDIÇÃO
+    // ====================================================================
+
+    function switchModalTab(targetTabId) {
+      const buttons = document.querySelectorAll('.modal-tab-btn');
+      const panes = document.querySelectorAll('.modal-tab-pane');
+
+      buttons.forEach(btn => {
+        if (btn.getAttribute('data-tab') === targetTabId) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      panes.forEach(pane => {
+        if (pane.id === targetTabId) {
+          pane.classList.add('active');
+        } else {
+          pane.classList.remove('active');
+        }
+      });
+    }
+
+    // ====================================================================
+    // CONTROLES DE MODAL E AÇÕES
+    // ====================================================================
+
+    function openEditModal(targetInputId, targetTabId) {
+      const modal = document.getElementById('editModal');
+      if (modal) {
+        // Reseta flags de remoção de mídia
+        fotoRemovida = false;
+        bannerRemovido = false;
+
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        if (targetTabId) {
+          switchModalTab(targetTabId);
+        } else {
+          switchModalTab('pane-identificacao');
+        }
+
+        if (targetInputId) {
+          setTimeout(() => {
+            const target = document.getElementById(targetInputId);
+            if (target) {
+              target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              target.focus();
+            }
+          }, 120);
         }
       }
     }
 
-    /* Salva edição de seção específica */
-    function saveSectionEdit(sectionId, textareaId) {
-      const section = document.getElementById(sectionId);
-      const textarea = document.getElementById(textareaId);
-      const text = textarea.value;
-
-      if (sectionId === 'bioSection') {
-        /* Atualiza conteúdo Sobre Mim */
-        const paragraphs = text.split('\n\n');
-        section.innerHTML = paragraphs
-          .map(p => `<p class="bio-text">${p.trim()}</p>`)
-          .join('');
-      } else if (sectionId === 'experienceSection') {
-        /* Atualiza Experiência (formato simplificado) */
-        const experiences = text.split('\n\n').filter(e => e.trim());
-        section.innerHTML = experiences.map(exp => {
-          const lines = exp.split('\n');
-          const [title, company, period] = lines;
-          const description = lines.slice(3).join(' ');
-          
-          return `
-            <div class="experience-item">
-              <div class="exp-header">
-                <h3>${title || ''}</h3>
-                <span class="exp-company">${company || ''}</span>
-              </div>
-              <p class="exp-period"><i class="fa-regular fa-calendar"></i> ${period || ''}</p>
-              <p class="exp-description">${description || ''}</p>
-            </div>
-          `;
-        }).join('');
+    function closeEditModal() {
+      const modal = document.getElementById('editModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
       }
-
-      /* Esconde área de edição e mostra conteúdo */
-      const sectionEdit = section.closest('.profile-section').querySelector('.section-edit');
-      const sectionContent = section.closest('.profile-section').querySelector('.section-content');
-      const editBtn = section.closest('.profile-section').querySelector('.edit-section-btn');
-
-      if (sectionEdit) sectionEdit.classList.add('hidden');
-      if (sectionContent) sectionContent.classList.remove('hidden');
-      if (editBtn) editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
-
-      alert('Seção atualizada com sucesso!');
     }
 
-    /* Cancela edição de seção (sem salvar) */
-    function cancelSectionEdit(sectionId) {
-      const section = document.getElementById(sectionId);
-      const sectionEdit = section.closest('.profile-section').querySelector('.section-edit');
-      const sectionContent = section.closest('.profile-section').querySelector('.section-content');
-      const editBtn = section.closest('.profile-section').querySelector('.edit-section-btn');
+    function toggleModoVisualizacao(previewActive) {
+      const banner = document.getElementById('previewBannerMode');
+      const btnView = document.getElementById('btnTogglePreview');
+      const editElements = document.querySelectorAll('.edit-only, .btn-edit-profile, .profile-avatar-edit-btn, .profile-cover-btn');
 
-      if (sectionEdit) sectionEdit.classList.add('hidden');
-      if (sectionContent) sectionContent.classList.remove('hidden');
-      if (editBtn) editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+      if (previewActive) {
+        document.body.classList.add('preview-mode-active');
+        document.body.classList.add('public-view-mode');
+        if (banner) banner.classList.remove('hidden');
+        if (btnView) btnView.classList.add('hidden');
+        editElements.forEach(el => el.style.display = 'none');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (typeof showToast === 'function') {
+          showToast('Modo de Visualização Público ativo: veja seu perfil como os visitantes o veem.', 'info');
+        }
+      } else {
+        document.body.classList.remove('preview-mode-active');
+        document.body.classList.remove('public-view-mode');
+        if (banner) banner.classList.add('hidden');
+        if (btnView) btnView.classList.remove('hidden');
+        editElements.forEach(el => el.style.display = '');
+        if (typeof showToast === 'function') {
+          showToast('Modo de Edição reativado.', 'info');
+        }
+      }
+    }
+    window.toggleModoVisualizacao = toggleModoVisualizacao;
+
+    function compartilharPerfil() {
+      const link = window.location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(() => {
+          if (typeof showToast === 'function') {
+            showToast('Link do perfil copiado para a área de transferência!', 'success');
+          } else {
+            alert('Link do perfil copiado para a área de transferência!');
+          }
+        }).catch(() => {
+          copiarFallback(link);
+        });
+      } else {
+        copiarFallback(link);
+      }
     }
 
-    /* Submete o formulário principal de edição */
-    document.addEventListener('DOMContentLoaded', function() {
-      const usuarioLogado = typeof obterUsuarioLogado === 'function' ? obterUsuarioLogado() : null;
-      const profileNameElem = document.getElementById('profileName');
-      if (profileNameElem) {
-        profileNameElem.textContent = usuarioLogado ? usuarioLogado.nome : "Carlos Eduardo Santos";
+    function copiarFallback(texto) {
+      const input = document.createElement('input');
+      input.value = texto;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      if (typeof showToast === 'function') {
+        showToast('Link do perfil copiado para a área de transferência!', 'success');
+      } else {
+        alert('Link do perfil copiado!');
       }
-      const editNameInput = document.getElementById('editName');
-      if (editNameInput) {
-        editNameInput.value = profileNameElem ? profileNameElem.textContent : "Carlos Eduardo Santos";
+    }
+
+    // Upload & Previews de Imagem
+    function previewAvatar(event) {
+      const file = event.target.files[0];
+      if (file) {
+        fotoRemovida = false;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('avatarPreview');
+          const wrap = document.getElementById('avatarPreviewWrapper');
+          if (preview) preview.src = e.target.result;
+          if (wrap) wrap.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removerFotoPerfil() {
+      fotoRemovida = true;
+      const fileInput = document.getElementById('editAvatar');
+      if (fileInput) fileInput.value = '';
+      const wrap = document.getElementById('avatarPreviewWrapper');
+      if (wrap) wrap.classList.add('hidden');
+      if (typeof showToast === 'function') {
+        showToast('Foto removida. Salve as alterações para confirmar.', 'info');
+      }
+    }
+
+    function previewBanner(event) {
+      const file = event.target.files[0];
+      if (file) {
+        bannerRemovido = false;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('bannerPreview');
+          const wrap = document.getElementById('bannerPreviewWrapper');
+          if (preview) preview.src = e.target.result;
+          if (wrap) wrap.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function removerCapaPerfil() {
+      bannerRemovido = true;
+      const fileInput = document.getElementById('editBanner');
+      if (fileInput) fileInput.value = '';
+      const wrap = document.getElementById('bannerPreviewWrapper');
+      if (wrap) wrap.classList.add('hidden');
+      if (typeof showToast === 'function') {
+        showToast('Capa removida. Salve as alterações para confirmar.', 'info');
+      }
+    }
+
+    // Atalhos Rápidos por Pílulas
+    function definirTaxaRapida(valor) {
+      const el = document.getElementById('editHourlyRate');
+      if (el) el.value = valor;
+    }
+
+    function definirDispRapida(valor) {
+      const el = document.getElementById('editAvailability');
+      if (el) el.value = valor;
+    }
+
+    function definirTempoRapido(valor) {
+      const el = document.getElementById('editResponseTime');
+      if (el) el.value = valor;
+    }
+
+    // Contador da Bio
+    function atualizarContadorBio() {
+      const bio = document.getElementById('editBio');
+      const counter = document.getElementById('bioCharCount');
+      if (bio && counter) {
+        const len = bio.value.length;
+        counter.textContent = `${len} caracteres digitados`;
+        if (len > 600) {
+          counter.style.color = '#ef4444';
+        } else {
+          counter.style.color = 'var(--text-muted)';
+        }
+      }
+    }
+
+    // Atualização em Tempo Real das Tags de Habilidades no Modal
+    function atualizarLiveSkills() {
+      const input = document.getElementById('editSkills');
+      const container = document.getElementById('liveSkillsContainer');
+      if (!input || !container) return;
+
+      const tags = input.value.split(',').map(s => s.trim()).filter(Boolean);
+      if (tags.length === 0) {
+        container.innerHTML = `<span style="font-size: 12px; color: var(--text-muted);">As tags geradas aparecerão aqui enquanto você digita.</span>`;
+        return;
       }
 
+      container.innerHTML = tags.map(tag => `
+        <span class="skill-pill" style="font-size: 12px; padding: 4px 10px;">
+          ${escapeHtml(tag)}
+        </span>
+      `).join('');
+    }
+
+    // Redimensiona e comprime imagens (avatar/banner) para JPEG leve antes de converter em base64,
+    // evitando estourar o limite de 5 MB do localStorage
+    function comprimirImagemArquivo(file, maxLargura, maxAltura, qualidade = 0.82) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          const img = new Image();
+          img.onload = function() {
+            let w = img.width, h = img.height;
+            const escala = Math.min(1, maxLargura / w, maxAltura / h);
+            w = Math.round(w * escala);
+            h = Math.round(h * escala);
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', qualidade));
+          };
+          img.onerror = () => resolve(ev.target.result);
+          img.src = ev.target.result;
+        };
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function persistirDadosPerfil(dadosNovos) {
+      const usuarioAtual = obterUsuarioPerfil();
+      if (!usuarioAtual) return;
+
+      const usuarioAtualizado = Object.assign({}, usuarioAtual, dadosNovos);
+
+      // Remove chaves legadas duplicadas para liberar espaço no localStorage
+      localStorage.removeItem('freelink_usuario_logado');
+      localStorage.removeItem('freelink_usuarios');
+
+      try {
+        localStorage.setItem('freelink_user', JSON.stringify(usuarioAtualizado));
+      } catch (errQuota) {
+        const leve = Object.assign({}, usuarioAtualizado);
+        if (typeof leve.banner === 'string' && leve.banner.startsWith('data:')) delete leve.banner;
+        try {
+          localStorage.setItem('freelink_user', JSON.stringify(leve));
+        } catch (errQuota2) {
+          delete leve.foto;
+          delete leve.avatar;
+          try { localStorage.setItem('freelink_user', JSON.stringify(leve)); } catch (e) {}
+        }
+      }
+
+      // Sincroniza na lista global de usuários (usando salvarUsuarios que já remove banners pesados)
+      try {
+        const dadosU = localStorage.getItem('freelink_users');
+        const listaUsuarios = dadosU ? JSON.parse(dadosU) : [];
+        const index = listaUsuarios.findIndex(u => (u.id && u.id === usuarioAtualizado.id) || (u.email && u.email === usuarioAtualizado.email));
+        if (index !== -1) {
+          listaUsuarios[index] = Object.assign({}, listaUsuarios[index], dadosNovos);
+        } else {
+          const novo = Object.assign({}, usuarioAtualizado);
+          delete novo.senha;
+          listaUsuarios.push(novo);
+        }
+        if (typeof salvarUsuarios === 'function') {
+          salvarUsuarios(listaUsuarios);
+        } else {
+          localStorage.setItem('freelink_users', JSON.stringify(listaUsuarios));
+        }
+      } catch (err) {
+        console.error("Erro ao sincronizar usuários:", err);
+      }
+
+      carregarDadosPerfil(usuarioAtualizado);
+
+      if (typeof atualizarNavbarAutenticacao === 'function') {
+        atualizarNavbarAutenticacao();
+      }
+
+      const avisar = (msg, tipo) => {
+        if (typeof showToast === 'function') showToast(msg, tipo);
+        else alert(msg);
+      };
+
+      // Qualquer conta autenticada no banco (Google ou E-mail/Senha): salva de verdade no PostgreSQL
+      if ((usuarioAtualizado.dbId || usuarioAtualizado.googleId || localStorage.getItem('freelink_token')) && typeof salvarPerfilNoServidor === 'function') {
+        const ok = await salvarPerfilNoServidor(usuarioAtualizado);
+        if (ok) avisar('Perfil salvo no banco de dados com sucesso!', 'success');
+        else avisar('Salvo só neste navegador: não foi possível gravar no servidor. Faça login novamente e tente de novo.', 'error');
+      } else {
+        avisar('Perfil atualizado com sucesso!', 'success');
+      }
+
+      if (typeof aoAtualizarPerfilOnboarding === 'function') {
+        aoAtualizarPerfilOnboarding(usuarioAtualizado);
+      }
+    }
+
+    // Inicialização ao carregar a página
+    document.addEventListener('DOMContentLoaded', async () => {
+      carregarDadosPerfil();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const idParam = urlParams.get('id');
+      const emailParam = urlParams.get('email');
+      const token = localStorage.getItem('freelink_token');
+
+      if ((idParam || emailParam)) {
+        // Perfil público: busca do PostgreSQL para funcionar também em outros PCs
+        try {
+          const qs = new URLSearchParams();
+          if (idParam) qs.set('id', idParam);
+          if (emailParam) qs.set('email', emailParam);
+          const resPub = await fetch('/api/usuarios/perfil?' + qs.toString());
+          if (resPub.ok) {
+            const dataPub = await resPub.json();
+            if (dataPub && dataPub.usuario) {
+              carregarDadosPerfil(dataPub.usuario);
+            }
+          }
+        } catch (e) {}
+      } else if (token) {
+        // Meu próprio perfil: busca a versão mais recente do PostgreSQL
+        try {
+          const res = await fetch('/api/perfil', { headers: { 'Authorization': 'Bearer ' + token } });
+          if (res.ok) {
+            const data = await res.json();
+            const perfil = data && data.perfil;
+            if (perfil && Object.keys(perfil).length > 0) {
+              const atual = obterUsuarioPerfil() || {};
+              const mesclado = Object.assign({}, atual, perfil);
+              localStorage.removeItem('freelink_usuario_logado');
+              try {
+                localStorage.setItem('freelink_user', JSON.stringify(mesclado));
+              } catch (e) {
+                const leve = Object.assign({}, mesclado);
+                if (typeof leve.banner === 'string' && leve.banner.startsWith('data:')) delete leve.banner;
+                try { localStorage.setItem('freelink_user', JSON.stringify(leve)); } catch (e2) {}
+              }
+              carregarDadosPerfil(mesclado);
+              if (typeof atualizarNavbarAutenticacao === 'function') atualizarNavbarAutenticacao();
+            }
+          }
+        } catch (e) {}
+      }
+
+      // Se veio da notificação/bot para completar o perfil (?completar=1), abre o modal já na aba que falta
+      if (urlParams.get('completar') === '1' && !idParam && !emailParam) {
+        const tabParam = urlParams.get('tab');
+        const campoParam = urlParams.get('campo');
+        let abaAlvo = tabParam || 'pane-identificacao';
+        let campoAlvo = campoParam || null;
+        if (!tabParam && typeof avaliarCompletudePerfil === 'function') {
+          const analise = avaliarCompletudePerfil(obterUsuarioPerfil());
+          if (analise && analise.primeiraAba) abaAlvo = analise.primeiraAba;
+          if (analise && analise.primeiroCampo) campoAlvo = analise.primeiroCampo;
+        }
+        setTimeout(() => openEditModal(campoAlvo, abaAlvo), 150);
+      }
+
+      // Submit do formulário de edição
       const editForm = document.getElementById('editForm');
       if (editForm) {
-        editForm.addEventListener('submit', function(e) {
+        editForm.addEventListener('submit', async function(e) {
           e.preventDefault();
-
-          /* Atualiza nome */
-          const newName = document.getElementById('editName').value;
-          document.getElementById('profileName').textContent = newName;
-
-          /* Atualiza avatar se novo arquivo foi selecionado */
-          const avatarFile = document.getElementById('editAvatar').files[0];
-          if (avatarFile) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-              document.querySelector('.profile-avatar').src = e.target.result;
-            };
-            reader.readAsDataURL(avatarFile);
+          const btnSalvar = document.getElementById('btnSalvarModal');
+          if (btnSalvar) {
+            btnSalvar.disabled = true;
+            btnSalvar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
           }
 
-          /* Atualiza banner se novo arquivo foi selecionado */
-          const bannerFile = document.getElementById('editBanner').files[0];
-          if (bannerFile) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-              document.querySelector('.banner-background').style.backgroundImage = `url(${e.target.result})`;
-              document.querySelector('.banner-background').style.backgroundSize = 'cover';
-              document.querySelector('.banner-background').style.backgroundPosition = 'center';
+          try {
+            const dadosAtualizados = {
+              nome: document.getElementById('editName').value.trim(),
+              especialidade: document.getElementById('editSpecialty').value.trim(),
+              tipo: document.getElementById('editTipo') ? document.getElementById('editTipo').value : 'freelancer',
+              localizacao: document.getElementById('editLocation').value.trim(),
+              taxaHoraria: document.getElementById('editHourlyRate').value.trim(),
+              disponibilidade: document.getElementById('editAvailability').value.trim(),
+              tempoResposta: document.getElementById('editResponseTime').value.trim(),
+              bio: document.getElementById('editBio').value.trim(),
+              habilidades: document.getElementById('editSkills').value.trim(),
+              idiomas: document.getElementById('editLanguages').value.trim(),
+              certificações: document.getElementById('editCertifications').value.trim(),
+              experienciaTexto: document.getElementById('editExperience').value.trim(),
+              portfolioTexto: document.getElementById('editPortfolio').value.trim()
             };
-            reader.readAsDataURL(bannerFile);
+
+            if (fotoRemovida) {
+              dadosAtualizados.foto = '';
+              dadosAtualizados.avatar = '';
+            }
+
+            if (bannerRemovido) {
+              dadosAtualizados.banner = '';
+            }
+
+            const avatarInput = document.getElementById('editAvatar');
+            const bannerInput = document.getElementById('editBanner');
+            const avatarFile = avatarInput && avatarInput.files ? avatarInput.files[0] : null;
+            const bannerFile = bannerInput && bannerInput.files ? bannerInput.files[0] : null;
+
+            if (avatarFile) {
+              dadosAtualizados.foto = await comprimirImagemArquivo(avatarFile, 400, 400, 0.85);
+            }
+            if (bannerFile) {
+              dadosAtualizados.banner = await comprimirImagemArquivo(bannerFile, 1280, 420, 0.80);
+            }
+
+            await persistirDadosPerfil(dadosAtualizados);
+            if (avatarInput) avatarInput.value = '';
+            if (bannerInput) bannerInput.value = '';
+            closeEditModal();
+          } finally {
+            if (btnSalvar) {
+              btnSalvar.disabled = false;
+              btnSalvar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações';
+            }
           }
-          
-          closeEditModal();
-          alert('Perfil atualizado com sucesso!');
         });
       }
 
-      /* Menu toggle para mobile */
-      const navToggle = document.querySelector('.nav-toggle');
-      if (navToggle) {
-        navToggle.addEventListener('click', function(){
-          const nav = document.querySelector('.nav-links');
-          nav.classList.toggle('open');
+      // Fecha modal ao clicar no fundo escuro
+      const modal = document.getElementById('editModal');
+      if (modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) closeEditModal();
         });
       }
+
+      // Fecha modal com a tecla ESC
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeEditModal();
+      });
     });
   </script>
 </body>

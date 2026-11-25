@@ -1,12 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FreeLink | Postar Novo Projeto</title>
-  <link rel="stylesheet" href="../css/Style.css">
+  <title>FreeLink | Publicar Novo Projeto</title>
+  <link rel="stylesheet" href="../css/Style.css?v=3">
   <link rel="stylesheet" href="../css/login.css">
-  <!-- Ícones FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -14,14 +13,14 @@
   <!-- NAVEGAÇÃO / HEADER -->
   <header class="navbar">
     <div class="logo">
-      <a href="index.html"><img src="../logo.png" alt="FreeLink" class="brand-logo"></a>
+      <a href="index.html"><img src="../img/imagem.png" alt="FreeLink" class="brand-logo"></a>
       <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
     </div>
     <nav class="nav-links">
-      <a href="configuracoes.html">Configurações</a>
       <a href="index.html">Início</a>
       <a href="postar-trabalho.html" class="active">Postar Projeto</a>
       <a href="perfil.html">Meu Perfil</a>
+      <a href="configuracoes.html">Configurações</a>
     </nav>
     <div class="auth-buttons" id="auth-buttons-container">
       <a href="login.html" class="btn-login">Entrar</a>
@@ -31,14 +30,14 @@
 
   <!-- FORMULÁRIO DE PUBLICAÇÃO DO PROJETO -->
   <div class="page-shell">
-    <div class="login-card" style="max-width: 620px; width: 100%;">
+    <div class="login-card" style="max-width: 650px; width: 100%;">
       <div class="brand">
-        <img src="../logo.png" alt="Logo FreeLink" class="brand-logo">
+        <img src="../img/imagem.png" alt="Logo FreeLink" class="brand-logo">
       </div>
 
       <div class="login-header">
         <h1>Publicar Novo Projeto</h1>
-        <p>Preencha os detalhes para receber propostas de freelancers qualificados</p>
+        <p>Receba propostas de especialistas freelancers qualificados</p>
       </div>
 
       <form id="form-postar-trabalho" class="login-form">
@@ -48,29 +47,60 @@
           <span>Título do Projeto *</span>
           <div class="input-wrapper">
             <i class="fa-solid fa-briefcase"></i>
-            <input type="text" id="titulo" placeholder="Ex: Criação de Landing Page em HTML/CSS" required>
+            <input type="text" id="titulo" placeholder="Ex: Criação de Landing Page em HTML/CSS Responsiva" required>
           </div>
         </label>
 
-        <!-- Categoria -->
+        <!-- Categoria / Profissão -->
         <label class="input-group">
-          <span>Categoria *</span>
+          <span>Área Profissional / Categoria *</span>
           <div class="input-wrapper">
             <i class="fa-solid fa-folder-open"></i>
-            <select id="categoria" required style="width: 100%; border: none; outline: none; background: transparent; padding: 15px 0; font-size: 1rem; color: var(--text-color); cursor: pointer;">
-              <option value="" disabled selected>Selecione uma categoria</option>
-              <option value="Design & Multimídia">Design & Multimídia</option>
-              <option value="Programação & TI">Programação & TI</option>
-              <option value="Redação & Tradução">Redação & Tradução</option>
+            <select id="categoria" required style="width: 100%; border: none; outline: none; background: transparent; padding: 14px 0; font-size: 0.96rem; color: var(--text-color); cursor: pointer;">
+              <option value="" disabled selected>Selecione a categoria do trabalho</option>
+              <option value="Programação & Tecnologia">Programação & Tecnologia</option>
+              <option value="Design & UI/UX">Design & UI/UX</option>
               <option value="Marketing Digital">Marketing Digital</option>
-              <option value="Suporte Administrativo">Suporte Administrativo</option>
+              <option value="Redação & Tradução">Redação & Tradução</option>
+              <option value="Vídeo & Animação">Vídeo & Animação</option>
             </select>
           </div>
         </label>
 
+        <!-- Habilidades Necessárias (Tags separadas por vírgula) -->
+        <label class="input-group">
+          <span>Habilidades Necessárias (separadas por vírgula) *</span>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-tags"></i>
+            <input type="text" id="habilidades" placeholder="Ex: React, JavaScript, CSS3, Figma, Mobile First" required>
+          </div>
+        </label>
+
+        <!-- Grid para Modalidade e Localização -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <label class="input-group">
+            <span>Modalidade *</span>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-laptop-house"></i>
+              <select id="modalidade" required style="width: 100%; border: none; outline: none; background: transparent; padding: 14px 0; font-size: 0.96rem; color: var(--text-color); cursor: pointer;">
+                <option value="Remoto" selected>Remoto (Online)</option>
+                <option value="Presencial">Presencial</option>
+                <option value="Híbrido">Híbrido</option>
+              </select>
+            </div>
+          </label>
+
+          <label class="input-group">
+            <span>Cidade / Estado *</span>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-location-dot"></i>
+              <input type="text" id="cidade-estado" placeholder="Ex: São Paulo - SP ou Brasil" required>
+            </div>
+          </label>
+        </div>
+
         <!-- Grid para Orçamento e Prazo -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-          <!-- Orçamento -->
           <label class="input-group">
             <span>Orçamento Estimado (R$) *</span>
             <div class="input-wrapper">
@@ -79,9 +109,8 @@
             </div>
           </label>
 
-          <!-- Prazo -->
           <label class="input-group">
-            <span>Prazo de Entrega *</span>
+            <span>Prazo Estimado de Entrega *</span>
             <div class="input-wrapper">
               <i class="fa-regular fa-clock"></i>
               <input type="text" id="prazo" placeholder="Ex: 15 dias" required>
@@ -91,28 +120,26 @@
 
         <!-- Descrição Detalhada -->
         <label class="input-group">
-          <span>Descrição Detalhada do Trabalho *</span>
+          <span>Descrição Detalhada do Projeto *</span>
           <div class="input-wrapper" style="align-items: flex-start; padding-top: 12px;">
             <i class="fa-solid fa-align-left" style="margin-top: 4px;"></i>
-            <textarea id="descricao" rows="5" placeholder="Descreva os requisitos, objetivos e o que espera do freelancer contratado..." required style="width: 100%; border: none; outline: none; background: transparent; padding: 0 0 12px 0; font-size: 1rem; font-family: inherit; color: var(--text-color); resize: vertical; min-height: 120px;"></textarea>
+            <textarea id="descricao" rows="5" placeholder="Descreva com detalhes o objetivo do projeto, requisitos técnicos, entregáveis esperados e qualquer informação relevante para os candidatos..." required style="width: 100%; border: none; outline: none; background: transparent; padding: 0 0 12px 0; font-size: 0.96rem; font-family: inherit; color: var(--text-color); resize: vertical; min-height: 120px;"></textarea>
           </div>
         </label>
 
         <!-- Botão de Ação -->
         <button type="submit" class="login-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 8px;">
-          <i class="fa-solid fa-paper-plane"></i> Publicar Projeto
+          <i class="fa-solid fa-paper-plane"></i> Publicar Projeto Agora
         </button>
 
         <p class="register-text" style="margin-top: 14px;">
-          Mudou de ideia? <a href="index.html">Voltar para Trabalhos Disponíveis</a>
+          Deseja cancelar? <a href="index.html">Voltar para a Página Inicial</a>
         </p>
 
       </form>
     </div>
   </div>
 
-  <!-- Script principal em JavaScript Vanilla -->
-  <script src="../js/main.js"></script>
+  <script src="../js/main.js?v=3"></script>
 </body>
 </html>
-

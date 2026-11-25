@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FreeLink | Configurações</title>
-  <link rel="stylesheet" href="../css/Style.css">
+  <link rel="stylesheet" href="../css/Style.css?v=3">
   <link rel="stylesheet" href="../css/login.css">
   <!-- Ícones FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,14 +14,14 @@
   <!-- NAVEGAÇÃO / HEADER -->
   <header class="navbar">
     <div class="logo">
-      <a href="index.html"><img src="../logo-light.svg" alt="FreeLink" class="brand-logo"></a>
+      <a href="index.html"><img src="../img/imagem.png" alt="FreeLink" class="brand-logo"></a>
       <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
     </div>
     <nav class="nav-links">
-      <a href="configuracoes.html" class="active">Configurações</a>
       <a href="index.html">Início</a>
       <a href="postar-trabalho.html">Postar Projeto</a>
       <a href="perfil.html">Meu Perfil</a>
+      <a href="configuracoes.html" class="active">Configurações</a>
     </nav>
     <div class="auth-buttons" id="auth-buttons-container">
       <a href="login.html" class="btn-login">Entrar</a>
@@ -54,14 +54,14 @@
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
         <!-- Opção Modo Claro -->
-        <div id="btn-tema-claro" style="border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.25s ease; background: var(--bg-input);">
+        <div id="btn-tema-claro" onclick="aplicarTema('light')" style="border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.25s ease; background: var(--bg-input);">
           <i class="fa-solid fa-sun" style="font-size: 32px; color: #f59e0b; margin-bottom: 10px;"></i>
           <h3 style="font-size: 16px; margin-bottom: 4px; color: var(--text-heading);">Modo Claro</h3>
           <p style="font-size: 12px; color: var(--text-muted);">Visual padrão com fundo claro e detalhes verdes</p>
         </div>
 
         <!-- Opção Modo Escuro -->
-        <div id="btn-tema-escuro" style="border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.25s ease; background: var(--bg-input);">
+        <div id="btn-tema-escuro" onclick="aplicarTema('dark')" style="border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.25s ease; background: var(--bg-input);">
           <i class="fa-solid fa-moon" style="font-size: 32px; color: #6366f1; margin-bottom: 10px;"></i>
           <h3 style="font-size: 16px; margin-bottom: 4px; color: var(--text-heading);">Modo Escuro</h3>
           <p style="font-size: 12px; color: var(--text-muted);">Tons escuros para reduzir cansaço visual</p>
@@ -89,7 +89,7 @@
         </div>
 
         <div style="display: flex; gap: 10px;">
-          <button id="btn-obter-localizacao" type="button" class="social-btn" style="padding: 10px 18px; font-size: 13px; cursor: pointer; width: auto;">
+          <button id="btn-obter-localizacao" onclick="detectarLocalizacao()" type="button" class="social-btn" style="padding: 10px 18px; font-size: 13px; cursor: pointer; width: auto;">
             <i class="fa-solid fa-location-arrow" style="color: var(--primary-color);"></i> Detectar Agora
           </button>
         </div>
@@ -132,7 +132,7 @@
       </div>
 
       <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
-        <button id="btn-testar-notificacao" type="button" class="login-btn" style="padding: 10px 20px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px;">
+        <button id="btn-testar-notificacao" onclick="dispararNotificacaoTeste()" type="button" class="login-btn" style="padding: 10px 20px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-bell"></i> Disparar Notificação de Teste
         </button>
       </div>
@@ -150,7 +150,7 @@
       </p>
 
       <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <button id="btn-resetar-banco" type="button" class="social-btn" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4); padding: 12px 20px; font-size: 14px; width: auto;">
+        <button id="btn-resetar-banco" onclick="resetarBancoDados()" type="button" class="social-btn" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4); padding: 12px 20px; font-size: 14px; width: auto;">
           <i class="fa-solid fa-rotate-left"></i> Restaurar Dados Iniciais (Reset)
         </button>
       </div>
@@ -158,6 +158,6 @@
 
   </main>
 
-  <script src="../js/main.js"></script>
+  <script src="../js/main.js?v=3"></script>
 </body>
 </html>

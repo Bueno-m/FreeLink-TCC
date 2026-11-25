@@ -1,26 +1,27 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FreeLink - Encontre Freelancers para o seu Projeto</title>
-  <link rel="stylesheet" href="../css/Style.css">
-  <!-- Ícones do FontAwesome para busca, pastas, relógios e categorias -->
+  <title>FreeLink - Encontre Freelancers e Projetos Incríveis</title>
+  <link rel="stylesheet" href="../css/Style.css?v=3">
+  <!-- Ícones do FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-  <!-- NAVEGAÇÃO / HEADER -->
+  <!-- NAVEGAÇÃO / HEADER COMUM -->
   <header class="navbar">
     <div class="logo">
-      <a href="index.html"><img src="../logo-light.svg" alt="FreeLink" class="brand-logo"></a>
+      <a href="index.html"><img src="../img/imagem.png" alt="FreeLink" class="brand-logo"></a>
       <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
     </div>
     <nav class="nav-links">
-      <a href="configuracoes.html">Configurações</a>
-      <a href="index.html" class="active">Início</a>
-      <a href="postar-trabalho.html">Postar Projeto</a>
-      <a href="perfil.html">Meu Perfil</a>
+      <!-- Links preenchidos dinamicamente de acordo com o status de autenticação -->
+      <a href="#como-funciona">Como Funciona</a>
+      <a href="#categorias">Categorias</a>
+      <a href="#projetos-destaque">Vagas em Aberto</a>
     </nav>
     <div class="auth-buttons" id="auth-buttons-container">
       <a href="login.html" class="btn-login">Entrar</a>
@@ -28,70 +29,415 @@
     </div>
   </header>
 
-  <!-- HERO SECTION (Banner de Busca) -->
-  <section class="hero">
+  <!-- ====================================================================
+       1. LANDING PAGE VITRINE (VISÍVEL PARA VISITANTES DESLOGADOS)
+       ==================================================================== -->
+  <div id="landing-visitante" class="landing-wrapper">
+
+    <!-- HERO SECTION DA VITRINE -->
+    <section class="landing-hero">
+      <div class="landing-hero-container">
+        
+        <!-- Conteúdo Textual e CTAs -->
+        <div class="landing-hero-content">
+          <div class="landing-badge">
+            <i class="fa-solid fa-bolt"></i> A plataforma #1 para conectar empresas e talentos
+          </div>
+          <h1>Conecte sua empresa aos melhores <span>talentos freelance</span> do Brasil</h1>
+          <p class="hero-subtitle">
+            A plataforma mais ágil e confiável para contratar profissionais qualificados em tecnologia, design, marketing e redação — ou impulsionar sua carreira com projetos de alto impacto.
+          </p>
+          
+          <div class="landing-cta-group">
+            <a href="registro.html?tipo=contratante" class="btn-cta-client">
+              <i class="fa-solid fa-briefcase"></i> Quero Contratar
+            </a>
+            <a href="registro.html?tipo=freelancer" class="btn-cta-freelance">
+              <i class="fa-solid fa-user-tie"></i> Quero Trabalhar
+            </a>
+          </div>
+
+          <div class="landing-mini-proof">
+            <div class="landing-mini-avatars">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Freelancer">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" alt="Freelancer">
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80" alt="Freelancer">
+            </div>
+            <span><strong id="metrica-profissionais">…</strong> profissionais prontos para atender suas demandas</span>
+          </div>
+        </div>
+
+        <!-- Card de Métricas de Destaque Flutuante -->
+        <div class="landing-hero-visual">
+          <div class="floating-badge floating-badge-top">
+            <div class="floating-icon"><i class="fa-solid fa-star"></i></div>
+            <div class="floating-text">
+              <h4 id="metrica-media">…</h4>
+              <p>Média de Avaliações</p>
+            </div>
+          </div>
+
+          <div class="landing-main-metric-card">
+            <div class="metric-card-header">
+              <div class="metric-brand">
+                <div class="metric-brand-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="metric-brand-text">Métricas da Plataforma</div>
+              </div>
+              <div class="metric-live-badge">
+                <span class="metric-live-dot"></span> Dados em Tempo Real
+              </div>
+            </div>
+
+            <div class="metric-grid">
+              <div class="metric-box">
+                <div class="metric-number" id="metrica-projetos">…</div>
+                <div class="metric-label">Projetos Concluídos</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-number" id="metrica-satisfacao">…</div>
+                <div class="metric-label">Taxa de Satisfação</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-number" id="metrica-repassado">…</div>
+                <div class="metric-label">Repassados aos Talentos</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-number" id="metrica-resposta">…</div>
+                <div class="metric-label">Primeiras Propostas</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="floating-badge floating-badge-bottom">
+            <div class="floating-icon icon-safe"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="floating-text">
+              <h4>Pagamento Seguro</h4>
+              <p>Liberação após entrega aprovada</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SEÇÃO "COMO FUNCIONA" (CLIENTES VS FREELANCERS) -->
+    <section class="landing-section" id="como-funciona">
+      <div class="landing-section-header">
+        <span class="landing-section-tag">Fluxo Transparente</span>
+        <h2 class="landing-section-title">Como o FreeLink Funciona</h2>
+        <p class="landing-section-desc">Criamos uma experiência intuitiva e segura tanto para quem busca contratar quanto para profissionais que desejam expandir seus clientes.</p>
+      </div>
+
+      <div class="how-it-works-columns">
+        
+        <!-- Coluna Clientes -->
+        <div class="how-card for-clients">
+          <div class="how-card-badge">
+            <i class="fa-solid fa-building"></i> Para Contratantes & Empresas
+          </div>
+          <h3>Contrate em 3 passos simples</h3>
+          <div class="how-steps-list">
+            <div class="how-step-item">
+              <div class="how-step-number">1</div>
+              <div class="how-step-text">
+                <h4>Publique o seu trabalho</h4>
+                <p>Descreva o objetivo, orçamento estimado, habilidades necessárias e prazo de entrega em poucos minutos.</p>
+              </div>
+            </div>
+            <div class="how-step-item">
+              <div class="how-step-number">2</div>
+              <div class="how-step-text">
+                <h4>Receba e compare propostas</h4>
+                <p>Freelancers qualificados enviam ofertas detalhadas. Analise perfis, valores e histórico de trabalhos anteriores.</p>
+              </div>
+            </div>
+            <div class="how-step-item">
+              <div class="how-step-number">3</div>
+              <div class="how-step-text">
+                <h4>Pague com total segurança</h4>
+                <p>O pagamento fica retido em custódia segura e só é transferido ao freelancer após sua aprovação final.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna Freelancers -->
+        <div class="how-card for-freelancers">
+          <div class="how-card-badge">
+            <i class="fa-solid fa-laptop-code"></i> Para Profissionais Freelancers
+          </div>
+          <h3>Trabalhe com liberdade</h3>
+          <div class="how-steps-list">
+            <div class="how-step-item">
+              <div class="how-step-number">1</div>
+              <div class="how-step-text">
+                <h4>Crie seu perfil profissional</h4>
+                <p>Cadastre suas habilidades, experiências, redes sociais e foto de apresentação para atrair clientes.</p>
+              </div>
+            </div>
+            <div class="how-step-item">
+              <div class="how-step-number">2</div>
+              <div class="how-step-text">
+                <h4>Envie propostas personalizadas</h4>
+                <p>Explore as vagas abertas, filtre por sua área de especialidade e envie propostas competitivas com seus prazos.</p>
+              </div>
+            </div>
+            <div class="how-step-item">
+              <div class="how-step-number">3</div>
+              <div class="how-step-text">
+                <h4>Entregue e seja pago pontualmente</h4>
+                <p>Execute o projeto com suporte da plataforma e receba o valor orçado garantido diretamente em sua conta.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SEÇÃO "CATEGORIAS EM ALTA" -->
+    <section class="landing-section" id="categorias" style="background: var(--bg-card); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+      <div class="landing-section-header">
+        <span class="landing-section-tag">Explore Especialidades</span>
+        <h2 class="landing-section-title">Categorias em Alta</h2>
+        <p class="landing-section-desc">Encontre talentos especializados em todas as etapas da transformação digital.</p>
+      </div>
+
+      <div class="categories-showcase-grid">
+        <div class="category-card-vitrine" onclick="window.location.href='registro.html'">
+          <div class="category-card-icon"><i class="fa-solid fa-laptop-code"></i></div>
+          <h4>Programação & TI</h4>
+          <p>Web, Mobile, APIs, Frontend e Backend</p>
+        </div>
+
+        <div class="category-card-vitrine" onclick="window.location.href='registro.html'">
+          <div class="category-card-icon"><i class="fa-solid fa-palette"></i></div>
+          <h4>Design & UI/UX</h4>
+          <p>Identidade Visual, Figma e Protótipos</p>
+        </div>
+
+        <div class="category-card-vitrine" onclick="window.location.href='registro.html'">
+          <div class="category-card-icon"><i class="fa-solid fa-bullhorn"></i></div>
+          <h4>Marketing Digital</h4>
+          <p>Tráfego Pago, Gestão de Redes e SEO</p>
+        </div>
+
+        <div class="category-card-vitrine" onclick="window.location.href='registro.html'">
+          <div class="category-card-icon"><i class="fa-solid fa-file-pen"></i></div>
+          <h4>Redação & Tradução</h4>
+          <p>Copywriting, Artigos SEO e Revisão</p>
+        </div>
+
+        <div class="category-card-vitrine" onclick="window.location.href='registro.html'">
+          <div class="category-card-icon"><i class="fa-solid fa-video"></i></div>
+          <h4>Vídeo & Animação</h4>
+          <p>Edição Reels, Motion Graphics e 3D</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO "PROJETOS EM DESTAQUE" (PREVIEW VITRINE) -->
+    <section class="landing-section" id="projetos-destaque">
+      <div class="landing-section-header">
+        <span class="landing-section-tag">Oportunidades em Aberto</span>
+        <h2 class="landing-section-title">Projetos em Destaque</h2>
+        <p class="landing-section-desc">Dê uma olhada nos projetos publicados recentemente pelas empresas parceiras do FreeLink.</p>
+      </div>
+
+      <!-- Grade dos cards de projetos injetados via JavaScript -->
+      <div class="vitrine-jobs-grid" id="vitrine-projetos-grid">
+        <!-- Renderizado dinamicamente pelo main.js -->
+      </div>
+
+      <!-- Banner de Conversão Final -->
+      <div class="landing-cta-banner">
+        <h2>Pronto para acelerar seus projetos ou sua carreira?</h2>
+        <p>Junte-se gratuitamente à comunidade FreeLink e conecte-se com oportunidades reais hoje mesmo.</p>
+        <a href="registro.html" class="btn-register-banner">
+          <i class="fa-solid fa-rocket"></i> Cadastre-se Gratuitamente
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ====================================================================
+       2. FEED PRINCIPAL & DASHBOARD DE PROJETOS (PARA USUÁRIOS LOGADOS)
+       ==================================================================== -->
+  
+  <!-- HERO SECTION DE BUSCA (APENAS PARA USUÁRIOS AUTENTICADOS) -->
+  <section class="hero" id="hero-autenticado" style="display: none;">
     <div class="hero-content">
       <h1>Encontre <span>Freelancers</span> para o seu <span>Projeto</span></h1>
-      <p>Conecte-se com profissionais talentosos para qualquer tipo de trabalho</p>
+      <p>Conecte-se com profissionais qualificados de diversas áreas para qualquer tipo de trabalho</p>
       
       <div class="search-bar">
-        <input type="text" id="search-input" placeholder="O que você precisa? (Ex: Landing Page, Logotipo, Vídeo...)">
+        <input type="text" id="search-input" placeholder="O que você precisa? (Ex: Desenvolvedor Web, Designer, Editor de Vídeo...)">
         <select id="search-category">
-          <option value="" selected>Todas as categorias</option>
-          <option value="Design & Multimídia">Design & Multimídia</option>
-          <option value="Programação & TI">Programação & TI</option>
-          <option value="Redação & Tradução">Redação & Tradução</option>
+          <option value="" selected>Todas as Áreas & Categorias</option>
+          <option value="Programação & Tecnologia">Programação & Tecnologia</option>
+          <option value="Design & UI/UX">Design & UI/UX</option>
           <option value="Marketing Digital">Marketing Digital</option>
-          <option value="Suporte Administrativo">Suporte Administrativo</option>
+          <option value="Redação & Tradução">Redação & Tradução</option>
+          <option value="Vídeo & Animação">Vídeo & Animação</option>
         </select>
         <button class="btn-search" id="btn-search">Buscar</button>
       </div>
     </div>
   </section>
 
-  <main class="container">
+  <!-- CONTAINER DE PROJETOS E FILTROS DO FEED AUTENTICADO -->
+  <main class="container" id="feed-autenticado" style="display: none;">
 
-    <!-- CATEGORIAS POPULARES -->
+    <!-- CATEGORIAS POPULARES EM DESTAQUE -->
     <section class="card-section">
-      <h2 class="section-title">Categorias populares</h2>
+      <h2 class="section-title">Principais Áreas de Atuação</h2>
       <div class="categories-grid">
-        <div class="category-item" style="cursor: pointer;" title="Filtrar por Design & Multimídia">
+        <div class="category-item" style="cursor: pointer;" title="Filtrar por Design & UI/UX">
           <div class="category-icon"><i class="fa-solid fa-palette"></i></div>
-          <p>Design & Multimídia</p>
+          <p>Design & UI/UX</p>
+        </div>
+        <div class="category-item" style="cursor: pointer;" title="Filtrar por Programação & Tecnologia">
+          <div class="category-icon"><i class="fa-solid fa-laptop-code"></i></div>
+          <p>Programação & Tecnologia</p>
+        </div>
+        <div class="category-item" style="cursor: pointer;" title="Filtrar por Vídeo & Animação">
+          <div class="category-icon"><i class="fa-solid fa-video"></i></div>
+          <p>Vídeo & Animação</p>
         </div>
         <div class="category-item" style="cursor: pointer;" title="Filtrar por Redação & Tradução">
           <div class="category-icon"><i class="fa-solid fa-file-pen"></i></div>
           <p>Redação & Tradução</p>
         </div>
-        <div class="category-item" style="cursor: pointer;" title="Filtrar por Programação & TI">
-          <div class="category-icon"><i class="fa-solid fa-laptop-code"></i></div>
-          <p>Programação & TI</p>
-        </div>
         <div class="category-item" style="cursor: pointer;" title="Filtrar por Marketing Digital">
           <div class="category-icon"><i class="fa-solid fa-bullhorn"></i></div>
           <p>Marketing Digital</p>
         </div>
-        <div class="category-item" style="cursor: pointer;" title="Filtrar por Suporte Administrativo">
-          <div class="category-icon"><i class="fa-solid fa-headset"></i></div>
-          <p>Suporte Administrativo</p>
-        </div>
       </div>
     </section>
 
-    <!-- TRABALHOS DISPONÍVEIS (RENDERIZADOS DINAMICAMENTE VIA JAVASCRIPT) -->
+    <!-- SEÇÃO DE TRABALHOS COM ABAS -->
     <section class="card-section" id="secao-trabalhos">
-      <div class="section-header">
-        <h2 class="section-title">Trabalhos Disponíveis</h2>
-        <a href="postar-trabalho.html" class="see-more">+ Postar Projeto &gt;</a>
+      
+      <div class="view-tabs-container">
+        <div class="view-tabs">
+          <button type="button" id="tab-todos-trabalhos" class="tab-btn active">
+            <i class="fa-solid fa-briefcase"></i> Todos os Projetos
+          </button>
+          <button type="button" id="tab-meus-projetos" class="tab-btn">
+            <i class="fa-solid fa-user-check"></i> Meus Projetos (<span id="contagem-meus-projetos">0</span>)
+          </button>
+          <button type="button" id="tab-resultados-busca" class="tab-btn" style="display: none;">
+            <i class="fa-solid fa-magnifying-glass"></i> Resultados da Busca
+          </button>
+        </div>
+
+        <a href="postar-trabalho.html" class="see-more" style="font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-plus-circle"></i> Publicar Novo Projeto &gt;
+        </a>
       </div>
-      <div class="jobs-grid" id="jobs-container">
-        <!-- Os cards de projetos serão gerados dinamicamente pelo JavaScript (main.js) a partir do LocalStorage -->
+
+      <!-- Container da Grade de Projetos -->
+      <div id="container-todos-trabalhos">
+        <div class="jobs-grid" id="jobs-container">
+          <!-- Renderizado dinamicamente via JS -->
+        </div>
       </div>
+
     </section>
 
   </main>
 
+  <!-- ====================================================================
+       FOOTER COMPLETO INSTITUCIONAL (COMPARTILHADO)
+       ==================================================================== -->
+  <footer class="main-footer">
+    <div class="footer-container">
+      
+      <div class="footer-brand">
+        <img src="../img/imagem.png" alt="FreeLink" class="brand-logo">
+        <p>A plataforma moderna que conecta talentos freelance a empresas inovadoras em todo o Brasil. Simples, transparente e segura.</p>
+        <div class="footer-social-links">
+          <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Para Clientes</h4>
+        <ul>
+          <li><a href="registro.html?tipo=contratante">Como Contratar</a></li>
+          <li><a href="postar-trabalho.html">Publicar Projeto</a></li>
+          <li><a href="#como-funciona">Garantia de Pagamento</a></li>
+          <li><a href="index.html">Buscar Freelancers</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Para Freelancers</h4>
+        <ul>
+          <li><a href="registro.html?tipo=freelancer">Criar Perfil de Especialista</a></li>
+          <li><a href="#projetos-destaque">Oportunidades em Aberto</a></li>
+          <li><a href="configuracoes.html">Central de Ajuda</a></li>
+          <li><a href="perfil.html">Gerenciar Portfólio</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Institucional</h4>
+        <ul>
+          <li><a href="#como-funciona">Sobre o FreeLink</a></li>
+          <li><a href="#">Termos de Uso</a></li>
+          <li><a href="#">Política de Privacidade</a></li>
+          <li><a href="#">Projeto TCC 2026</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <span>&copy; 2026 FreeLink - Marketplace de Serviços Freelance. Todos os direitos reservados.</span>
+      <span>Desenvolvido com HTML5 Semântico, CSS3 e JavaScript Vanilla Puro.</span>
+    </div>
+  </footer>
+
   <!-- Script principal do projeto -->
-  <script src="../js/main.js"></script>
+  <script src="../js/main.js?v=3"></script>
+  <script>
+    // Métricas reais vindas do banco de dados (via /api/metricas)
+    (async function carregarMetricas() {
+      const set = (id, texto) => { const el = document.getElementById(id); if (el) el.textContent = texto; };
+      try {
+        const res = await fetch('/api/metricas');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const m = await res.json();
+
+        set('metrica-projetos', m.projetos_concluidos.toLocaleString('pt-BR'));
+        set('metrica-profissionais', m.profissionais.toLocaleString('pt-BR'));
+        set('metrica-repassado', m.total_repassado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+
+        if (m.media_avaliacoes !== null) {
+          set('metrica-media', m.media_avaliacoes.toFixed(1) + ' / 5.0');
+          set('metrica-satisfacao', Math.round(m.media_avaliacoes / 5 * 100) + '%');
+        } else {
+          set('metrica-media', '—');
+          set('metrica-satisfacao', '—');
+        }
+
+        if (m.horas_primeira_proposta !== null) {
+          const h = m.horas_primeira_proposta;
+          set('metrica-resposta', h < 1 ? '< 1h' : (h < 24 ? Math.round(h) + 'h' : Math.round(h / 24) + ' dias'));
+        } else {
+          set('metrica-resposta', '—');
+        }
+      } catch (e) {
+        console.error('Não foi possível carregar as métricas:', e);
+        ['metrica-projetos', 'metrica-profissionais', 'metrica-repassado', 'metrica-media', 'metrica-satisfacao', 'metrica-resposta']
+          .forEach(id => set(id, '—'));
+      }
+    })();
+  </script>
 </body>
 </html>

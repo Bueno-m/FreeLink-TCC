@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FreeLink | Cadastro</title>
-  <link rel="stylesheet" href="../css/Style.css">
+  <title>FreeLink | Cadastro de Usuário</title>
+  <link rel="stylesheet" href="../css/Style.css?v=3">
   <link rel="stylesheet" href="../css/registro.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -12,14 +12,13 @@
   <!-- NAVEGAÇÃO / HEADER -->
   <header class="navbar">
     <div class="logo">
-      <a href="index.html"><img src="../logo-light.svg" alt="FreeLink" class="brand-logo"></a>
+      <a href="index.html"><img src="../img/imagem.png" alt="FreeLink" class="brand-logo"></a>
       <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
     </div>
     <nav class="nav-links">
-      <a href="configuracoes.html">Configurações</a>
       <a href="index.html">Início</a>
-      <a href="postar-trabalho.html">Postar Projeto</a>
-      <a href="perfil.html">Meu Perfil</a>
+      <a href="login.html">Entrar</a>
+      <a href="registro.html" class="active">Cadastrar</a>
     </nav>
     <div class="auth-buttons" id="auth-buttons-container">
       <a href="login.html" class="btn-login">Entrar</a>
@@ -28,30 +27,52 @@
   </header>
 
   <div class="page-shell">
-    <div class="login-card">
+    <div class="login-card" style="max-width: 640px;">
       <div class="brand">
-        <img src="../logo-light.svg" alt="Logo FreeLink" class="brand-logo">
+        <img src="../img/imagem.png" alt="Logo FreeLink" class="brand-logo">
       </div>
 
       <div class="login-header">
-        <h1>Criar conta</h1>
-        <p>Junte-se ao FreeLink e encontre novos projetos</p>
+        <h1>Criar Conta no FreeLink</h1>
+        <p>Junte-se à maior comunidade de talentos e contratantes</p>
       </div>
 
       <form id="form-registro" class="login-form">
+        
+        <!-- Feedback de Erro Visual -->
+        <div id="registro-alert" class="form-alert-error" style="display: none; margin-bottom: 14px;"></div>
+
+        <!-- Seletor de Tipo de Conta (Freelancer vs Contratante) -->
+        <div class="input-group">
+          <span>Tipo de Conta *</span>
+          <div class="account-type-group">
+            <div class="account-type-card selected" data-type="freelancer" id="card-tipo-freelancer">
+              <i class="fa-solid fa-laptop-code"></i>
+              <strong>Sou Freelancer</strong>
+              <span>Quero trabalhar em projetos</span>
+            </div>
+            <div class="account-type-card" data-type="contratante" id="card-tipo-contratante">
+              <i class="fa-solid fa-briefcase"></i>
+              <strong>Sou uma Empresa</strong>
+              <span>Quero contratar talentos para minha empresa</span>
+            </div>
+          </div>
+          <input type="hidden" id="reg-tipo" value="freelancer">
+        </div>
+
         <label class="input-group">
-          <span>Nome completo *</span>
+          <span id="lbl-nome">Nome Completo *</span>
           <div class="input-wrapper">
             <i class="fa-regular fa-user"></i>
-            <input type="text" id="reg-nome" placeholder="Seu nome completo" required>
+            <input type="text" id="reg-nome" placeholder="Seu nome completo" required autocomplete="name">
           </div>
         </label>
 
         <label class="input-group">
-          <span>E-mail *</span>
+          <span id="lbl-email">E-mail Profissional *</span>
           <div class="input-wrapper">
             <i class="fa-regular fa-envelope"></i>
-            <input type="email" id="reg-email" placeholder="seuemail@email.com" required>
+            <input type="email" id="reg-email" placeholder="seuemail@exemplo.com" required autocomplete="email">
           </div>
         </label>
 
@@ -59,35 +80,375 @@
           <span>Senha (mínimo 6 caracteres) *</span>
           <div class="input-wrapper">
             <i class="fa-solid fa-lock"></i>
-            <input type="password" id="reg-senha" placeholder="Crie uma senha" required minlength="6">
+            <input type="password" id="reg-senha" placeholder="Crie uma senha forte" required minlength="6" autocomplete="new-password">
           </div>
         </label>
 
         <label class="input-group">
-          <span>Confirmar senha *</span>
+          <span>Confirmar Senha *</span>
           <div class="input-wrapper">
             <i class="fa-solid fa-shield-halved"></i>
-            <input type="password" id="reg-confirma-senha" placeholder="Repita a senha" required minlength="6">
+            <input type="password" id="reg-confirma-senha" placeholder="Repita a senha digitada" required minlength="6" autocomplete="new-password">
           </div>
         </label>
 
-        <button type="submit" class="login-btn">Cadastrar</button>
+        <!-- DADOS DE CONTATO E LOCALIZAÇÃO (rótulos adaptados por tipo via JS) -->
+        <div class="form-section-title"><i class="fa-regular fa-id-card"></i> <span id="titulo-contato">Dados de contato</span></div>
+
+        <div class="form-row">
+          <label class="input-group">
+            <span id="lbl-telefone">Telefone / WhatsApp *</span>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-phone"></i>
+              <input type="tel" id="reg-telefone" placeholder="(11) 91234-5678" required autocomplete="tel" maxlength="15">
+            </div>
+          </label>
+          <label class="input-group">
+            <span id="lbl-cidade">Cidade *</span>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-location-dot"></i>
+              <input type="text" id="reg-cidade" placeholder="Ex.: São Paulo" required autocomplete="address-level2">
+            </div>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label class="input-group">
+            <span id="lbl-estado">Estado (UF) *</span>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-map"></i>
+              <select id="reg-estado" required>
+                <option value="">Selecione</option>
+                <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option>
+                <option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option>
+                <option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option>
+                <option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                <option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option>
+                <option>SE</option><option>TO</option>
+              </select>
+            </div>
+          </label>
+          <label class="input-group">
+            <span id="lbl-nascimento">Data de Nascimento *</span>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-calendar"></i>
+              <input type="date" id="reg-nascimento" required>
+            </div>
+          </label>
+        </div>
+
+        <!-- CAMPOS EXCLUSIVOS: FREELANCER -->
+        <div class="campos-tipo" id="campos-freelancer" data-tipo="freelancer">
+          <div class="form-section-title"><i class="fa-solid fa-laptop-code"></i> Perfil profissional</div>
+
+          <div class="form-row">
+            <label class="input-group">
+              <span>CPF *</span>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-address-card"></i>
+                <input type="text" id="reg-cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" data-obrig="1">
+              </div>
+            </label>
+            <label class="input-group">
+              <span>Área de Atuação *</span>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-briefcase"></i>
+                <select id="reg-area" data-obrig="1">
+                  <option value="">Selecione</option>
+                  <option>Desenvolvimento Web</option>
+                  <option>Desenvolvimento Mobile</option>
+                  <option>Design Gráfico / UI-UX</option>
+                  <option>Redação e Tradução</option>
+                  <option>Marketing Digital</option>
+                  <option>Vídeo e Animação</option>
+                  <option>Áudio e Música</option>
+                  <option>Consultoria e Negócios</option>
+                  <option>Outra</option>
+                </select>
+              </div>
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label class="input-group">
+              <span>Nível de Experiência *</span>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-ranking-star"></i>
+                <select id="reg-nivel" data-obrig="1">
+                  <option value="">Selecione</option>
+                  <option>Iniciante (até 1 ano)</option>
+                  <option>Intermediário (1 a 3 anos)</option>
+                  <option>Avançado (3 a 6 anos)</option>
+                  <option>Especialista (6+ anos)</option>
+                </select>
+              </div>
+            </label>
+            <label class="input-group">
+              <span>Valor por Hora (R$) *</span>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-coins"></i>
+                <input type="number" id="reg-valor-hora" placeholder="Ex.: 70" min="1" step="0.01" data-obrig="1">
+              </div>
+            </label>
+          </div>
+
+          <label class="input-group">
+            <span>Habilidades (separadas por vírgula) *</span>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-screwdriver-wrench"></i>
+              <input type="text" id="reg-habilidades" placeholder="Ex.: HTML, CSS, JavaScript, Figma" data-obrig="1">
+            </div>
+          </label>
+
+          <label class="input-group">
+            <span>Disponibilidade semanal</span>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-clock"></i>
+              <select id="reg-disponibilidade">
+                <option>Até 10 horas/semana</option>
+                <option>10-20 horas/semana</option>
+                <option selected>20-30 horas/semana</option>
+                <option>30-40 horas/semana</option>
+                <option>Tempo integral</option>
+              </select>
+            </div>
+          </label>
+
+          <label class="input-group">
+            <span>Portfólio / LinkedIn / GitHub</span>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-link"></i>
+              <input type="url" id="reg-portfolio" placeholder="https://...">
+            </div>
+          </label>
+
+          <label class="input-group">
+            <span>Sobre você (mini bio) *</span>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-comment-dots"></i>
+              <textarea id="reg-bio-freelancer" rows="3" placeholder="Conte um pouco sobre sua experiência e o que você faz de melhor" data-obrig="1"></textarea>
+            </div>
+          </label>
+        </div>
+
+        <!-- CAMPOS EXCLUSIVOS: CONTRATANTE (EMPRESA) -->
+        <div class="campos-tipo" id="campos-contratante" data-tipo="contratante" style="display: none;">
+          <input type="hidden" id="reg-tipo-pessoa" value="PJ">
+
+          <div class="form-section-title"><i class="fa-solid fa-building"></i> Dados da empresa</div>
+
+          <div class="form-row">
+            <label class="input-group">
+              <span>Razão Social *</span>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-building"></i>
+                <input type="text" id="reg-empresa" placeholder="Ex.: TechStart Soluções Ltda." data-obrig="1" autocomplete="organization">
+              </div>
+            </label>
+            <label class="input-group">
+              <span>Nome Fantasia *</span>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-signature"></i>
+                <input type="text" id="reg-fantasia" placeholder="Ex.: TechStart" data-obrig="1">
+              </div>
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label class="input-group">
+              <span>CNPJ *</span>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-address-card"></i>
+                <input type="text" id="reg-documento" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric" data-obrig="1">
+              </div>
+            </label>
+            <label class="input-group">
+              <span>Setor de Atuação *</span>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-industry"></i>
+                <select id="reg-setor" data-obrig="1">
+                  <option value="">Selecione</option>
+                  <option>Tecnologia</option>
+                  <option>E-commerce / Varejo</option>
+                  <option>Educação</option>
+                  <option>Saúde</option>
+                  <option>Finanças</option>
+                  <option>Marketing e Publicidade</option>
+                  <option>Indústria</option>
+                  <option>Serviços</option>
+                  <option>Outro</option>
+                </select>
+              </div>
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label class="input-group">
+              <span>Porte da Empresa *</span>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-users"></i>
+                <select id="reg-porte" data-obrig="1">
+                  <option value="">Selecione</option>
+                  <option>MEI</option>
+                  <option>Microempresa (até 9 func.)</option>
+                  <option>Pequena (10 a 49 func.)</option>
+                  <option>Média (50 a 249 func.)</option>
+                  <option>Grande (250+ func.)</option>
+                </select>
+              </div>
+            </label>
+            <label class="input-group">
+              <span>Orçamento Médio por Projeto *</span>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-sack-dollar"></i>
+                <select id="reg-orcamento" data-obrig="1">
+                  <option value="">Selecione</option>
+                  <option>Até R$ 500</option>
+                  <option>R$ 500 a R$ 2.000</option>
+                  <option>R$ 2.000 a R$ 5.000</option>
+                  <option>R$ 5.000 a R$ 15.000</option>
+                  <option>Acima de R$ 15.000</option>
+                </select>
+              </div>
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label class="input-group">
+              <span>Site da Empresa</span>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-globe"></i>
+                <input type="url" id="reg-site" placeholder="https://www.suaempresa.com.br">
+              </div>
+            </label>
+            <label class="input-group">
+              <span>LinkedIn / Instagram da Empresa</span>
+              <div class="input-wrapper">
+                <i class="fa-brands fa-linkedin"></i>
+                <input type="url" id="reg-rede-social" placeholder="https://...">
+              </div>
+            </label>
+          </div>
+
+          <div class="form-section-title"><i class="fa-solid fa-user-tie"></i> Responsável pela conta</div>
+
+          <label class="input-group">
+            <span>Cargo do Responsável *</span>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-id-badge"></i>
+              <input type="text" id="reg-cargo" placeholder="Ex.: Gerente de Projetos, Sócio-Diretor" data-obrig="1">
+            </div>
+          </label>
+
+          <label class="input-group">
+            <span>Sobre a Empresa *</span>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-comment-dots"></i>
+              <textarea id="reg-sobre-empresa" rows="3" placeholder="Descreva brevemente o que a sua empresa faz" data-obrig="1"></textarea>
+            </div>
+          </label>
+
+          <label class="input-group">
+            <span>Tipos de serviço que a empresa costuma contratar *</span>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-list-check"></i>
+              <textarea id="reg-bio-contratante" rows="2" placeholder="Ex.: desenvolvimento de sites, identidade visual, gestão de tráfego pago..." data-obrig="1"></textarea>
+            </div>
+          </label>
+        </div>
+
+        <button type="submit" class="login-btn" style="margin-top: 6px;">
+          <i class="fa-solid fa-user-plus"></i> Finalizar Cadastro Gratuito
+        </button>
       </form>
 
+      <div id="bloco-google">
       <div class="divider">
         <span>ou</span>
       </div>
 
-      <button type="button" class="social-btn" onclick="alert('Simulação de cadastro social: Utilize o formulário acima que salva seus dados localmente no LocalStorage!');">
-        <i class="fa-brands fa-google"></i>
-        Continuar com Google
-      </button>
+      <!-- Importa o script do Google -->
+      <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+      <!-- Estrutura invisível que configura o Google -->
+      <div id="g_id_onload"
+           data-client_id="653331190197-u7s4vkp2v3rsqgroelqtcojb5fvuc4jj.apps.googleusercontent.com"
+           data-context="signup"
+           data-ux_mode="popup"
+           data-callback="lidarComRespostaDoGoogle"
+           data-auto_prompt="false">
+      </div>
+
+      <!-- O botão renderizado do Google -->
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="rectangular"
+           data-theme="outline"
+           data-text="signup_with"
+           data-size="large"
+           data-logo_alignment="left">
+      </div>
+      </div><!-- /bloco-google -->
 
       <p class="register-text">
-        Já tem uma conta? <a href="login.html">Entrar</a>
+        Já tem uma conta no FreeLink? <a href="login.html">Fazer Login</a>
       </p>
     </div>
   </div>
-  <script src="../js/main.js"></script>
+
+  <script src="../js/main.js?v=3"></script>
+  <script>
+    // Esta função é chamada automaticamente pelo script do Google quando o usuário clica e autoriza
+    async function lidarComRespostaDoGoogle(response) {
+      const googleToken = response.credential;
+      const tipoSelecionado = document.getElementById('reg-tipo').value === 'contratante'
+        ? 'CLIENTE'
+        : 'FREELANCER';
+
+      try {
+        const res = await fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: googleToken,
+            tipo_usuario: tipoSelecionado
+          })
+        });
+
+        const texto = await res.text();
+        let dados = {};
+        try { dados = JSON.parse(texto); } catch (e) { throw new Error('Resposta inválida do servidor (HTTP ' + res.status + ')'); }
+
+        if (res.ok) {
+          const u = dados.usuario;
+          const fnSync = typeof registrarUsuarioServidor === 'function'
+            ? registrarUsuarioServidor
+            : (typeof registrarUsuarioGoogle === 'function' ? registrarUsuarioGoogle : null);
+          const usuarioFinal = fnSync ? fnSync(u, dados.token) : {
+            id: 'db_' + u.id,
+            dbId: u.id,
+            googleId: u.id,
+            nome: u.nome,
+            email: u.email,
+            tipo: u.tipo_usuario === 'CLIENTE' ? 'contratante' : 'freelancer',
+            foto: u.foto_perfil || '',
+            ...(u.perfil || {})
+          };
+          if (dados.token) localStorage.setItem('freelink_token', dados.token);
+          login(usuarioFinal);
+          if (typeof marcarContaRecemCriada === 'function') {
+            marcarContaRecemCriada(usuarioFinal.email);
+          }
+
+          window.location.href = 'index.html';
+        } else {
+          alert('Erro: ' + (dados.erro || ('HTTP ' + res.status)));
+        }
+      } catch (erro) {
+        console.error('Erro no cadastro com Google:', erro);
+        alert('Erro ao conectar com Google: ' + (erro && erro.message ? erro.message : 'Servidor indisponível na porta 3000.'));
+      }
+    }
+  </script>
 </body>
 </html>

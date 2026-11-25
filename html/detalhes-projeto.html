@@ -1,12 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FreeLink | Detalhes do Projeto</title>
-  <link rel="stylesheet" href="../css/Style.css">
+  <link rel="stylesheet" href="../css/Style.css?v=3">
   <link rel="stylesheet" href="../css/login.css">
-  <!-- Ícones FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -14,14 +13,14 @@
   <!-- NAVEGAÇÃO / HEADER -->
   <header class="navbar">
     <div class="logo">
-      <a href="index.html"><img src="../logo-light.svg" alt="FreeLink" class="brand-logo"></a>
+      <a href="index.html"><img src="../img/imagem.png" alt="FreeLink" class="brand-logo"></a>
       <button class="nav-toggle" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
     </div>
     <nav class="nav-links">
-      <a href="configuracoes.html">Configurações</a>
       <a href="index.html">Início</a>
       <a href="postar-trabalho.html">Postar Projeto</a>
       <a href="perfil.html">Meu Perfil</a>
+      <a href="configuracoes.html">Configurações</a>
     </nav>
     <div class="auth-buttons" id="auth-buttons-container">
       <a href="login.html" class="btn-login">Entrar</a>
@@ -30,37 +29,37 @@
   </header>
 
   <!-- CONTAINER DE DETALHES DO PROJETO -->
-  <main class="container" style="max-width: 950px; margin: 40px auto;">
+  <main class="container" style="max-width: 950px; margin: 40px auto; padding: 0 20px;">
     
-    <div id="detalhe-conteudo" class="card-section" style="padding: 35px; border-radius: 16px;">
+    <div id="detalhe-conteudo" class="card-section" style="padding: 35px; border-radius: 20px; box-shadow: var(--shadow-card);">
       
       <!-- Link de navegação para voltar -->
-      <div style="margin-bottom: 20px;">
-        <a href="index.html" class="see-more" style="display: inline-flex; align-items: center; gap: 8px; font-size: 15px;">
+      <div style="margin-bottom: 24px;">
+        <a href="index.html" class="see-more" style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none; color: var(--primary-color); font-weight: 600;">
           <i class="fa-solid fa-arrow-left"></i> Voltar para Trabalhos Disponíveis
         </a>
       </div>
 
       <!-- Cabeçalho do Projeto -->
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; margin-bottom: 20px;">
         <div style="flex: 1; min-width: 280px;">
-          <span id="detalhe-categoria" style="display: inline-block; background: var(--primary-light); color: var(--primary-color); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 12px; border: 1px solid var(--primary-border);">
-            Carregando...
+          <span id="detalhe-categoria" style="display: inline-block; background: var(--primary-light); color: var(--primary-color); padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; border: 1px solid var(--primary-border);">
+            Carregando categoria...
           </span>
-          <h1 id="detalhe-titulo" style="font-size: 26px; color: var(--text-heading); line-height: 1.3; margin-bottom: 10px;">
+          <h1 id="detalhe-titulo" style="font-size: 26px; color: var(--text-heading); line-height: 1.3; margin-bottom: 12px; font-weight: 800;">
             Carregando detalhes do projeto...
           </h1>
-          <div style="display: flex; flex-wrap: wrap; gap: 16px; color: var(--text-muted); font-size: 14px;">
-            <span><i class="fa-regular fa-building" style="color: var(--primary-color);"></i> <span id="detalhe-empresa">-</span></span>
-            <span><i class="fa-solid fa-location-dot" style="color: var(--primary-color);"></i> <span id="detalhe-localizacao">-</span></span>
-            <span><i class="fa-regular fa-calendar" style="color: var(--primary-color);"></i> <span id="detalhe-data">-</span></span>
+          <div style="display: flex; flex-wrap: wrap; gap: 18px; color: var(--text-muted); font-size: 13.5px;">
+            <span><i class="fa-regular fa-building" style="color: var(--primary-color); margin-right: 5px;"></i> <span id="detalhe-empresa">-</span></span>
+            <span><i class="fa-solid fa-location-dot" style="color: var(--primary-color); margin-right: 5px;"></i> <span id="detalhe-localizacao">-</span></span>
+            <span><i class="fa-regular fa-calendar" style="color: var(--primary-color); margin-right: 5px;"></i> <span id="detalhe-data">-</span></span>
           </div>
         </div>
 
-        <!-- Box de Orçamento -->
-        <div style="background: var(--bg-input); border: 1px solid var(--border-color); padding: 18px 24px; border-radius: 12px; text-align: right; min-width: 200px;">
-          <span style="font-size: 13px; color: var(--text-muted); display: block; margin-bottom: 4px;">Orçamento Estimado</span>
-          <div id="detalhe-orcamento" class="price" style="font-size: 24px; font-weight: bold; color: var(--primary-color); margin-bottom: 4px;">
+        <!-- Box de Orçamento e Prazo -->
+        <div style="background: var(--bg-input); border: 1px solid var(--border-color); padding: 20px 26px; border-radius: 14px; text-align: right; min-width: 210px;">
+          <span style="font-size: 12.5px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600;">Orçamento Estimado</span>
+          <div id="detalhe-orcamento" class="price" style="font-size: 24px; font-weight: 800; color: var(--primary-color); margin-bottom: 6px;">
             R$ 0,00
           </div>
           <span style="font-size: 13px; color: var(--text-muted); display: block;">
@@ -69,47 +68,62 @@
         </div>
       </div>
 
+      <!-- Habilidades Requeridas -->
+      <div style="margin-bottom: 25px;">
+        <span style="font-size: 13px; font-weight: 700; color: var(--text-heading); display: block; margin-bottom: 8px;">
+          <i class="fa-solid fa-tags" style="color: var(--primary-color); margin-right: 6px;"></i> Habilidades Requeridas:
+        </span>
+        <div id="detalhe-habilidades" class="skills-tags-container" style="margin-bottom: 0;">
+          <!-- Tags de habilidades renderizadas dinamicamente -->
+        </div>
+      </div>
+
       <hr style="border: none; border-top: 1px solid var(--border-color); margin: 25px 0;">
 
       <!-- Descrição do Projeto -->
       <section style="margin-bottom: 35px;">
-        <h2 style="font-size: 19px; color: var(--primary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-align-left"></i> Descrição do Projeto
+        <h2 style="font-size: 18px; color: var(--text-heading); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-weight: 700;">
+          <i class="fa-solid fa-align-left" style="color: var(--primary-color);"></i> Descrição Completa do Trabalho
         </h2>
-        <div id="detalhe-descricao" style="color: var(--text-color); line-height: 1.8; font-size: 15px; white-space: pre-line; background: var(--bg-input); padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+        <div id="detalhe-descricao" style="color: var(--text-color); line-height: 1.8; font-size: 15px; white-space: pre-line; background: var(--bg-input); padding: 22px; border-radius: 12px; border: 1px solid var(--border-color);">
           Carregando conteúdo...
         </div>
       </section>
 
-      <!-- Seção de Ação e Envio de Proposta -->
-      <div style="background: var(--bg-input); border: 1px solid var(--primary-border); padding: 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-        <div>
-          <h3 style="font-size: 18px; color: var(--text-heading); margin-bottom: 4px;">Ficou interessado neste projeto?</h3>
-          <p style="color: var(--text-muted); font-size: 14px;">
-            <i class="fa-regular fa-user" style="color: var(--primary-color);"></i> <span id="detalhe-propostas">0 propostas recebidas</span> até o momento.
-          </p>
-        </div>
+      <!-- Container Dinâmico: Enviar Proposta vs Painel do Contratante vs Chat -->
+      <div id="container-acao-propostas">
+        <div style="background: var(--bg-card); border: 1.5px solid var(--primary-border); padding: 25px 30px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; box-shadow: var(--shadow-sm);">
+          <div>
+            <h3 style="font-size: 18px; color: var(--text-heading); margin-bottom: 4px; font-weight: 700;">Interessado nesta oportunidade?</h3>
+            <p style="color: var(--text-muted); font-size: 14px;">
+              <i class="fa-solid fa-user-check" style="color: var(--primary-color); margin-right: 4px;"></i> <span id="detalhe-propostas">Carregando propostas...</span>
+            </p>
+          </div>
 
-        <button id="btn-enviar-proposta" class="login-btn" style="padding: 14px 28px; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
-          <i class="fa-solid fa-paper-plane"></i> Enviar Proposta
-        </button>
+          <button id="btn-enviar-proposta" type="button" onclick="abrirModalProposta()" class="login-btn" style="padding: 14px 28px; font-size: 15px; display: inline-flex; align-items: center; gap: 10px; cursor: pointer;">
+            <i class="fa-solid fa-paper-plane"></i> Enviar Proposta
+          </button>
+        </div>
       </div>
 
     </div>
 
   </main>
 
-  <!-- MODAL DE ENVIO DE PROPOSTA (SIMULAÇÃO VISUAL) -->
-  <div id="modal-proposta" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
-    <div class="login-card" style="max-width: 500px; width: 100%; position: relative; animation: slideUpFade 0.3s ease-out;">
+  <!-- MODAL DE ENVIO DE PROPOSTA -->
+  <div id="modal-proposta" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 99999; justify-content: center; align-items: center; padding: 20px;">
+    <div class="login-card" style="max-width: 520px; width: 100%; position: relative; animation: slideUpFade 0.3s ease-out;">
       
-      <button id="btn-fechar-modal" type="button" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted);" title="Fechar">
-        <i class="fa-solid fa-times"></i>
+      <button id="btn-fechar-modal" type="button" onclick="fecharModalProposta()" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted);" title="Fechar">
+        <i class="fa-solid fa-xmark"></i>
       </button>
 
-      <div class="login-header" style="margin-bottom: 20px;">
-        <h2 style="font-size: 22px; color: var(--text-heading); margin-bottom: 6px;">Enviar Proposta</h2>
-        <p style="font-size: 14px;">Informe os detalhes da sua oferta para o cliente</p>
+      <div class="login-header" style="margin-bottom: 22px;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary-light); color: var(--primary-color); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 12px; border: 1px solid var(--primary-border);">
+          <i class="fa-solid fa-handshake"></i>
+        </div>
+        <h2 style="font-size: 22px; color: var(--text-heading); margin-bottom: 6px; font-weight: 700;">Enviar Proposta</h2>
+        <p style="font-size: 14px; color: var(--text-muted);">Apresente suas qualificações e valor pretendido ao cliente</p>
       </div>
 
       <form id="form-proposta-envio" class="login-form">
@@ -122,7 +136,7 @@
         </label>
 
         <label class="input-group">
-          <span>Tempo estimado de entrega *</span>
+          <span>Prazo Estimado de Entrega *</span>
           <div class="input-wrapper">
             <i class="fa-regular fa-clock"></i>
             <input type="text" id="proposta-prazo" placeholder="Ex: 7 dias" required>
@@ -133,15 +147,15 @@
           <span>Carta de Apresentação / Mensagem *</span>
           <div class="input-wrapper" style="align-items: flex-start; padding-top: 10px;">
             <i class="fa-regular fa-comment-dots" style="margin-top: 5px;"></i>
-            <textarea id="proposta-mensagem" rows="4" placeholder="Explique sua experiência relevante e como pretende realizar o projeto..." required style="width: 100%; border: none; outline: none; background: transparent; padding: 5px 0 10px 0; font-size: 0.95rem; font-family: inherit; color: var(--text-color); resize: vertical;"></textarea>
+            <textarea id="proposta-mensagem" rows="4" placeholder="Explique por que você é a pessoa ideal para este projeto, sua experiência prévia e metodologia de trabalho..." required style="width: 100%; border: none; outline: none; background: transparent; padding: 5px 0 10px 0; font-size: 0.95rem; font-family: inherit; color: var(--text-color); resize: vertical; min-height: 100px;"></textarea>
           </div>
         </label>
 
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-          <button type="button" id="btn-cancelar-modal" class="social-btn" style="flex: 1; padding: 12px;">
+        <div style="display: flex; gap: 12px; margin-top: 10px;">
+          <button type="button" id="btn-cancelar-modal" onclick="fecharModalProposta()" class="social-btn" style="flex: 1; padding: 12px; font-size: 14px;">
             Cancelar
           </button>
-          <button type="submit" class="login-btn" style="flex: 1; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <button type="submit" class="login-btn" style="flex: 1; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;">
             <i class="fa-solid fa-paper-plane"></i> Confirmar Envio
           </button>
         </div>
@@ -149,7 +163,224 @@
     </div>
   </div>
 
+  <!-- MODAL DE VISUALIZAÇÃO DO PERFIL COMPLETO DO CANDIDATO -->
+  <div id="modal-perfil-candidato" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(5px); z-index: 99999; justify-content: center; align-items: center; padding: 20px;">
+    <div class="candidate-profile-modal-card">
+      
+      <!-- Capa e Botão de Fechar -->
+      <div class="cpm-cover" id="cpmCoverBg">
+        <button type="button" class="cpm-close-btn" onclick="fecharPerfilModal()" title="Fechar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="cpm-avatar-wrap" id="cpmAvatarWrap">
+          <span id="cpmAvatarInitial">U</span>
+        </div>
+      </div>
+
+      <!-- Conteúdo do Perfil -->
+      <div class="cpm-body">
+        
+        <div class="cpm-name-row">
+          <div>
+            <h2 class="cpm-name" id="cpmName">Nome do Freelancer</h2>
+            <div class="cpm-specialty" id="cpmSpecialty">Especialidade / Título Profissional</div>
+            <div class="cpm-location" id="cpmLocation">
+              <i class="fa-solid fa-location-dot" style="color: var(--primary-color);"></i>
+              <span id="cpmLocationText">São Paulo - SP</span>
+            </div>
+          </div>
+          <div>
+            <span class="cpm-verified-badge">
+              <i class="fa-solid fa-circle-check"></i> Freelancer Verificado
+            </span>
+          </div>
+        </div>
+
+        <!-- Grade de Métricas Rápidas -->
+        <div class="cpm-metrics-grid">
+          <div class="cpm-metric-box">
+            <div class="cpm-metric-val" id="cpmRating" style="color: #f59e0b;">
+              <i class="fa-solid fa-star"></i> 5.0 (2)
+            </div>
+            <div class="cpm-metric-lbl">Avaliação Média</div>
+          </div>
+          <div class="cpm-metric-box">
+            <div class="cpm-metric-val" id="cpmRate">R$ 85/h</div>
+            <div class="cpm-metric-lbl">Taxa Horária</div>
+          </div>
+          <div class="cpm-metric-box">
+            <div class="cpm-metric-val" id="cpmAvailability">30-40h/sem</div>
+            <div class="cpm-metric-lbl">Disponibilidade</div>
+          </div>
+          <div class="cpm-metric-box">
+            <div class="cpm-metric-val" id="cpmResponse">&lt; 1 hora</div>
+            <div class="cpm-metric-lbl">Tempo Resposta</div>
+          </div>
+        </div>
+
+        <!-- Sobre o Freelancer -->
+        <div class="cpm-section">
+          <h3 class="cpm-section-title">
+            <i class="fa-regular fa-user" style="color: var(--primary-color);"></i> Apresentação Profissional
+          </h3>
+          <p class="cpm-bio-text" id="cpmBio">
+            Carregando bio...
+          </p>
+        </div>
+
+        <!-- Habilidades Técnicas -->
+        <div class="cpm-section">
+          <h3 class="cpm-section-title">
+            <i class="fa-solid fa-tags" style="color: var(--primary-color);"></i> Habilidades &amp; Ferramentas
+          </h3>
+          <div class="cpm-skills-list" id="cpmSkills">
+            <!-- Chips dinâmicos -->
+          </div>
+        </div>
+
+        <!-- Experiência Profissional -->
+        <div class="cpm-section" id="cpmExpSection">
+          <h3 class="cpm-section-title">
+            <i class="fa-solid fa-briefcase" style="color: var(--primary-color);"></i> Experiência &amp; Carreira
+          </h3>
+          <div id="cpmExperienceText" style="font-size: 13.5px; line-height: 1.6; color: var(--text-color); white-space: pre-line;"></div>
+        </div>
+
+        <!-- Portfólio de Trabalhos -->
+        <div class="cpm-section" id="cpmPortSection">
+          <h3 class="cpm-section-title">
+            <i class="fa-solid fa-laptop-code" style="color: var(--primary-color);"></i> Destaques do Portfólio
+          </h3>
+          <div id="cpmPortfolioText" style="font-size: 13.5px; line-height: 1.6; color: var(--text-color); white-space: pre-line;"></div>
+        </div>
+
+        <!-- Avaliações de Clientes -->
+        <div class="cpm-section">
+          <h3 class="cpm-section-title">
+            <i class="fa-regular fa-star" style="color: #f59e0b;"></i> Depoimentos &amp; Avaliações de Clientes
+          </h3>
+          <div id="cpmReviewsList">
+            <!-- Avaliações dinâmicas -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Rodapé do Modal com Ações -->
+      <div class="cpm-footer">
+        <a id="cpmLinkPaginaCompleta" href="#" target="_blank" class="social-btn" style="padding: 10px 18px; font-size: 13.5px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Página Completa
+        </a>
+        <button type="button" class="btn-cancelar-modal social-btn" onclick="fecharPerfilModal()" style="padding: 10px 18px; font-size: 13.5px;">
+          Fechar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL DE FINALIZAÇÃO DE PROJETO & AVALIAÇÃO MÚTUA -->
+  <div id="modal-avaliacao" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(5px); z-index: 99999; justify-content: center; align-items: center; padding: 20px;">
+    <div class="review-modal-card">
+      
+      <button type="button" onclick="fecharModalAvaliacao()" style="position: absolute; top: 18px; right: 18px; background: transparent; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted);" title="Fechar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 52px; height: 52px; border-radius: 50%; background: #fef3c7; color: #d97706; display: inline-flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px; border: 1px solid #fde68a;">
+          <i class="fa-solid fa-star"></i>
+        </div>
+        <h2 id="modalAvaliacaoTitulo" style="font-size: 20px; color: var(--text-heading); font-weight: 800; margin-bottom: 4px;">Finalizar Projeto &amp; Avaliar</h2>
+        <p id="modalAvaliacaoSubtitulo" style="font-size: 13.5px; color: var(--text-muted);">Compartilhe sua experiência de trabalho para fortalecer a comunidade</p>
+      </div>
+
+      <form id="form-avaliacao-projeto" onsubmit="event.preventDefault(); submeterAvaliacao();">
+        
+        <!-- Seletor Interativo de 5 Estrelas -->
+        <div style="text-align: center;">
+          <label style="font-size: 13px; font-weight: 700; color: var(--text-heading); display: block;">
+            Sua Classificação Geral *
+          </label>
+          <div class="star-rating-row" id="starRatingRow">
+            <button type="button" class="star-icon-btn filled" data-star="1" onclick="selecionarEstrelaAvaliacao(1)"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="star-icon-btn filled" data-star="2" onclick="selecionarEstrelaAvaliacao(2)"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="star-icon-btn filled" data-star="3" onclick="selecionarEstrelaAvaliacao(3)"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="star-icon-btn filled" data-star="4" onclick="selecionarEstrelaAvaliacao(4)"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="star-icon-btn filled" data-star="5" onclick="selecionarEstrelaAvaliacao(5)"><i class="fa-solid fa-star"></i></button>
+          </div>
+          <div class="rating-label-display" id="ratingLabelDisplay">⭐ 5.0 - Excelente trabalho!</div>
+        </div>
+
+        <!-- Tags de Destaque / Elogios Selecionáveis -->
+        <div style="margin-bottom: 15px;">
+          <label style="font-size: 13px; font-weight: 700; color: var(--text-heading); display: block; margin-bottom: 8px;">
+            Pontos de Destaque (clique para selecionar):
+          </label>
+          <div class="review-tags-container" id="reviewTagsContainer">
+            <!-- Chips dinâmicos -->
+          </div>
+        </div>
+
+        <!-- Depoimento Textual -->
+        <label class="input-group" style="margin-bottom: 20px;">
+          <span>Depoimento / Feedback Construtivo *</span>
+          <div class="input-wrapper" style="align-items: flex-start; padding-top: 10px;">
+            <i class="fa-regular fa-comment-dots" style="margin-top: 4px;"></i>
+            <textarea id="avaliacao-comentario" rows="4" placeholder="Escreva como foi trabalhar neste projeto, pontualidade nas entregas, qualidade técnica e comunicação..." required style="width: 100%; border: none; outline: none; background: transparent; padding: 5px 0 10px; font-size: 0.95rem; font-family: inherit; color: var(--text-color); resize: vertical; min-height: 95px;"></textarea>
+          </div>
+        </label>
+
+        <div style="display: flex; gap: 12px;">
+          <button type="button" class="social-btn" onclick="fecharModalAvaliacao()" style="flex: 1; padding: 12px; font-size: 14px;">
+            Cancelar
+          </button>
+          <button type="submit" class="login-btn" style="flex: 1.3; padding: 12px; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fa-solid fa-check"></i> Concluir &amp; Avaliar
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- JANELA FLUTUANTE DE CHAT EM TEMPO REAL -->
+  <div id="freelink-chat-box" class="freelink-chat-window hidden">
+    <div class="chat-header">
+      <div class="chat-header-user">
+        <div class="chat-header-avatar" id="chatHeaderAvatar">FL</div>
+        <div class="chat-header-details">
+          <h4 id="chatHeaderName">Nome do Interlocutor</h4>
+          <span class="chat-header-status"><span class="chat-online-dot"></span> Online no Freela</span>
+        </div>
+      </div>
+      <button type="button" class="chat-header-close" onclick="fecharChatProjeto()" title="Fechar Chat">&times;</button>
+    </div>
+
+    <div class="chat-project-badge-bar">
+      <span><i class="fa-solid fa-briefcase"></i> Projeto: <strong id="chatHeaderProjectTitle">-</strong></span>
+      <span style="color: var(--primary-color); font-weight: 700;"><i class="fa-solid fa-shield-halved"></i> Chat Seguro</span>
+    </div>
+
+    <div class="chat-messages-container" id="chatMessagesContainer">
+      <!-- Mensagens renderizadas dinamicamente -->
+    </div>
+
+    <div class="chat-quick-suggestions">
+      <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('Olá! Quando podemos iniciar o trabalho?')">Quando começamos?</button>
+      <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('Estou disponível para tirar dúvidas sobre o projeto.')">Tirar dúvidas</button>
+      <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('Perfeito! Vou iniciar a primeira etapa.')">Iniciando etapa</button>
+    </div>
+
+    <form id="chatForm" class="chat-input-row" onsubmit="event.preventDefault(); enviarMensagemChat();">
+      <input type="text" id="chatInputMessage" class="chat-input-field" placeholder="Digite uma mensagem para alinhar o freela..." autocomplete="off">
+      <button type="submit" class="chat-send-btn" title="Enviar Mensagem">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </form>
+  </div>
+
   <!-- Script principal do projeto -->
-  <script src="../js/main.js"></script>
+  <script src="../js/main.js?v=3"></script>
 </body>
 </html>

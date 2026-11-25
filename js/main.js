@@ -4,70 +4,829 @@
  * JavaScript Vanilla puro (sem dependências ou frameworks)
  * ====================================================================
  * 
- * Sumário dos Módulos:
- * 1. Sistema de Temas (Modo Escuro / Modo Claro) com Persistência
- * 2. Autenticação sem Backend (Login & Registro no LocalStorage)
- * 3. Gerenciamento de Projetos e Trabalhos (Mock Data + CRUD no LocalStorage)
- * 4. Renderização Dinâmica e Busca em Tempo Real (index.html)
- * 5. Publicação de Novos Projetos (postar-trabalho.html)
- * 6. Detalhes do Projeto e Envio de Propostas (detalhes-projeto.html)
- * 7. Tela de Configurações (Tema, Localização Própria e Notificações)
- * 8. Navbar Responsiva e Atualização de Sessão do Usuário
+ * Módulos:
+ * 1. Chaves de Armazenamento & Base Seed (freelink_user, freelink_projects, freelink_users)
+ * 2. Helpers de Autenticação e Guarda de Rotas (Route Guards)
+ * 3. Sistema de Notificações Flutuantes (Toasts) & Mensagens Flash
+ * 4. Sistema de Temas (Modo Escuro / Modo Claro)
+ * 5. Navbar Dinâmica & Menu Mobile Hambúrguer
+ * 6. Controle da Página Inicial (Landing Page Vitrine vs Feed Autenticado)
+ * 7. Formulário de Cadastro (registro.html) & Validações
+ * 8. Formulário de Login (login.html) & Feedback de Erro
+ * 9. Publicação de Projetos (postar-trabalho.html)
+ * 10. Detalhes do Projeto & Envio de Proposta (detalhes-projeto.html)
+ * 11. Tela de Configurações (configuracoes.html)
+ * 12. Inicialização Global
  */
 
-// Chaves de armazenamento no LocalStorage
+// ====================================================================
+// 1. CHAVES DE ARMAZENAMENTO & BASE SEED
+// ====================================================================
+
+// Redireciona automaticamente caso a página seja aberta pelo Live Server (127.0.0.1:5500) ou file://,
+// garantindo que sempre rode em http://localhost:3000 (exigido pelo Google OAuth e pelas rotas /api/*).
+(function garantirOrigemServidor() {
+  try {
+    const loc = window.location;
+    if (loc.hostname === '127.0.0.1' || (loc.hostname === 'localhost' && loc.port && loc.port !== '3000')) {
+      const caminho = loc.pathname.replace(/^\/Freelink(?=\/)/i, '');
+      loc.replace('http://localhost:3000' + caminho + loc.search + loc.hash);
+    }
+  } catch (e) {}
+})();
+
 const STORAGE_KEYS = {
-  TRABALHOS: 'freelink_trabalhos',
-  USUARIOS: 'freelink_usuarios',
-  USUARIO_LOGADO: 'freelink_usuario_logado',
-  TEMA: 'freelink_tema',
-  LOCALIZACAO: 'freelink_localizacao',
-  NOTIFICACOES: 'freelink_notificacoes'
+  USER: 'freelink_user',
+  PROJECTS: 'freelink_projects',
+  USERS: 'freelink_users',
+  THEME: 'freelink_tema',
+  LOCATION: 'freelink_localizacao',
+  NOTIFICATIONS: 'freelink_notificacoes',
+  CHATS: 'freelink_chats',
+  // Legado para compatibilidade retroativa
+  LEGACY_USER: 'freelink_usuario_logado',
+  LEGACY_PROJECTS: 'freelink_trabalhos',
+  LEGACY_USERS: 'freelink_usuarios'
 };
 
+// Seed de Usuários Padrão para Demonstração no TCC
+const USUARIOS_SEED = [
+  {
+    id: "user_freelancer_1",
+    nome: "Lucas Desenvolvedor",
+    email: "lucas@freelink.com",
+    senha: "123456",
+    tipo: "freelancer",
+    foto: "",
+    especialidade: "Desenvolvedor Front-End & UI/UX",
+    localizacao: "São Paulo - SP (Remoto)",
+    taxaHoraria: "85,00",
+    disponibilidade: "30-40 horas/semana",
+    tempoResposta: "< 1 hora",
+    bio: "Desenvolvedor Front-End especializado na criação de interfaces web modernas, responsivas e de alta conversão. Ampla experiência em HTML5 semântico, CSS3 e JavaScript Vanilla de alta performance.",
+    habilidades: "HTML5, CSS3, JavaScript Vanilla, UI/UX Design, Figma, Mobile First, Performance Web, Git",
+    idiomas: "Português (Nativo)\nInglês (Avançado)",
+    certificações: "Certificação Frontend Web Expert - 2024\nUI/UX Specialist Certificate - 2023",
+    experienciaTexto: "Engenheiro Front-End Pleno\nTechLabs Soluções\n2022 - Atual\nDesenvolvimento de interfaces SaaS e landing pages com foco em Core Web Vitals.\n\nDesenvolvedor Web Jr\nAgência Criativa Alpha\n2020 - 2022\nCriação de websites responsivos e manutenção de aplicações web para clientes de e-commerce.",
+    portfolioTexto: "Plataforma SaaS de Gestão Financeira\nDashboard moderna desenvolvida com foco em alta usabilidade e performance.\nHTML5, CSS3, JavaScript, Charts\n\nLanding Page de Alta Conversão\nPágina de lançamento para produto digital com taxa de conversão superior a 14%.\nMobile First, SEO, CSS Grid, A/B Testing",
+    avaliacoes: [
+      {
+        id: "aval_seed_1",
+        autor: "TechStart Soluções",
+        projeto: "Desenvolvimento de Landing Page",
+        estrelas: 5,
+        comentario: "Excelente profissional! Entregou antes do prazo com fidelidade visual perfeita e código extremamente limpo.",
+        tags: ["Pontualidade", "Qualidade Técnica", "Comunicação Clara"],
+        data: "Há 2 semanas"
+      },
+      {
+        id: "aval_seed_2",
+        autor: "Studio Criativo Digital",
+        projeto: "Interface Web Responsiva",
+        estrelas: 5,
+        comentario: "Muito prestativo, comunicação ágil e trabalho impecável. Recomendo com certeza!",
+        tags: ["Proatividade", "Qualidade Técnica", "Recomendo"],
+        data: "Há 1 mês"
+      }
+    ]
+  },
+  {
+    id: "user_freelancer_2",
+    nome: "Aluno TCC FreeLink",
+    email: "aluno@freelink.com",
+    senha: "123456",
+    tipo: "freelancer",
+    foto: "",
+    especialidade: "Desenvolvedor Full Stack & Mobile",
+    localizacao: "Brasil (Remoto)",
+    taxaHoraria: "70,00",
+    disponibilidade: "20-30 horas/semana",
+    tempoResposta: "< 2 horas",
+    bio: "Estudante e entusiasta de tecnologia focado em desenvolvimento web moderno, modular e acessível. Comprometido com padrões web limpos e soluções práticas.",
+    habilidades: "HTML5, CSS3, JavaScript, Node.js, Banco de Dados, Git, APIs REST",
+    idiomas: "Português (Nativo)\nInglês (Intermediário)",
+    certificações: "Bootcamp Full Stack Web - 2024",
+    experienciaTexto: "Desenvolvedor de Software Freelancer\nAutônomo\n2023 - Atual\nDesenvolvimento de projetos acadêmicos e soluções web sob medida.",
+    portfolioTexto: "Portal de Vagas e Marketplace Freelance\nSistema web completo desenvolvido com Vanilla JS e persistência local.\nHTML5, CSS3, JavaScript Vanilla",
+    avaliacoes: [
+      {
+        id: "aval_seed_3",
+        autor: "E-commerce Bem Estar",
+        projeto: "Otimização de Página Web",
+        estrelas: 5,
+        comentario: "Excelente dedicação e pontualidade na entrega dos entregáveis.",
+        tags: ["Pontualidade", "Comprometimento"],
+        data: "Há 3 semanas"
+      }
+    ]
+  },
+  {
+    id: "user_client_1",
+    nome: "Admin FreeLink",
+    email: "admin@freelink.com",
+    senha: "admin",
+    tipo: "contratante",
+    foto: "",
+    especialidade: "Gestor de Projetos",
+    localizacao: "São Paulo - SP",
+    taxaHoraria: "",
+    disponibilidade: "Tempo Integral",
+    tempoResposta: "< 1 hora",
+    bio: "Administrador da plataforma e gestor de demandas corporativas.",
+    habilidades: "Gestão Ágil, Scrum, Liderança de Equipes",
+    avaliacoes: []
+  },
+  {
+    id: "user_client_2",
+    nome: "TechStart Soluções",
+    email: "contato@techstart.com",
+    senha: "123456",
+    tipo: "contratante",
+    foto: "",
+    especialidade: "Empresa de Tecnologia & Inovação",
+    localizacao: "São Paulo - SP",
+    taxaHoraria: "",
+    disponibilidade: "Horário Comercial",
+    tempoResposta: "< 1 hora",
+    bio: "Startup em rápido crescimento focada em soluções SaaS e inteligência digital para empresas.",
+    habilidades: "Gestão de Projetos, Inovação, SaaS, Metodologias Ágeis",
+    avaliacoes: [
+      {
+        id: "aval_seed_4",
+        autor: "Lucas Desenvolvedor",
+        projeto: "Landing Page Responsiva",
+        estrelas: 5,
+        comentario: "Cliente nota 10! Briefing detalhado, comunicação clara e suporte excelente durante o desenvolvimento.",
+        tags: ["Briefing Claro", "Pagamento Pontual", "Boa Comunicação"],
+        data: "Há 1 semana"
+      }
+    ]
+  }
+];
+
+// Seed de Projetos Padrão com Tags de Habilidades e Propostas
+const PROJETOS_SEED = [
+  {
+    id: "1",
+    titulo: "Criação de Identidade Visual e Logotipo Moderno",
+    categoria: "Design & UI/UX",
+    empresa: "Studio Criativo Digital",
+    localizacao: "Remoto / Rio de Janeiro",
+    orcamento: "850,00",
+    prazo: "10 dias",
+    modalidade: "Remoto",
+    habilidades: ["Figma", "Adobe Illustrator", "Identidade Visual", "Branding"],
+    propostas: 14,
+    listaPropostas: [],
+    dataPublicacao: "Publicado há 2 dias",
+    descricao: "Estamos buscando um designer gráfico experiente para desenvolver a nova identidade visual da nossa marca. O trabalho inclui logotipo principal, variações de cores para modo claro e escuro, tipografia oficial, paleta de cores hexadecimal e entrega dos arquivos editáveis vetoriais (.AI, .EPS, .SVG)."
+  },
+  {
+    id: "2",
+    titulo: "Desenvolvimento de Landing Page Responsiva",
+    categoria: "Programação & Tecnologia",
+    empresa: "TechStart Soluções",
+    criadorId: "user_client_2",
+    criadorEmail: "contato@techstart.com",
+    statusContratacao: "aberto",
+    freelancerContratado: null,
+    localizacao: "Remoto / São Paulo",
+    orcamento: "2.400,00",
+    prazo: "15 dias",
+    modalidade: "Remoto",
+    habilidades: ["HTML5", "CSS3", "JavaScript Vanilla", "Mobile First", "UI/UX"],
+    propostas: 2,
+    listaPropostas: [
+      {
+        id: "prop_seed_1",
+        usuarioId: "user_freelancer_1",
+        usuarioNome: "Lucas Desenvolvedor",
+        usuarioEmail: "lucas@freelink.com",
+        usuarioFoto: "",
+        valor: "2.200,00",
+        prazo: "12 dias",
+        mensagem: "Olá equipe TechStart! Sou especialista em Front-end com foco em HTML5 semântico, CSS3 moderno e JS Vanilla. Tenho ampla experiência no desenvolvimento de Landing Pages de alta conversão, responsivas e otimizadas para SEO. Posso iniciar de imediato!",
+        status: "pendente",
+        data: "Hoje"
+      },
+      {
+        id: "prop_seed_2",
+        usuarioId: "user_freelancer_2",
+        usuarioNome: "Aluno TCC FreeLink",
+        usuarioEmail: "aluno@freelink.com",
+        usuarioFoto: "",
+        valor: "2.400,00",
+        prazo: "15 dias",
+        mensagem: "Olá! Possuo experiência completa em desenvolvimento Web e entrega de interfaces modernas. Posso garantir um código limpo, modular e de fácil manutenção para o seu SaaS.",
+        status: "pendente",
+        data: "Ontem"
+      }
+    ],
+    dataPublicacao: "Publicado ontem",
+    descricao: "Precisamos de um desenvolvedor front-end para criar uma Landing Page moderna de alta conversão para o lançamento do nosso novo produto SaaS. A página deve ser 100% responsiva (mobile, tablet e desktop), otimizada para SEO e velocidade de carregamento (Core Web Vitals), contendo formulário de captura e depoimentos."
+  },
+  {
+    id: "3",
+    titulo: "Edição e Motion Graphics para Vídeos de Redes Sociais",
+    categoria: "Vídeo & Animação",
+    empresa: "Agência Viraliza",
+    localizacao: "Remoto / Minas Gerais",
+    orcamento: "1.200,00",
+    prazo: "7 dias",
+    modalidade: "Remoto",
+    habilidades: ["Premiere Pro", "After Effects", "Motion Graphics", "Reels", "TikTok"],
+    propostas: 19,
+    listaPropostas: [],
+    dataPublicacao: "Publicado hoje",
+    descricao: "Procuramos um editor de vídeo criativo para produzir um pacote de 10 vídeos curtos (Reels, TikTok e Shorts). Forneceremos as gravações brutas e os roteiros. O editor será responsável por cortes dinâmicos, legendas sincronizadas estilizadas, efeitos sonoros (SFX) e motion graphics."
+  },
+  {
+    id: "4",
+    titulo: "Redação de Artigos Especializados sobre Tecnologia e IA",
+    categoria: "Redação & Tradução",
+    empresa: "Portal Futuro Tech",
+    localizacao: "Remoto / Curitiba",
+    orcamento: "600,00",
+    prazo: "5 dias",
+    modalidade: "Remoto",
+    habilidades: ["SEO", "Copywriting", "Inteligência Artificial", "Redação Web"],
+    propostas: 6,
+    listaPropostas: [],
+    dataPublicacao: "Publicado há 3 dias",
+    descricao: "Buscamos redator com excelente domínio da língua portuguesa e conhecimento em inteligência artificial para redigir 4 artigos aprofundados (cerca de 1.500 palavras cada) com foco em SEO, legibilidade e boas práticas editoriais para nosso portal de notícias."
+  },
+  {
+    id: "5",
+    titulo: "Campanha Completa de Tráfego Pago (Meta Ads & Google)",
+    categoria: "Marketing Digital",
+    empresa: "E-commerce Bem Estar",
+    localizacao: "Remoto / São Paulo",
+    orcamento: "1.800,00",
+    prazo: "20 dias",
+    modalidade: "Remoto",
+    habilidades: ["Google Ads", "Meta Ads", "Tráfego Pago", "Copywriting", "Pixel"],
+    propostas: 11,
+    listaPropostas: [],
+    dataPublicacao: "Publicado há 1 dia",
+    descricao: "Estamos expandindo nossas operações de e-commerce e buscamos um gestor de tráfego qualificado para planejar, configurar e otimizar campanhas de conversão no Facebook Ads, Instagram Ads e Google Ads, visando maximizar o ROAS."
+  }
+];
+
+/**
+ * Inicializa a base mockada no LocalStorage caso ainda não exista
+ */
+function inicializarSeedBanco() {
+  if (!localStorage.getItem(STORAGE_KEYS.PROJECTS) && !localStorage.getItem(STORAGE_KEYS.LEGACY_PROJECTS)) {
+    salvarProjetos(PROJETOS_SEED);
+  } else if (!localStorage.getItem(STORAGE_KEYS.PROJECTS) && localStorage.getItem(STORAGE_KEYS.LEGACY_PROJECTS)) {
+    try {
+      const leg = JSON.parse(localStorage.getItem(STORAGE_KEYS.LEGACY_PROJECTS));
+      salvarProjetos(leg);
+    } catch (e) {
+      salvarProjetos(PROJETOS_SEED);
+    }
+  }
+
+  if (!localStorage.getItem(STORAGE_KEYS.USERS) && !localStorage.getItem(STORAGE_KEYS.LEGACY_USERS)) {
+    salvarUsuarios(USUARIOS_SEED);
+  } else if (!localStorage.getItem(STORAGE_KEYS.USERS) && localStorage.getItem(STORAGE_KEYS.LEGACY_USERS)) {
+    try {
+      const legU = JSON.parse(localStorage.getItem(STORAGE_KEYS.LEGACY_USERS));
+      salvarUsuarios(legU);
+    } catch (e) {
+      salvarUsuarios(USUARIOS_SEED);
+    }
+  }
+}
+
+function obterProjetos() {
+  const dados = localStorage.getItem(STORAGE_KEYS.PROJECTS) || localStorage.getItem(STORAGE_KEYS.LEGACY_PROJECTS);
+  if (!dados) {
+    salvarProjetos(PROJETOS_SEED);
+    return PROJETOS_SEED;
+  }
+  try {
+    const list = JSON.parse(dados);
+    let mod = false;
+    list.forEach(p => {
+      if (!Array.isArray(p.listaPropostas)) {
+        p.listaPropostas = [];
+        mod = true;
+      }
+      if (String(p.id) === "2") {
+        if (!p.criadorId) {
+          p.criadorId = "user_client_2";
+          p.criadorEmail = "contato@techstart.com";
+          mod = true;
+        }
+        if (p.listaPropostas.length === 0) {
+          p.listaPropostas = [
+            {
+              id: "prop_seed_1",
+              usuarioId: "user_freelancer_1",
+              usuarioNome: "Lucas Desenvolvedor",
+              usuarioEmail: "lucas@freelink.com",
+              usuarioFoto: "",
+              valor: "2.200,00",
+              prazo: "12 dias",
+              mensagem: "Olá equipe TechStart! Sou especialista em Front-end com foco em HTML5 semântico, CSS3 moderno e JS Vanilla. Tenho ampla experiência no desenvolvimento de Landing Pages de alta conversão, responsivas e otimizadas para SEO. Posso iniciar de imediato!",
+              status: "pendente",
+              data: "Hoje"
+            },
+            {
+              id: "prop_seed_2",
+              usuarioId: "user_freelancer_2",
+              usuarioNome: "Aluno TCC FreeLink",
+              usuarioEmail: "aluno@freelink.com",
+              usuarioFoto: "",
+              valor: "2.400,00",
+              prazo: "15 dias",
+              mensagem: "Olá! Possuo experiência completa em desenvolvimento Web e entrega de interfaces modernas. Posso garantir um código limpo, modular e de fácil manutenção para o seu SaaS.",
+              status: "pendente",
+              data: "Ontem"
+            }
+          ];
+          p.propostas = p.listaPropostas.length;
+          mod = true;
+        }
+      }
+    });
+    if (mod) {
+      salvarProjetos(list);
+    }
+    return list;
+  } catch (e) {
+    return PROJETOS_SEED;
+  }
+}
+
+function salvarProjetos(projetos, projetoAlterado) {
+  const json = JSON.stringify(projetos);
+  try {
+    localStorage.setItem(STORAGE_KEYS.PROJECTS, json);
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_PROJECTS);
+  } catch (e) {}
+  if (projetoAlterado && projetoAlterado.id) {
+    salvarProjetoNoServidor(projetoAlterado);
+  }
+}
+
+async function salvarProjetoNoServidor(projeto) {
+  if (!projeto || !projeto.id) return;
+  try {
+    await fetch('/api/projetos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projeto })
+    });
+  } catch (e) {
+    console.warn('Não foi possível sincronizar projeto com o servidor:', e);
+  }
+}
+
+async function sincronizarProjetosComServidor() {
+  try {
+    const res = await fetch('/api/projetos');
+    if (!res.ok) return;
+    const data = await res.json();
+    let lista = Array.isArray(data.projetos) ? data.projetos : [];
+    if (lista.length === 0) {
+      await fetch('/api/projetos/seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projetos: PROJETOS_SEED })
+      });
+      lista = PROJETOS_SEED;
+    }
+    if (lista.length > 0) {
+      localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(lista));
+      localStorage.removeItem(STORAGE_KEYS.LEGACY_PROJECTS);
+      if (document.getElementById('vitrine-projetos-grid') && !isAuthenticated()) {
+        renderizarVitrineProjetos();
+      }
+      if (document.getElementById('jobs-container') && isAuthenticated()) {
+        const inputBusca = document.getElementById('search-input');
+        const selCat = document.getElementById('search-category');
+        const tabMeus = document.getElementById('tab-meus-projetos');
+        const apenasMeus = Boolean(tabMeus && tabMeus.classList.contains('active'));
+        renderizarTrabalhos(inputBusca ? inputBusca.value.trim() : '', selCat ? selCat.value : '', apenasMeus);
+      }
+      if (document.getElementById('detalhe-conteudo')) {
+        carregarDetalhesProjeto();
+      }
+    }
+  } catch (e) {}
+}
+
+function obterUsuarios() {
+  const dados = localStorage.getItem(STORAGE_KEYS.USERS) || localStorage.getItem(STORAGE_KEYS.LEGACY_USERS);
+  if (!dados) {
+    salvarUsuarios(USUARIOS_SEED);
+    return USUARIOS_SEED;
+  }
+  try {
+    const list = JSON.parse(dados);
+    let mod = false;
+    USUARIOS_SEED.forEach(seedUser => {
+      const idx = list.findIndex(u => (u.id && u.id === seedUser.id) || (u.email && u.email.toLowerCase() === seedUser.email.toLowerCase()));
+      if (idx === -1) {
+        list.push(seedUser);
+        mod = true;
+      } else {
+        // Enriquecer dados de perfil se faltar bio, habilidades ou avaliações
+        if (!list[idx].bio && seedUser.bio) {
+          list[idx].bio = seedUser.bio;
+          list[idx].taxaHoraria = list[idx].taxaHoraria || seedUser.taxaHoraria;
+          list[idx].disponibilidade = list[idx].disponibilidade || seedUser.disponibilidade;
+          list[idx].tempoResposta = list[idx].tempoResposta || seedUser.tempoResposta;
+          list[idx].localizacao = list[idx].localizacao || seedUser.localizacao;
+          list[idx].habilidades = list[idx].habilidades || seedUser.habilidades;
+          list[idx].idiomas = list[idx].idiomas || seedUser.idiomas;
+          list[idx].certificações = list[idx].certificações || seedUser.certificações;
+          list[idx].experienciaTexto = list[idx].experienciaTexto || seedUser.experienciaTexto;
+          list[idx].portfolioTexto = list[idx].portfolioTexto || seedUser.portfolioTexto;
+          list[idx].avaliacoes = Array.isArray(list[idx].avaliacoes) && list[idx].avaliacoes.length > 0 ? list[idx].avaliacoes : seedUser.avaliacoes;
+          mod = true;
+        }
+      }
+    });
+    if (mod) {
+      salvarUsuarios(list);
+    }
+    return list;
+  } catch (e) {
+    return USUARIOS_SEED;
+  }
+}
+
+// Remove chaves legadas duplicadas e imagens base64 pesadas caso o localStorage atinja o limite de 5 MB
+function limparDuplicatasStorage() {
+  localStorage.removeItem(STORAGE_KEYS.LEGACY_USER);
+  localStorage.removeItem(STORAGE_KEYS.LEGACY_USERS);
+  localStorage.removeItem(STORAGE_KEYS.LEGACY_PROJECTS);
+}
+
+function enxugarUsuarioParaStorage(u, removerMidiaPesada = false) {
+  if (!u || typeof u !== 'object') return u;
+  const copia = Object.assign({}, u);
+  delete copia.senha;
+  if (removerMidiaPesada) {
+    if (typeof copia.banner === 'string' && copia.banner.startsWith('data:')) delete copia.banner;
+    if (typeof copia.foto === 'string' && copia.foto.length > 150000) copia.foto = '';
+    if (typeof copia.avatar === 'string' && copia.avatar.length > 150000) delete copia.avatar;
+  }
+  return copia;
+}
+
+function salvarUsuarios(usuarios) {
+  limparDuplicatasStorage();
+  try {
+    const leves = (usuarios || []).map(u => {
+      const c = Object.assign({}, u);
+      // Na lista global não guardamos banner pesado em base64 (fica no banco PostgreSQL)
+      if (typeof c.banner === 'string' && c.banner.length > 80000) delete c.banner;
+      if (typeof c.foto === 'string' && c.foto.length > 150000) c.foto = '';
+      return c;
+    });
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(leves));
+  } catch (e) {
+    try {
+      const minimos = (usuarios || []).map(u => enxugarUsuarioParaStorage(u, true));
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(minimos));
+    } catch (e2) {
+      console.warn('Quota do localStorage atingida ao salvar lista de usuários:', e2);
+    }
+  }
+}
+
 // ====================================================================
-// 1. SISTEMA DE TEMAS (MODO ESCURO / MODO CLARO)
+// 2. HELPERS DE AUTENTICAÇÃO E GUARDA DE ROTAS (ROUTE GUARDS)
 // ====================================================================
 
 /**
- * Atualiza o logotipo (brand-logo) em todas as páginas para a versão correspondente ao tema
- * @param {string} tema - 'light' ou 'dark'
+ * Retorna se o usuário está autenticado na plataforma
+ * @returns {boolean}
  */
+function isAuthenticated() {
+  const user = getCurrentUser();
+  return user !== null && typeof user === 'object' && !!user.id;
+}
+
+/**
+ * Retorna o usuário logado atual ou null
+ * @returns {Object|null}
+ */
+function getCurrentUser() {
+  const dados = localStorage.getItem(STORAGE_KEYS.USER) || localStorage.getItem(STORAGE_KEYS.LEGACY_USER);
+  if (!dados) return null;
+  try {
+    return JSON.parse(dados);
+  } catch (e) {
+    return null;
+  }
+}
+
+// Alias para compatibilidade com partes existentes
+function obterUsuarioLogado() {
+  return getCurrentUser();
+}
+
+/**
+ * Registra a sessão do usuário no LocalStorage
+ * @param {Object} user 
+ */
+function login(user) {
+  limparDuplicatasStorage();
+  let salvo = null;
+  try {
+    salvo = obterUsuarios().find(u =>
+      (u.id && user.id && String(u.id) === String(user.id)) ||
+      (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase())
+    ) || null;
+  } catch (e) {}
+
+  const userObj = Object.assign({}, salvo || {}, user || {}, {
+    id: (salvo && salvo.id) || user.id,
+    nome: user.nome || (salvo && salvo.nome),
+    email: user.email || (salvo && salvo.email),
+    tipo: user.tipo || (salvo && salvo.tipo) || 'freelancer',
+    foto: user.foto || (salvo && salvo.foto) || user.avatar || '',
+    especialidade: user.especialidade || (salvo && salvo.especialidade) || ''
+  });
+  delete userObj.senha;
+
+  try {
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userObj));
+  } catch (e) {
+    // Se a foto/banner em base64 exceder a cota do localStorage, salva a sessão sem a mídia pesada (que continua salva no PostgreSQL)
+    try {
+      const enxuto = enxugarUsuarioParaStorage(userObj, true);
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(enxuto));
+    } catch (e2) {
+      localStorage.removeItem(STORAGE_KEYS.USERS);
+      const enxuto = enxugarUsuarioParaStorage(userObj, true);
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(enxuto));
+    }
+  }
+}
+
+/**
+ * Garante que uma conta autenticada no servidor exista na lista de usuários local,
+ * onde o perfil editado é persistido. Retorna o usuário para ser passado ao login().
+ * @param {Object} u Usuário devolvido pelo servidor
+ */
+function registrarUsuarioServidor(u, token) {
+  limparDuplicatasStorage();
+  const usuarios = obterUsuarios();
+  const email = String(u.email || '').toLowerCase();
+  let idx = usuarios.findIndex(x => x.email && x.email.toLowerCase() === email);
+  const base = idx !== -1 ? usuarios[idx] : {
+    id: 'db_' + u.id,
+    nome: u.nome,
+    email: email,
+    tipo: u.tipo_usuario === 'CLIENTE' ? 'contratante' : 'freelancer',
+    foto: u.foto_perfil || '',
+    especialidade: ''
+  };
+  // O perfil salvo no banco de dados (PostgreSQL) tem prioridade sobre a cópia local
+  const mesclado = Object.assign({}, base, u.perfil || {}, {
+    dbId: u.id,
+    googleId: u.id,
+    email: email,
+    nome: (u.perfil && u.perfil.nome) || u.nome || base.nome,
+    tipo: u.tipo_usuario === 'CLIENTE' ? 'contratante' : (u.tipo_usuario === 'FREELANCER' ? 'freelancer' : base.tipo)
+  });
+  if (idx !== -1) usuarios[idx] = mesclado; else usuarios.push(mesclado);
+  salvarUsuarios(usuarios);
+  if (token) {
+    try { localStorage.setItem('freelink_token', token); } catch (e) {}
+  }
+  return mesclado;
+}
+
+// Mantém alias para compatibilidade com registro.html e login.html
+const registrarUsuarioGoogle = registrarUsuarioServidor;
+
+/**
+ * Envia o perfil do usuário logado para o servidor (PostgreSQL).
+ * Atua em qualquer conta autenticada com token do servidor (Google ou E-mail/Senha).
+ * @param {Object} usuario Perfil completo
+ * @returns {Promise<boolean>} true se foi salvo no servidor
+ */
+async function salvarPerfilNoServidor(usuario) {
+  const token = localStorage.getItem('freelink_token');
+  if (!token || !usuario) return false;
+  const perfil = Object.assign({}, usuario);
+  ['id', 'senha', 'email', 'googleId', 'dbId'].forEach(k => delete perfil[k]);
+  try {
+    const res = await fetch('/api/perfil', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ perfil })
+    });
+    if (res.status === 401) localStorage.removeItem('freelink_token');
+    return res.ok;
+  } catch (e) {
+    console.error('Não foi possível salvar o perfil no servidor:', e);
+    return false;
+  }
+}
+
+/**
+ * Sincroniza a sessão do usuário logado com os dados mais recentes do PostgreSQL
+ * (garante que alterações feitas em outro PC apareçam em qualquer página).
+ */
+async function sincronizarSessaoComServidor() {
+  const token = localStorage.getItem('freelink_token');
+  if (!token) return;
+  try {
+    const res = await fetch('/api/perfil', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.status === 401) {
+      localStorage.removeItem('freelink_token');
+      return;
+    }
+    if (!res.ok) return;
+    const data = await res.json();
+    const atual = getCurrentUser();
+    if (!atual || !data || !data.perfil) return;
+    const mesclado = Object.assign({}, atual, data.perfil, {
+      id: atual.id,
+      email: (data.usuario && data.usuario.email) || atual.email,
+      dbId: (data.usuario && data.usuario.id) || atual.dbId,
+      googleId: (data.usuario && data.usuario.id) || atual.googleId
+    });
+    try {
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(mesclado));
+    } catch (e) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(enxugarUsuarioParaStorage(mesclado, true)));
+      } catch (e2) {}
+    }
+    atualizarNavbarAutenticacao();
+    verificarOnboardingBotPerfil();
+  } catch (e) {}
+}
+
+/**
+ * Realiza o logout do usuário e redireciona para a página inicial
+ */
+function logout() {
+  pararPollingChat();
+  pararPollingListaChats();
+  localStorage.removeItem('freelink_token');
+  localStorage.removeItem(STORAGE_KEYS.USER);
+  localStorage.removeItem(STORAGE_KEYS.LEGACY_USER);
+  setFlashMessage('Você saiu da sua conta. Até logo!', 'info');
+  
+  const isSubfolder = window.location.pathname.includes('/html/') || 
+                      window.location.pathname.includes('\\html\\') ||
+                      document.querySelector('link[href*="../css/"]');
+  const target = isSubfolder ? 'index.html' : 'html/index.html';
+  window.location.href = target;
+}
+
+/**
+ * Guarda de Rotas (Route Guards)
+ * Protege páginas privadas para usuários não autenticados
+ * e impede que usuários já autenticados acessem login/registro.
+ */
+function verificarProtecaoRotas() {
+  const autenticado = isAuthenticated();
+  const path = window.location.pathname.toLowerCase();
+
+  const rotasPrivadas = ['postar-trabalho.html', 'perfil.html', 'configuracoes.html'];
+  const rotasAuth = ['login.html', 'registro.html'];
+
+  const emRotaPrivada = rotasPrivadas.some(rota => path.includes(rota));
+  const emRotaAuth = rotasAuth.some(rota => path.includes(rota));
+
+  const isSubfolder = window.location.pathname.includes('/html/') || 
+                      window.location.pathname.includes('\\html\\') ||
+                      document.querySelector('link[href*="../css/"]');
+
+  if (emRotaPrivada && !autenticado) {
+    setFlashMessage('Acesso restrito: Faça login para acessar esta página.', 'info');
+    const loginTarget = isSubfolder ? 'login.html' : 'html/login.html';
+    window.location.replace(loginTarget);
+    return;
+  }
+
+  if (emRotaAuth && autenticado) {
+    setFlashMessage('Você já está conectado ao FreeLink.', 'info');
+    const homeTarget = isSubfolder ? 'index.html' : 'html/index.html';
+    window.location.replace(homeTarget);
+    return;
+  }
+}
+
+// ====================================================================
+// 3. SISTEMA DE TOASTS (NOTIFICAÇÕES FLUTUANTES) & FLASH SYSTEM
+// ====================================================================
+
+/**
+ * Dispara uma notificação flutuante elegante na tela
+ * @param {string} message - Mensagem a ser exibida
+ * @param {'success'|'error'|'info'} type - Tipo do Toast
+ */
+function showToast(message, type = 'success') {
+  let container = document.getElementById('freelink-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'freelink-toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `freelink-toast toast-${type}`;
+
+  let iconClass = 'fa-solid fa-circle-check';
+  if (type === 'error') iconClass = 'fa-solid fa-circle-exclamation';
+  if (type === 'info') iconClass = 'fa-solid fa-circle-info';
+
+  toast.innerHTML = `
+    <i class="${iconClass} freelink-toast-icon"></i>
+    <div class="freelink-toast-message">${escapeHtml(message)}</div>
+    <button type="button" class="freelink-toast-close" title="Fechar">&times;</button>
+  `;
+
+  container.appendChild(toast);
+
+  const closeBtn = toast.querySelector('.freelink-toast-close');
+  const removerToast = () => {
+    toast.classList.add('toast-hiding');
+    setTimeout(() => {
+      if (toast && toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  };
+
+  if (closeBtn) closeBtn.addEventListener('click', removerToast);
+
+  // Auto-dismiss após 4 segundos
+  setTimeout(removerToast, 4000);
+}
+
+/**
+ * Registra uma mensagem flash no sessionStorage para ser exibida após redirecionamento
+ */
+function setFlashMessage(message, type = 'info') {
+  try {
+    sessionStorage.setItem('freelink_flash', JSON.stringify({ message, type }));
+  } catch (e) {}
+}
+
+/**
+ * Lê e exibe mensagem flash caso exista no sessionStorage
+ */
+function checkFlashMessage() {
+  try {
+    const flash = sessionStorage.getItem('freelink_flash');
+    if (flash) {
+      sessionStorage.removeItem('freelink_flash');
+      const parsed = JSON.parse(flash);
+      if (parsed && parsed.message) {
+        setTimeout(() => {
+          showToast(parsed.message, parsed.type || 'info');
+        }, 150);
+      }
+    }
+  } catch (e) {}
+}
+
+// ====================================================================
+// 4. SISTEMA DE TEMAS (MODO ESCURO / MODO CLARO)
+// ====================================================================
+
 function atualizarLogosTema(tema) {
   const logos = document.querySelectorAll('.brand-logo');
   const isHtmlSubfolder = window.location.pathname.includes('/html/') || 
                           window.location.pathname.includes('\\html\\') ||
                           document.querySelector('link[href*="../css/"]');
   const prefix = isHtmlSubfolder ? '../' : '';
-  const novoSrc = tema === 'dark' ? `${prefix}logo-dark.svg` : `${prefix}logo-light.svg`;
+  const novoSrc = `${prefix}img/imagem.png`;
 
   logos.forEach(logo => {
     logo.src = novoSrc;
   });
 }
 
-/**
- * Aplica o tema (claro ou escuro) e salva no localStorage
- * @param {string} tema - 'light' ou 'dark'
- */
 function aplicarTema(tema) {
   if (tema === 'dark') {
     document.body.classList.add('dark-mode');
-    localStorage.setItem(STORAGE_KEYS.TEMA, 'dark');
+    localStorage.setItem(STORAGE_KEYS.THEME, 'dark');
     atualizarLogosTema('dark');
   } else {
     document.body.classList.remove('dark-mode');
-    localStorage.setItem(STORAGE_KEYS.TEMA, 'light');
+    localStorage.setItem(STORAGE_KEYS.THEME, 'light');
     atualizarLogosTema('light');
   }
   atualizarInterfaceTemaConfig();
 }
+window.aplicarTema = aplicarTema;
 
-/**
- * Carrega a preferência de tema salva logo no início do carregamento
- */
 function carregarTemaSalvo() {
-  const temaSalvo = localStorage.getItem(STORAGE_KEYS.TEMA) || 'light';
+  const temaSalvo = localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
   if (temaSalvo === 'dark') {
     document.body.classList.add('dark-mode');
     atualizarLogosTema('dark');
@@ -78,13 +837,10 @@ function carregarTemaSalvo() {
   atualizarInterfaceTemaConfig();
 }
 
-/**
- * Atualiza visualmente os botões de seleção de tema na tela de configurações
- */
 function atualizarInterfaceTemaConfig() {
   const btnClaro = document.getElementById('btn-tema-claro');
   const btnEscuro = document.getElementById('btn-tema-escuro');
-  const temaAtual = localStorage.getItem(STORAGE_KEYS.TEMA) || 'light';
+  const temaAtual = localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
 
   if (btnClaro && btnEscuro) {
     if (temaAtual === 'dark') {
@@ -106,285 +862,268 @@ function atualizarInterfaceTemaConfig() {
 }
 
 // ====================================================================
-// 2. AUTENTICAÇÃO SEM BANCO DE DADOS (LOCALSTORAGE)
+// 5. NAVBAR DINÂMICA & MENU MOBILE HAMBÚRGUER
 // ====================================================================
 
-// Usuários iniciais mockados (garante conta padrão para testes no TCC)
-const USUARIOS_PADRAO = [
-  {
-    id: "user_1",
-    nome: "Aluno TCC FreeLink",
-    email: "aluno@freelink.com",
-    senha: "123456"
-  },
-  {
-    id: "user_2",
-    nome: "Admin FreeLink",
-    email: "admin@freelink.com",
-    senha: "admin"
-  }
-];
+function configurarNavbar() {
+  const navToggle = document.querySelector('.nav-toggle');
+  const navLinks = document.querySelector('.nav-links');
 
-/**
- * Obtém os usuários salvos no localStorage
- * @returns {Array} Lista de usuários cadastrados
- */
-function obterUsuarios() {
-  const dados = localStorage.getItem(STORAGE_KEYS.USUARIOS);
-  if (!dados) {
-    salvarUsuarios(USUARIOS_PADRAO);
-    return USUARIOS_PADRAO;
-  }
-  try {
-    return JSON.parse(dados);
-  } catch (e) {
-    return USUARIOS_PADRAO;
+  if (navToggle && navLinks) {
+    const novoToggle = navToggle.cloneNode(true);
+    navToggle.parentNode.replaceChild(novoToggle, navToggle);
+
+    novoToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navLinks.classList.toggle('open');
+    });
+
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!navLinks.contains(e.target) && !novoToggle.contains(e.target)) {
+        navLinks.classList.remove('open');
+      }
+    });
   }
 }
 
 /**
- * Salva a lista de usuários no localStorage
- * @param {Array} usuarios 
- */
-function salvarUsuarios(usuarios) {
-  localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(usuarios));
-}
-
-/**
- * Retorna os dados do usuário atualmente logado ou null
- * @returns {Object|null}
- */
-function obterUsuarioLogado() {
-  const dados = localStorage.getItem(STORAGE_KEYS.USUARIO_LOGADO);
-  if (!dados) return null;
-  try {
-    return JSON.parse(dados);
-  } catch (e) {
-    return null;
-  }
-}
-
-/**
- * Realiza o logout e recarrega a página
- */
-function fazerLogout() {
-  localStorage.removeItem(STORAGE_KEYS.USUARIO_LOGADO);
-  alert('Você saiu da sua conta.');
-  window.location.reload();
-}
-
-/**
- * Configura o formulário de cadastro em registro.html
- */
-function configurarRegistro() {
-  const form = document.getElementById('form-registro');
-  if (!form) return;
-
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const nome = document.getElementById('reg-nome').value.trim();
-    const email = document.getElementById('reg-email').value.trim().toLowerCase();
-    const senha = document.getElementById('reg-senha').value;
-    const confirmaSenha = document.getElementById('reg-confirma-senha').value;
-
-    if (!nome || !email || !senha || !confirmaSenha) {
-      alert('Por favor, preencha todos os campos obrigatórios!');
-      return;
-    }
-
-    if (senha.length < 6) {
-      alert('A senha deve ter pelo menos 6 caracteres!');
-      return;
-    }
-
-    if (senha !== confirmaSenha) {
-      alert('As senhas digitadas não coincidem!');
-      return;
-    }
-
-    const usuarios = obterUsuarios();
-
-    // Verifica se o e-mail já foi cadastrado
-    const usuarioExistente = usuarios.find(u => u.email === email);
-    if (usuarioExistente) {
-      alert('Este e-mail já está cadastrado no FreeLink! Faça login ou use outro e-mail.');
-      return;
-    }
-
-    // Cria novo usuário
-    const novoUsuario = {
-      id: `user_${Date.now()}`,
-      nome: nome,
-      email: email,
-      senha: senha
-    };
-
-    usuarios.push(novoUsuario);
-    salvarUsuarios(usuarios);
-
-    // Realiza o login automático
-    localStorage.setItem(STORAGE_KEYS.USUARIO_LOGADO, JSON.stringify({
-      id: novoUsuario.id,
-      nome: novoUsuario.nome,
-      email: novoUsuario.email
-    }));
-
-    alert(`🎉 Conta criada com sucesso! Seja bem-vindo(a), ${nome}!`);
-    window.location.href = 'index.html';
-  });
-}
-
-/**
- * Configura o formulário de login em login.html
- */
-function configurarLogin() {
-  const form = document.getElementById('form-login');
-  if (!form) return;
-
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const email = document.getElementById('login-email').value.trim().toLowerCase();
-    const senha = document.getElementById('login-senha').value;
-
-    if (!email || !senha) {
-      alert('Por favor, preencha seu e-mail e senha!');
-      return;
-    }
-
-    const usuarios = obterUsuarios();
-    const usuarioEncontrado = usuarios.find(u => u.email === email && u.senha === senha);
-
-    if (!usuarioEncontrado) {
-      alert('❌ E-mail ou senha incorretos!\n\nDica para o TCC: Você pode cadastrar uma conta nova ou usar:\nE-mail: aluno@freelink.com | Senha: 123456');
-      return;
-    }
-
-    // Salva a sessão do usuário no LocalStorage
-    localStorage.setItem(STORAGE_KEYS.USUARIO_LOGADO, JSON.stringify({
-      id: usuarioEncontrado.id,
-      nome: usuarioEncontrado.nome,
-      email: usuarioEncontrado.email
-    }));
-
-    alert(`👋 Olá, ${usuarioEncontrado.nome}! Login realizado com sucesso.`);
-    window.location.href = 'index.html';
-  });
-}
-
-/**
- * Atualiza o cabeçalho (Navbar) exibindo o nome do usuário e botão de logout se estiver logado
+ * Atualiza o cabeçalho de acordo com o status de autenticação
  */
 function atualizarNavbarAutenticacao() {
-  const container = document.getElementById('auth-buttons-container') || document.querySelector('.auth-buttons');
-  if (!container) return;
+  const containerAuth = document.getElementById('auth-buttons-container') || document.querySelector('.auth-buttons');
+  const navLinks = document.querySelector('.nav-links');
+  const autenticado = isAuthenticated();
+  const usuario = getCurrentUser();
 
-  const usuario = obterUsuarioLogado();
+  const isSubfolder = window.location.pathname.includes('/html/') || 
+                      window.location.pathname.includes('\\html\\') ||
+                      document.querySelector('link[href*="../css/"]');
+  const prefix = isSubfolder ? '' : 'html/';
 
-  if (usuario) {
-    const primeiroNome = usuario.nome.split(' ')[0];
-    container.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 13.5px; color: var(--text-color); font-weight: 500;">
-          <i class="fa-regular fa-circle-user" style="color: var(--primary-color);"></i> Olá, <strong>${escapeHtml(primeiroNome)}</strong>
-        </span>
-        <button id="btn-logout-navbar" class="btn-register" style="padding: 6px 12px; font-size: 12px; cursor: pointer; border: none; background: #ef4444;" title="Encerrar sessão">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-        </button>
-      </div>
-    `;
+  if (navLinks && (window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/'))) {
+    if (!autenticado) {
+      navLinks.innerHTML = `
+        <a href="#como-funciona">Como Funciona</a>
+        <a href="#categorias">Categorias</a>
+        <a href="#projetos-destaque">Vagas em Aberto</a>
+      `;
+    } else {
+      navLinks.innerHTML = `
+        <a href="index.html" class="active">Início</a>
+        <a href="${prefix}postar-trabalho.html">Postar Projeto</a>
+        <a href="${prefix}perfil.html">Meu Perfil</a>
+        <a href="${prefix}configuracoes.html">Configurações</a>
+      `;
+    }
+  }
 
-    const btnLogout = document.getElementById('btn-logout-navbar');
-    if (btnLogout) {
-      btnLogout.addEventListener('click', fazerLogout);
+  if (containerAuth) {
+    if (autenticado && usuario) {
+      const primeiroNome = usuario.nome.split(' ')[0];
+      const targetPerfil = `${prefix}perfil.html`;
+      const fotoPerfil = usuario.foto || usuario.avatar;
+
+      let avatarHtml = '';
+      if (fotoPerfil && fotoPerfil.trim() !== '') {
+        avatarHtml = `
+          <a href="${targetPerfil}" title="Meu Perfil (${escapeHtml(usuario.nome)})" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="${fotoPerfil}" alt="${escapeHtml(usuario.nome)}" class="navbar-avatar" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-color);">
+          </a>
+        `;
+      } else {
+        avatarHtml = `
+          <a href="${targetPerfil}" title="Meu Perfil" style="text-decoration: none; color: var(--text-heading); display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600;">
+            <i class="fa-regular fa-circle-user" style="color: var(--primary-color); font-size: 18px;"></i>
+            <span>${escapeHtml(primeiroNome)}</span>
+          </a>
+        `;
+      }
+
+      containerAuth.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" id="btn-navbar-chat" class="btn-navbar-chat" onclick="abrirListaConversas()" title="Minhas Conversas">
+            <i class="fa-solid fa-comments" style="color: var(--primary-color);"></i>
+            <span>Chat</span>
+            <span id="navbar-chat-badge" class="navbar-chat-badge hidden">0</span>
+          </button>
+          ${avatarHtml}
+          <button id="btn-logout-navbar" class="btn-register" style="padding: 7px 14px; font-size: 12.5px; cursor: pointer; border: none; background: #ef4444; border-radius: 8px; color: #fff; display: inline-flex; align-items: center; gap: 6px;" title="Encerrar sessão">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+          </button>
+        </div>
+      `;
+
+      const btnLogout = document.getElementById('btn-logout-navbar');
+      if (btnLogout) {
+        btnLogout.addEventListener('click', abrirModalConfirmacaoLogout);
+      }
+    } else {
+      const loginUrl = `${prefix}login.html`;
+      const regUrl = `${prefix}registro.html`;
+      containerAuth.innerHTML = `
+        <a href="${loginUrl}" class="btn-login">Entrar</a>
+        <a href="${regUrl}" class="btn-register">Cadastrar</a>
+      `;
     }
   }
 }
 
-// ====================================================================
-// 3. GERENCIAMENTO DE PROJETOS (LOCALSTORAGE)
-// ====================================================================
+/**
+ * Modal de confirmação estilizado antes de deslogar
+ */
+function abrirModalConfirmacaoLogout() {
+  let modal = document.getElementById('modal-confirm-logout');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-confirm-logout';
+    modal.className = 'confirm-modal-overlay';
+    modal.innerHTML = `
+      <div class="confirm-modal-card" style="background: var(--bg-card); padding: 30px; border-radius: 18px; border: 1px solid var(--border-color); max-width: 400px; width: 90%; text-align: center; box-shadow: var(--shadow-card);">
+        <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; display: inline-flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px;">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </div>
+        <h3 style="color: var(--text-heading); font-size: 20px; margin-bottom: 8px;">Encerrar Sessão?</h3>
+        <p style="color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 24px;">Tem certeza de que deseja sair da sua conta no FreeLink?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button type="button" id="btn-cancelar-logout" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-heading); font-weight: 600; cursor: pointer;">Cancelar</button>
+          <button type="button" id="btn-confirmar-logout" style="flex: 1; padding: 12px; border-radius: 10px; border: none; background: #ef4444; color: #fff; font-weight: 600; cursor: pointer;">Sim, Sair</button>
+        </div>
+      </div>
+    `;
+    modal.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100000;
+    `;
+    document.body.appendChild(modal);
 
-const PROJETOS_INICIAIS = [
-  {
-    id: "1",
-    titulo: "Criação de Identidade Visual e Logotipo Moderno",
-    categoria: "Design & Multimídia",
-    empresa: "Studio Criativo Digital",
-    localizacao: "Remoto / Rio de Janeiro",
-    orcamento: "850,00",
-    prazo: "10 dias",
-    propostas: 14,
-    dataPublicacao: "Publicado há 2 dias",
-    descricao: "Estamos buscando um designer gráfico talentoso para desenvolver a nova identidade visual da nossa marca. O trabalho inclui a criação do logotipo principal, variações de cores (modo claro e escuro), tipografia oficial, paleta de cores em formato hexadecimal e entrega dos arquivos vetoriais editáveis (.AI, .EPS, .SVG) e exportações em alta resolução (.PNG com fundo transparente)."
-  },
-  {
-    id: "2",
-    titulo: "Desenvolvimento de Landing Page Responsiva",
-    categoria: "Programação & TI",
-    empresa: "TechStart Soluções",
-    localizacao: "Remoto / São Paulo",
-    orcamento: "2.400,00",
-    prazo: "15 dias",
-    propostas: 8,
-    dataPublicacao: "Publicado ontem",
-    descricao: "Precisamos de um desenvolvedor front-end para criar uma Landing Page moderna de alta conversão para o lançamento do nosso novo produto SaaS. A página deve ser 100% responsiva (mobile, tablet e desktop), otimizada para SEO e velocidade de carregamento (Core Web Vitals), contendo formulário de captura de leads integrado e seções explicativas de planos e depoimentos."
-  },
-  {
-    id: "3",
-    titulo: "Edição e Motion Graphics para Vídeos de Redes Sociais",
-    categoria: "Design & Multimídia",
-    empresa: "Agência Viraliza",
-    localizacao: "Remoto / Minas Gerais",
-    orcamento: "1.200,00",
-    prazo: "7 dias",
-    propostas: 19,
-    dataPublicacao: "Publicado hoje",
-    descricao: "Procuramos um editor de vídeo criativo para produzir um pacote de 10 vídeos curtos (Reels, TikTok e Shorts). Forneceremos as gravações brutas e os roteiros. O editor será responsável por cortes dinâmicos, legendas sincronizadas estilizadas, efeitos sonoros (SFX), trilha sonora sem direitos autorais e inserção de animações de texto (motion graphics)."
-  },
-  {
-    id: "4",
-    titulo: "Redação de Artigos Especializados sobre Tecnologia e IA",
-    categoria: "Redação & Tradução",
-    empresa: "Portal Futuro Tech",
-    localizacao: "Remoto / Curitiba",
-    orcamento: "600,00",
-    prazo: "5 dias",
-    propostas: 6,
-    dataPublicacao: "Publicado há 3 dias",
-    descricao: "Buscamos redator com excelente domínio da língua portuguesa e conhecimento em inteligência artificial para redigir 4 artigos aprofundados (cerca de 1.500 palavras cada) com foco em SEO, legibilidade e boas práticas editoriais."
-  }
-];
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
 
-function obterTrabalhos() {
-  const dados = localStorage.getItem(STORAGE_KEYS.TRABALHOS);
-  if (!dados) {
-    salvarTrabalhos(PROJETOS_INICIAIS);
-    return PROJETOS_INICIAIS;
-  }
-  try {
-    return JSON.parse(dados);
-  } catch (erro) {
-    return PROJETOS_INICIAIS;
-  }
-}
+    modal.querySelector('#btn-cancelar-logout').addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
 
-function salvarTrabalhos(trabalhos) {
-  localStorage.setItem(STORAGE_KEYS.TRABALHOS, JSON.stringify(trabalhos));
+    modal.querySelector('#btn-confirmar-logout').addEventListener('click', () => {
+      modal.style.display = 'none';
+      logout();
+    });
+  }
+
+  modal.style.display = 'flex';
 }
 
 // ====================================================================
-// 4. RENDERIZAÇÃO DINÂMICA NA TELA PRINCIPAL (index.html)
+// 6. PÁGINA INICIAL: LANDING PAGE VITRINE VS FEED AUTENTICADO
 // ====================================================================
 
-function renderizarTrabalhos(termoBusca = '', categoriaFiltro = '') {
+function inicializarIndexPage() {
+  const landingVisitante = document.getElementById('landing-visitante');
+  const feedAutenticado = document.getElementById('feed-autenticado');
+  const heroAutenticado = document.getElementById('hero-autenticado');
+
+  if (!landingVisitante && !feedAutenticado) return;
+
+  const autenticado = isAuthenticated();
+
+  if (!autenticado) {
+    if (landingVisitante) landingVisitante.style.display = 'block';
+    if (feedAutenticado) feedAutenticado.style.display = 'none';
+    if (heroAutenticado) heroAutenticado.style.display = 'none';
+
+    renderizarVitrineProjetos();
+  } else {
+    if (landingVisitante) landingVisitante.style.display = 'none';
+    if (feedAutenticado) feedAutenticado.style.display = 'block';
+    if (heroAutenticado) heroAutenticado.style.display = 'block';
+
+    renderizarTrabalhos();
+    configurarBuscaIndex();
+    configurarAbasTrabalhos();
+  }
+}
+
+/**
+ * Renderiza os 3 ou 4 projetos em destaque na Landing Page Vitrine
+ */
+function renderizarVitrineProjetos() {
+  const container = document.getElementById('vitrine-projetos-grid');
+  if (!container) return;
+
+  const projetos = obterProjetos().slice(0, 4);
+
+  container.innerHTML = projetos.map(p => {
+    const skills = Array.isArray(p.habilidades) ? p.habilidades : (p.habilidades ? p.habilidades.split(',') : []);
+    const skillsHtml = skills.slice(0, 4).map(s => `<span class="skill-tag">${escapeHtml(s.trim())}</span>`).join('');
+
+    return `
+      <div class="vitrine-job-card">
+        <div class="vitrine-job-header">
+          <span class="vitrine-job-category">${escapeHtml(p.categoria)}</span>
+          <span class="vitrine-job-price">R$ ${escapeHtml(p.orcamento)}</span>
+        </div>
+        <h3>${escapeHtml(p.titulo)}</h3>
+        <p class="vitrine-job-desc">${escapeHtml(p.descricao)}</p>
+        
+        <div class="skills-tags-container">
+          ${skillsHtml}
+        </div>
+
+        <div class="vitrine-job-footer">
+          <div class="vitrine-job-meta">
+            <span><i class="fa-regular fa-clock"></i> ${escapeHtml(p.prazo || 'A combinar')}</span>
+            <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(p.localizacao || 'Remoto')}</span>
+          </div>
+          <button type="button" class="btn-proposta-vitrine" onclick="tratarCliquePropostaVisitante('${escapeHtml(p.id)}')">
+            <i class="fa-solid fa-paper-plane"></i> Enviar Proposta
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.tratarCliquePropostaVisitante = function(idProjeto) {
+  showToast('Cadastre-se gratuitamente ou faça login para enviar sua proposta!', 'info');
+  setTimeout(() => {
+    window.location.href = `login.html?redirect=detalhes-projeto.html?id=${encodeURIComponent(idProjeto)}`;
+  }, 1200);
+};
+
+/**
+ * Renderiza a lista de trabalhos no Feed Autenticado
+ */
+function renderizarTrabalhos(termoBusca = '', categoriaFiltro = '', apenasMeusProjetos = false) {
   const container = document.getElementById('jobs-container');
   if (!container) return;
 
-  const todosTrabalhos = obterTrabalhos();
+  const todosTrabalhos = obterProjetos();
+  const usuarioLogado = getCurrentUser();
 
-  const trabalhosFiltrados = todosTrabalhos.filter(trabalho => {
+  let lista = todosTrabalhos;
+
+  if (apenasMeusProjetos) {
+    if (!usuarioLogado) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: var(--bg-input); border-radius: 12px; border: 1px dashed var(--border-color);">
+          <i class="fa-solid fa-lock" style="font-size: 36px; color: var(--primary-color); margin-bottom: 12px;"></i>
+          <h3 style="color: var(--text-heading); margin-bottom: 6px;">Faça login para ver seus projetos</h3>
+        </div>
+      `;
+      return;
+    }
+    lista = lista.filter(t => t.empresa === usuarioLogado.nome);
+  }
+
+  const trabalhosFiltrados = lista.filter(trabalho => {
     const correspondeTexto = !termoBusca || 
       trabalho.titulo.toLowerCase().includes(termoBusca.toLowerCase()) ||
       trabalho.descricao.toLowerCase().includes(termoBusca.toLowerCase()) ||
@@ -396,102 +1135,563 @@ function renderizarTrabalhos(termoBusca = '', categoriaFiltro = '') {
     return correspondeTexto && correspondeCategoria;
   });
 
+  const badgeMeusProjetos = document.getElementById('contagem-meus-projetos');
+  if (badgeMeusProjetos && usuarioLogado) {
+    const totalMeus = todosTrabalhos.filter(t => t.empresa === usuarioLogado.nome).length;
+    badgeMeusProjetos.textContent = totalMeus;
+  }
+
   if (trabalhosFiltrados.length === 0) {
     container.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: var(--bg-input); border-radius: 12px; border: 1px dashed var(--border-color);">
         <i class="fa-solid fa-folder-open" style="font-size: 36px; color: var(--text-muted); margin-bottom: 12px;"></i>
-        <h3 style="color: var(--text-heading); margin-bottom: 6px;">Nenhum trabalho encontrado</h3>
-        <p style="color: var(--text-muted); font-size: 14px;">Tente buscar com outros termos ou publique um novo projeto!</p>
+        <h3 style="color: var(--text-heading); margin-bottom: 6px;">Nenhum projeto encontrado</h3>
+        <p style="color: var(--text-muted); font-size: 14px;">${apenasMeusProjetos ? 'Você ainda não publicou nenhum projeto.' : 'Tente buscar com outros termos ou publique um novo projeto!'}</p>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = trabalhosFiltrados.map(trabalho => `
-    <div class="job-card" onclick="redirecionarParaDetalhes('${trabalho.id}')" style="cursor: pointer;" title="Clique para ver os detalhes do projeto">
-      <h3>${escapeHtml(trabalho.titulo)}</h3>
-      <p class="company">${escapeHtml(trabalho.empresa || 'Empresa Anônima')}</p>
-      <p class="location">${escapeHtml(trabalho.localizacao || 'Remoto')}</p>
-      <p class="price">R$ ${escapeHtml(trabalho.orcamento)}</p>
-      <hr>
-      <div class="card-footer">
-        <span><i class="fa-regular fa-clock"></i> ${escapeHtml(trabalho.prazo || 'A combinar')}</span>
-        <span><i class="fa-regular fa-folder"></i> ${escapeHtml(trabalho.categoria)}</span>
+  container.innerHTML = trabalhosFiltrados.map(trabalho => {
+    const skills = Array.isArray(trabalho.habilidades) ? trabalho.habilidades : (trabalho.habilidades ? trabalho.habilidades.split(',') : []);
+    const skillsHtml = skills.slice(0, 3).map(s => `<span class="skill-tag">${escapeHtml(s.trim())}</span>`).join('');
+
+    return `
+      <div class="job-card" onclick="redirecionarParaDetalhes('${escapeHtml(trabalho.id)}')" style="cursor: pointer;" title="Clique para ver os detalhes do projeto">
+        <h3>${escapeHtml(trabalho.titulo)}</h3>
+        <p class="company"><i class="fa-regular fa-building" style="color: var(--primary-color); margin-right: 5px;"></i>${escapeHtml(trabalho.empresa || 'Cliente FreeLink')}</p>
+        <p class="location"><i class="fa-solid fa-location-dot" style="color: var(--primary-color); margin-right: 4px;"></i>${escapeHtml(trabalho.localizacao || 'Remoto')}</p>
+        <p class="price">R$ ${escapeHtml(trabalho.orcamento)}</p>
+        
+        <div class="skills-tags-container" style="margin-bottom: 10px;">
+          ${skillsHtml}
+        </div>
+
+        <hr>
+        <div class="card-footer">
+          <span><i class="fa-regular fa-clock"></i> ${escapeHtml(trabalho.prazo || 'A combinar')}</span>
+          <span><i class="fa-regular fa-folder"></i> ${escapeHtml(trabalho.categoria)}</span>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function redirecionarParaDetalhes(id) {
   window.location.href = `detalhes-projeto.html?id=${encodeURIComponent(id)}`;
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+function configurarAbasTrabalhos() {
+  const tabTodos = document.getElementById('tab-todos-trabalhos');
+  const tabMeus = document.getElementById('tab-meus-projetos');
+  const tabResultados = document.getElementById('tab-resultados-busca');
+
+  const secaoTodos = document.getElementById('container-todos-trabalhos');
+  const secaoResultados = document.getElementById('container-resultados-busca');
+
+  if (tabTodos) {
+    tabTodos.addEventListener('click', () => {
+      tabTodos.classList.add('active');
+      if (tabMeus) tabMeus.classList.remove('active');
+      if (tabResultados) tabResultados.classList.remove('active');
+      if (secaoTodos) secaoTodos.style.display = 'block';
+      if (secaoResultados) secaoResultados.style.display = 'none';
+      renderizarTrabalhos('', '', false);
+    });
+  }
+
+  if (tabMeus) {
+    tabMeus.addEventListener('click', () => {
+      tabMeus.classList.add('active');
+      if (tabTodos) tabTodos.classList.remove('active');
+      if (tabResultados) tabResultados.classList.remove('active');
+      if (secaoTodos) secaoTodos.style.display = 'block';
+      if (secaoResultados) secaoResultados.style.display = 'none';
+      renderizarTrabalhos('', '', true);
+    });
+  }
+
+  if (tabResultados) {
+    tabResultados.addEventListener('click', () => {
+      tabResultados.classList.add('active');
+      if (tabTodos) tabTodos.classList.remove('active');
+      if (tabMeus) tabMeus.classList.remove('active');
+      if (secaoTodos) secaoTodos.style.display = 'none';
+      if (secaoResultados) secaoResultados.style.display = 'block';
+    });
+  }
 }
 
 function configurarBuscaIndex() {
   const inputBusca = document.getElementById('search-input');
   const selectCategoria = document.getElementById('search-category');
   const btnBuscar = document.getElementById('btn-search');
+  const searchBar = document.querySelector('#hero-autenticado .search-bar') || document.querySelector('.search-bar');
+  const heroSection = document.getElementById('hero-autenticado') || document.querySelector('.hero');
 
-  function executarBusca() {
+  // Cria o overlay de fundo desfocado caso ainda não exista no DOM
+  let backdrop = document.getElementById('search-backdrop-overlay');
+  if (!backdrop && searchBar) {
+    backdrop = document.createElement('div');
+    backdrop.id = 'search-backdrop-overlay';
+    backdrop.className = 'search-backdrop-overlay';
+    document.body.appendChild(backdrop);
+  }
+
+  function ativarFocoBusca() {
+    if (!searchBar || !backdrop) return;
+    if (heroSection) heroSection.classList.add('search-active');
+    searchBar.classList.add('search-focused');
+    backdrop.classList.add('active');
+  }
+
+  function desativarFocoBusca() {
+    if (searchBar) searchBar.classList.remove('search-focused');
+    if (backdrop) backdrop.classList.remove('active');
+    if (heroSection) heroSection.classList.remove('search-active');
+  }
+
+  if (searchBar) {
+    searchBar.addEventListener('click', ativarFocoBusca);
+  }
+  if (inputBusca) {
+    inputBusca.addEventListener('focus', ativarFocoBusca);
+  }
+  if (selectCategoria) {
+    selectCategoria.addEventListener('focus', ativarFocoBusca);
+  }
+  if (backdrop) {
+    backdrop.addEventListener('click', () => {
+      desativarFocoBusca();
+      if (inputBusca) inputBusca.blur();
+      if (selectCategoria) selectCategoria.blur();
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && backdrop && backdrop.classList.contains('active')) {
+      desativarFocoBusca();
+      if (inputBusca) inputBusca.blur();
+      if (selectCategoria) selectCategoria.blur();
+    }
+  });
+
+  function dispararBusca() {
     const termo = inputBusca ? inputBusca.value.trim() : '';
     const categoria = selectCategoria ? selectCategoria.value : '';
+    desativarFocoBusca();
+    if (inputBusca) inputBusca.blur();
+    if (selectCategoria) selectCategoria.blur();
     renderizarTrabalhos(termo, categoria);
+
+    const secaoTrabalhos = document.getElementById('secao-trabalhos');
+    if (secaoTrabalhos && (termo || categoria)) {
+      secaoTrabalhos.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
-  if (btnBuscar) {
-    btnBuscar.addEventListener('click', (e) => {
-      e.preventDefault();
-      executarBusca();
-    });
-  }
-
+  if (btnBuscar) btnBuscar.addEventListener('click', dispararBusca);
   if (inputBusca) {
     inputBusca.addEventListener('keyup', (e) => {
-      if (e.key === 'Enter') {
-        executarBusca();
-      }
+      if (e.key === 'Enter') dispararBusca();
     });
   }
-
-  if (selectCategoria) {
-    selectCategoria.addEventListener('change', executarBusca);
-  }
+  if (selectCategoria) selectCategoria.addEventListener('change', dispararBusca);
 
   const itensCategorias = document.querySelectorAll('.category-item');
   itensCategorias.forEach(item => {
     item.addEventListener('click', () => {
       const p = item.querySelector('p');
-      if (p && selectCategoria) {
+      if (p) {
         const catTexto = p.textContent.trim();
-        selectCategoria.value = catTexto;
-        const secaoTrabalhos = document.getElementById('secao-trabalhos');
-        if (secaoTrabalhos) {
-          secaoTrabalhos.scrollIntoView({ behavior: 'smooth' });
-        }
-        executarBusca();
+        if (selectCategoria) selectCategoria.value = catTexto;
+        dispararBusca();
       }
     });
   });
 }
 
 // ====================================================================
-// 5. POSTAGEM DE PROJETOS (postar-trabalho.html)
+// 7. FORMULÁRIO DE CADASTRO (registro.html) & VALIDAÇÕES
+// ====================================================================
+
+function validarCPF(valor) {
+  const c = String(valor).replace(/\D/g, '');
+  if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+  for (let t = 9; t < 11; t++) {
+    let soma = 0;
+    for (let i = 0; i < t; i++) soma += Number(c[i]) * (t + 1 - i);
+    const dv = ((soma * 10) % 11) % 10;
+    if (dv !== Number(c[t])) return false;
+  }
+  return true;
+}
+
+function validarCNPJ(valor) {
+  const c = String(valor).replace(/\D/g, '');
+  if (c.length !== 14 || /^(\d)\1{13}$/.test(c)) return false;
+  const calc = (len) => {
+    const pesos = len === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2];
+    let soma = 0;
+    for (let i = 0; i < len; i++) soma += Number(c[i]) * pesos[i];
+    const r = soma % 11;
+    return r < 2 ? 0 : 11 - r;
+  };
+  return calc(12) === Number(c[12]) && calc(13) === Number(c[13]);
+}
+
+function configurarRegistro() {
+  const form = document.getElementById('form-registro');
+  if (!form) return;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const tipoParam = urlParams.get('tipo');
+
+  const cardsTipo = document.querySelectorAll('.account-type-card');
+  let tipoSelecionado = 'freelancer';
+
+  if (tipoParam === 'contratante' || tipoParam === 'cliente') {
+    tipoSelecionado = 'contratante';
+  }
+
+  function atualizarSeletorTipo(tipo) {
+    tipoSelecionado = tipo;
+    cardsTipo.forEach(card => {
+      if (card.dataset.type === tipo) {
+        card.classList.add('selected');
+      } else {
+        card.classList.remove('selected');
+      }
+    });
+    const hiddenInput = document.getElementById('reg-tipo');
+    if (hiddenInput) hiddenInput.value = tipo;
+
+    // Exibe somente os campos do tipo de conta escolhido
+    document.querySelectorAll('.campos-tipo').forEach(bloco => {
+      bloco.style.display = bloco.dataset.tipo === tipo ? 'flex' : 'none';
+    });
+
+    // Login/cadastro com Google disponível apenas para freelancer (empresa precisa de CNPJ e demais dados)
+    const blocoGoogle = document.getElementById('bloco-google');
+    if (blocoGoogle) blocoGoogle.style.display = tipo === 'freelancer' ? '' : 'none';
+
+    // Rótulos dos campos comuns: pessoa (freelancer) x empresa (contratante)
+    const rotulos = tipo === 'contratante'
+      ? { nome: 'Nome do Responsável *', nomePh: 'Nome completo do responsável pela conta', email: 'E-mail Corporativo *',
+          telefone: 'Telefone Comercial *', cidade: 'Cidade da Sede *', estado: 'Estado da Sede (UF) *',
+          nascimento: 'Data de Fundação da Empresa *', titulo: 'Contato e localização da empresa' }
+      : { nome: 'Nome Completo *', nomePh: 'Seu nome completo', email: 'E-mail Profissional *',
+          telefone: 'Telefone / WhatsApp *', cidade: 'Cidade *', estado: 'Estado (UF) *',
+          nascimento: 'Data de Nascimento *', titulo: 'Dados de contato' };
+    const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    setTxt('lbl-nome', rotulos.nome);
+    setTxt('lbl-email', rotulos.email);
+    setTxt('lbl-telefone', rotulos.telefone);
+    setTxt('lbl-cidade', rotulos.cidade);
+    setTxt('lbl-estado', rotulos.estado);
+    setTxt('lbl-nascimento', rotulos.nascimento);
+    setTxt('titulo-contato', rotulos.titulo);
+    const inpNome = document.getElementById('reg-nome');
+    if (inpNome) inpNome.placeholder = rotulos.nomePh;
+  }
+
+  const inputDocumento = document.getElementById('reg-documento');
+
+  // Máscaras de digitação
+  const mascara = (id, fn) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => { el.value = fn(el.value); });
+  };
+  mascara('reg-telefone', v => {
+    v = v.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+    if (v.length > 6) return v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+    if (v.length > 2) return v.replace(/^(\d{2})(\d*)/, '($1) $2');
+    return v;
+  });
+  const mascaraCPF = v => v.replace(/\D/g, '').slice(0, 11)
+    .replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1-$2');
+  const mascaraCNPJ = v => v.replace(/\D/g, '').slice(0, 14)
+    .replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2');
+  mascara('reg-cpf', mascaraCPF);
+  mascara('reg-documento', mascaraCNPJ);
+
+  cardsTipo.forEach(card => {
+    card.addEventListener('click', () => {
+      const t = card.dataset.type;
+      if (t) atualizarSeletorTipo(t);
+    });
+  });
+
+  atualizarSeletorTipo(tipoSelecionado);
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const nome = document.getElementById('reg-nome').value.trim();
+    const email = document.getElementById('reg-email').value.trim().toLowerCase();
+    const senha = document.getElementById('reg-senha').value;
+    const confirmaSenha = document.getElementById('reg-confirma-senha').value;
+
+    const alertContainer = document.getElementById('registro-alert') || criarAlertContainer(form);
+
+    if (!nome || !email || !senha || !confirmaSenha) {
+      exibirAlertaFormulario(alertContainer, 'Por favor, preencha todos os campos obrigatórios!');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      exibirAlertaFormulario(alertContainer, 'Por favor, informe um formato de e-mail válido!');
+      return;
+    }
+
+    if (senha.length < 6) {
+      exibirAlertaFormulario(alertContainer, 'A senha deve conter no mínimo 6 caracteres!');
+      return;
+    }
+
+    if (senha !== confirmaSenha) {
+      exibirAlertaFormulario(alertContainer, 'As senhas digitadas não coincidem!');
+      return;
+    }
+
+    // ---- Campos extras (comuns) ----
+    const val = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    const telefone = val('reg-telefone');
+    const cidade = val('reg-cidade');
+    const estado = val('reg-estado');
+    const nascimento = val('reg-nascimento');
+
+    if (telefone.replace(/\D/g, '').length < 10) {
+      exibirAlertaFormulario(alertContainer, 'Informe um telefone válido com DDD.');
+      return;
+    }
+    if (!cidade || !estado) {
+      exibirAlertaFormulario(alertContainer, 'Informe sua cidade e estado.');
+      return;
+    }
+    if (!nascimento || new Date(nascimento) > new Date()) {
+      exibirAlertaFormulario(alertContainer, 'Informe uma data válida (não pode ser no futuro).');
+      return;
+    }
+
+    const exigeMaioridade = tipoSelecionado === 'freelancer';
+    if (exigeMaioridade) {
+      const nasc = new Date(nascimento);
+      const hoje = new Date();
+      let idade = hoje.getFullYear() - nasc.getFullYear();
+      const m = hoje.getMonth() - nasc.getMonth();
+      if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+      if (idade < 18) {
+        exibirAlertaFormulario(alertContainer, 'É necessário ter 18 anos ou mais para criar a conta.');
+        return;
+      }
+    }
+
+    // ---- Campos exclusivos do tipo selecionado ----
+    const blocoAtivo = document.getElementById('campos-' + tipoSelecionado);
+    const faltando = Array.from(blocoAtivo.querySelectorAll('[data-obrig]'))
+      .filter(el => el.offsetParent !== null && !el.value.trim());
+    if (faltando.length) {
+      exibirAlertaFormulario(alertContainer, 'Preencha todos os campos obrigatórios do seu perfil.');
+      faltando[0].focus();
+      return;
+    }
+
+    let dadosPerfil;
+    if (tipoSelecionado === 'freelancer') {
+      const cpf = val('reg-cpf');
+      if (!validarCPF(cpf)) {
+        exibirAlertaFormulario(alertContainer, 'CPF inválido. Verifique os números digitados.');
+        return;
+      }
+      dadosPerfil = {
+        cpf: cpf,
+        especialidade: val('reg-area'),
+        nivelExperiencia: val('reg-nivel'),
+        taxaHoraria: Number(val('reg-valor-hora')).toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+        habilidades: val('reg-habilidades'),
+        disponibilidade: val('reg-disponibilidade'),
+        portfolioLink: val('reg-portfolio'),
+        bio: val('reg-bio-freelancer')
+      };
+    } else {
+      const documento = val('reg-documento');
+      if (!validarCNPJ(documento)) {
+        exibirAlertaFormulario(alertContainer, 'CNPJ inválido. Verifique os números digitados.');
+        return;
+      }
+      dadosPerfil = {
+        tipoPessoa: 'PJ',
+        cnpj: documento,
+        documento: documento,
+        razaoSocial: val('reg-empresa'),
+        empresa: val('reg-fantasia'),
+        responsavel: nome,
+        cargoResponsavel: val('reg-cargo'),
+        setor: val('reg-setor'),
+        porte: val('reg-porte'),
+        orcamentoMedio: val('reg-orcamento'),
+        site: val('reg-site'),
+        redeSocial: val('reg-rede-social'),
+        sobreEmpresa: val('reg-sobre-empresa'),
+        bio: val('reg-sobre-empresa'),
+        servicosContratados: val('reg-bio-contratante'),
+        especialidade: 'Empresa · ' + val('reg-setor')
+      };
+    }
+
+    const nomeExibido = tipoSelecionado === 'contratante' ? dadosPerfil.empresa : nome;
+    const perfilCompleto = {
+      nome: nomeExibido,
+      foto: "",
+      telefone: telefone,
+      cidade: cidade,
+      estado: estado,
+      localizacao: `${cidade} - ${estado}`,
+      ...(tipoSelecionado === 'contratante' ? { dataFundacao: nascimento } : { dataNascimento: nascimento }),
+      ...dadosPerfil
+    };
+
+    try {
+      const res = await fetch('/api/auth/registro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: nomeExibido,
+          email: email,
+          senha: senha,
+          tipo: tipoSelecionado,
+          perfil: perfilCompleto
+        })
+      });
+      const dados = await res.json();
+      if (!res.ok) {
+        exibirAlertaFormulario(alertContainer, dados.erro || 'Erro ao cadastrar conta.');
+        return;
+      }
+      const usuarioSincronizado = registrarUsuarioServidor(dados.usuario, dados.token);
+      login(usuarioSincronizado);
+      marcarContaRecemCriada(usuarioSincronizado.email);
+      setFlashMessage(`🎉 Bem-vindo(a), ${nomeExibido}! Sua conta de ${tipoSelecionado} foi criada no banco de dados.`, 'success');
+      window.location.href = 'index.html';
+    } catch (erro) {
+      console.error('Erro de conexão no cadastro:', erro);
+      exibirAlertaFormulario(alertContainer, 'Não foi possível conectar ao servidor para salvar sua conta.');
+    }
+  });
+}
+
+// ====================================================================
+// 8. FORMULÁRIO DE LOGIN (login.html) & FEEDBACK DE ERRO
+// ====================================================================
+
+function configurarLogin() {
+  const form = document.getElementById('form-login');
+  if (!form) return;
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const senha = document.getElementById('login-senha').value;
+    const alertContainer = document.getElementById('login-alert') || criarAlertContainer(form);
+
+    if (!email || !senha) {
+      exibirAlertaFormulario(alertContainer, 'Por favor, informe seu e-mail e senha.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha })
+      });
+      if (res.ok) {
+        const dados = await res.json();
+        const usuarioSincronizado = registrarUsuarioServidor(dados.usuario, dados.token);
+        login(usuarioSincronizado);
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectUrl = urlParams.get('redirect');
+        setFlashMessage(`👋 Olá, ${usuarioSincronizado.nome}! Você está conectado.`, 'success');
+        window.location.href = redirectUrl ? redirectUrl : 'index.html';
+        return;
+      }
+      if (res.status === 401) {
+        const errDados = await res.json().catch(() => ({}));
+        if (errDados.erro && errDados.erro.includes('Google')) {
+          exibirAlertaFormulario(alertContainer, errDados.erro);
+          showToast(errDados.erro, 'error');
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Servidor indisponível, tentando login nas contas demo locais:', e);
+    }
+
+    // Fallback para contas de demonstração (USUARIOS_SEED)
+    const usuarios = obterUsuarios();
+    const usuarioEncontrado = usuarios.find(u => u.email === email && u.senha === senha);
+
+    if (!usuarioEncontrado) {
+      exibirAlertaFormulario(alertContainer, '❌ E-mail ou senha incorretos!');
+      showToast('E-mail ou senha incorretos!', 'error');
+
+      const card = document.querySelector('.login-card');
+      if (card) {
+        card.style.animation = 'none';
+        void card.offsetWidth;
+        card.style.animation = 'shakeAlert 0.4s ease';
+      }
+      return;
+    }
+
+    login(usuarioEncontrado);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get('redirect');
+
+    setFlashMessage(`👋 Olá, ${usuarioEncontrado.nome}! Você está conectado.`, 'success');
+    window.location.href = redirectUrl ? redirectUrl : 'index.html';
+  });
+}
+
+window.preencherLoginDemo = function(email, senha) {
+  const emailInput = document.getElementById('login-email');
+  const senhaInput = document.getElementById('login-senha');
+  if (emailInput) emailInput.value = email;
+  if (senhaInput) senhaInput.value = senha;
+  if (typeof showToast === 'function') {
+    showToast(`Credenciais selecionadas: ${email}`, 'info');
+  }
+};
+
+function criarAlertContainer(form) {
+  const alertDiv = document.createElement('div');
+  alertDiv.className = 'form-alert-error';
+  alertDiv.style.display = 'none';
+  alertDiv.style.marginBottom = '16px';
+  form.insertBefore(alertDiv, form.firstChild);
+  return alertDiv;
+}
+
+function exibirAlertaFormulario(container, mensagem) {
+  if (!container) return;
+  container.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> <span>${escapeHtml(mensagem)}</span>`;
+  container.style.display = 'flex';
+}
+
+// ====================================================================
+// 9. PUBLICAÇÃO DE PROJETOS (postar-trabalho.html)
 // ====================================================================
 
 function configurarFormularioPostagem() {
   const form = document.getElementById('form-postar-trabalho');
   if (!form) return;
 
-  form.addEventListener('submit', function(event) {
+  form.addEventListener('submit', async function(event) {
     event.preventDefault();
 
     const titulo = document.getElementById('titulo').value.trim();
@@ -499,42 +1699,60 @@ function configurarFormularioPostagem() {
     const orcamento = document.getElementById('orcamento').value.trim();
     const prazo = document.getElementById('prazo').value.trim();
     const descricao = document.getElementById('descricao').value.trim();
+    
+    const habilidadesInput = document.getElementById('habilidades');
+    const habilidadesStr = habilidadesInput ? habilidadesInput.value.trim() : '';
+
+    const modalidadeInput = document.getElementById('modalidade');
+    const modalidade = modalidadeInput ? modalidadeInput.value : 'Remoto';
+
+    const cidadeEstadoInput = document.getElementById('cidade-estado');
+    const localizacao = cidadeEstadoInput && cidadeEstadoInput.value.trim() ? cidadeEstadoInput.value.trim() : 'Remoto';
 
     if (!titulo || !categoria || !orcamento || !prazo || !descricao) {
-      alert('Por favor, preencha todos os campos obrigatórios!');
+      showToast('Por favor, preencha todos os campos obrigatórios!', 'error');
       return;
     }
 
-    const usuarioLogado = obterUsuarioLogado();
+    const usuarioLogado = getCurrentUser();
     const nomeEmpresa = usuarioLogado ? usuarioLogado.nome : "Cliente FreeLink";
 
-    // Pega localização própria salva caso disponível
-    const localizacaoSalva = localStorage.getItem(STORAGE_KEYS.LOCALIZACAO) || "Remoto / Brasil";
+    const habilidadesArray = habilidadesStr 
+      ? habilidadesStr.split(',').map(s => s.trim()).filter(Boolean)
+      : ['Geral', categoria];
 
-    const novoTrabalho = {
+    const novoProjeto = {
       id: Date.now().toString(),
       titulo: titulo,
       categoria: categoria,
       empresa: nomeEmpresa,
-      localizacao: localizacaoSalva,
-      orcamento: orcamento.replace(/^R\$\s?/, ''),
+      criadorId: usuarioLogado ? usuarioLogado.id : null,
+      criadorEmail: usuarioLogado ? usuarioLogado.email : null,
+      statusContratacao: 'aberto',
+      freelancerContratado: null,
+      localizacao: localizacao,
+      modalidade: modalidade,
+      orcamento: orcamento.replace(/^R\$\s*/i, '').trim(),
       prazo: prazo,
+      habilidades: habilidadesArray,
       propostas: 0,
+      listaPropostas: [],
       dataPublicacao: "Publicado recentemente",
       descricao: descricao
     };
 
-    const trabalhos = obterTrabalhos();
-    trabalhos.unshift(novoTrabalho);
-    salvarTrabalhos(trabalhos);
+    const projetos = obterProjetos();
+    projetos.unshift(novoProjeto);
+    salvarProjetos(projetos);
+    await salvarProjetoNoServidor(novoProjeto);
 
-    alert('🎉 Projeto publicado com sucesso! Redirecionando para a página principal...');
-    window.location.href = 'index.html';
+    setFlashMessage('🎉 Projeto publicado com sucesso!', 'success');
+    window.location.href = `detalhes-projeto.html?id=${novoProjeto.id}`;
   });
 }
 
 // ====================================================================
-// 6. DETALHES DO PROJETO & ENVIO DE PROPOSTA (detalhes-projeto.html)
+// 10. DETALHES DO PROJETO & ENVIO DE PROPOSTA (detalhes-projeto.html)
 // ====================================================================
 
 function carregarDetalhesProjeto() {
@@ -542,15 +1760,15 @@ function carregarDetalhesProjeto() {
   if (!detalheContainer) return;
 
   const urlParams = new URLSearchParams(window.location.search);
-  const idProjeto = urlParams.get('id');
+  let idProjeto = urlParams.get('id');
 
-  if (!idProjeto) {
-    exibirErroProjetoNaoEncontrado("Nenhum ID de projeto foi especificado.");
-    return;
+  const projetos = obterProjetos();
+  if (!idProjeto && projetos && projetos.length > 0) {
+    const projPadrao = projetos.find(p => String(p.id) === "2") || projetos[0];
+    idProjeto = projPadrao ? projPadrao.id : "2";
   }
 
-  const trabalhos = obterTrabalhos();
-  const projeto = trabalhos.find(t => String(t.id) === String(idProjeto));
+  const projeto = projetos.find(t => String(t.id) === String(idProjeto));
 
   if (!projeto) {
     exibirErroProjetoNaoEncontrado("O projeto solicitado não existe ou foi removido.");
@@ -566,16 +1784,27 @@ function carregarDetalhesProjeto() {
   const elemData = document.getElementById('detalhe-data');
   const elemDescricao = document.getElementById('detalhe-descricao');
   const elemPropostas = document.getElementById('detalhe-propostas');
+  const containerHabilidades = document.getElementById('detalhe-habilidades');
 
   if (elemTitulo) elemTitulo.textContent = projeto.titulo;
   if (elemCategoria) elemCategoria.textContent = projeto.categoria;
-  if (elemOrcamento) elemOrcamento.textContent = `R$ ${projeto.orcamento}`;
+  const orcLimpo = String(projeto.orcamento || '0,00').replace(/^R\$\s*/i, '').trim();
+  if (elemOrcamento) elemOrcamento.textContent = `R$ ${orcLimpo}`;
   if (elemPrazo) elemPrazo.textContent = projeto.prazo;
   if (elemEmpresa) elemEmpresa.textContent = projeto.empresa || 'Cliente FreeLink';
   if (elemLocalizacao) elemLocalizacao.textContent = projeto.localizacao || 'Remoto';
   if (elemData) elemData.textContent = projeto.dataPublicacao || 'Publicado recentemente';
   if (elemDescricao) elemDescricao.textContent = projeto.descricao;
   if (elemPropostas) elemPropostas.textContent = `${projeto.propostas || 0} propostas recebidas`;
+
+  if (containerHabilidades) {
+    const skills = Array.isArray(projeto.habilidades) ? projeto.habilidades : (projeto.habilidades ? projeto.habilidades.split(',') : []);
+    if (skills.length > 0) {
+      containerHabilidades.innerHTML = skills.map(s => `<span class="skill-tag" style="font-size: 13px; padding: 5px 12px;">${escapeHtml(s.trim())}</span>`).join('');
+    } else {
+      containerHabilidades.innerHTML = `<span style="color: var(--text-muted); font-size: 13px;">Habilidades não especificadas.</span>`;
+    }
+  }
 
   configurarEnvioProposta(projeto);
 }
@@ -597,228 +1826,2108 @@ function exibirErroProjetoNaoEncontrado(mensagem) {
 }
 
 function configurarEnvioProposta(projeto) {
-  const btnEnviar = document.getElementById('btn-enviar-proposta');
+  const containerAcao = document.getElementById('container-acao-propostas');
+  if (!containerAcao) return;
+
+  const usuarioLogado = getCurrentUser();
+  const isDono = Boolean(usuarioLogado && (
+    (projeto.criadorId && projeto.criadorId === usuarioLogado.id) ||
+    (projeto.criadorEmail && projeto.criadorEmail === usuarioLogado.email) ||
+    (projeto.empresa && usuarioLogado.nome && projeto.empresa.toLowerCase() === usuarioLogado.nome.toLowerCase())
+  ));
+
+  const propostas = Array.isArray(projeto.listaPropostas) ? projeto.listaPropostas : [];
+
+  let bannerConcluidoHtml = '';
+  if (projeto.statusContratacao === 'concluido') {
+    let reviewsHtml = '';
+    if (projeto.avaliacaoContratante) {
+      reviewsHtml += `
+        <div class="completed-review-item">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+            <span style="font-size: 13.5px; font-weight: 700; color: var(--text-heading);">
+              <i class="fa-solid fa-building" style="color: var(--primary-color);"></i> Avaliação do Contratante (${escapeHtml(projeto.avaliacaoContratante.autor)})
+            </span>
+            <span style="color: #f59e0b; font-size: 13px;">${'<i class="fa-solid fa-star"></i>'.repeat(projeto.avaliacaoContratante.estrelas || 5)}</span>
+          </div>
+          <p style="font-size: 13.5px; color: var(--text-color); margin: 0 0 8px 0; font-style: italic;">"${escapeHtml(projeto.avaliacaoContratante.comentario)}"</p>
+          ${projeto.avaliacaoContratante.tags && projeto.avaliacaoContratante.tags.length ? `
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              ${projeto.avaliacaoContratante.tags.map(t => `<span class="cpm-skill-pill" style="font-size: 11px; padding: 2px 8px;">${escapeHtml(t)}</span>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+    if (projeto.avaliacaoFreelancer) {
+      reviewsHtml += `
+        <div class="completed-review-item">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+            <span style="font-size: 13.5px; font-weight: 700; color: var(--text-heading);">
+              <i class="fa-solid fa-user-tie" style="color: var(--primary-color);"></i> Avaliação do Freelancer (${escapeHtml(projeto.avaliacaoFreelancer.autor)})
+            </span>
+            <span style="color: #f59e0b; font-size: 13px;">${'<i class="fa-solid fa-star"></i>'.repeat(projeto.avaliacaoFreelancer.estrelas || 5)}</span>
+          </div>
+          <p style="font-size: 13.5px; color: var(--text-color); margin: 0 0 8px 0; font-style: italic;">"${escapeHtml(projeto.avaliacaoFreelancer.comentario)}"</p>
+          ${projeto.avaliacaoFreelancer.tags && projeto.avaliacaoFreelancer.tags.length ? `
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              ${projeto.avaliacaoFreelancer.tags.map(t => `<span class="cpm-skill-pill" style="font-size: 11px; padding: 2px 8px;">${escapeHtml(t)}</span>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    bannerConcluidoHtml = `
+      <div class="completed-project-banner">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 12px;">
+          <div>
+            <span class="badge-projeto-concluido">
+              <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Projeto Finalizado com Sucesso
+            </span>
+            <h3 style="font-size: 19px; font-weight: 800; color: var(--text-heading); margin: 6px 0 2px;">
+              Parceria Concluída &amp; Avaliada
+            </h3>
+            <p style="font-size: 13.5px; color: var(--text-muted); margin: 0;">
+              Contratante: <strong>${escapeHtml(projeto.empresa)}</strong> | Freelancer: <strong>${escapeHtml(projeto.freelancerContratado || 'Contratado')}</strong>
+            </p>
+          </div>
+        </div>
+        ${reviewsHtml}
+      </div>
+    `;
+  }
+
+  if (isDono) {
+    // --- MODO CONTRATANTE: Painel de Propostas Recebidas ---
+    let propostasHtml = '';
+    if (propostas.length === 0) {
+      propostasHtml = `
+        <div class="empty-state-clean" style="padding: 35px 20px; background: var(--bg-card); border-radius: 14px; border: 1.5px dashed var(--border-color); text-align: center;">
+          <i class="fa-solid fa-folder-open empty-state-icon" style="font-size: 32px; color: var(--text-muted); margin-bottom: 10px; display: block;"></i>
+          <h4 style="font-size: 16px; font-weight: 700; color: var(--text-heading); margin-bottom: 6px;">Nenhuma proposta recebida ainda</h4>
+          <p style="font-size: 13.5px; color: var(--text-muted); max-width: 480px; margin: 0 auto 18px;">
+            Você é o autor deste projeto. Você pode aguardar outros freelancers ou enviar você mesmo uma proposta para testar e simular o fluxo da plataforma.
+          </p>
+          <button type="button" class="login-btn btn-trigger-proposta" style="padding: 10px 22px; font-size: 13.5px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+            <i class="fa-solid fa-paper-plane"></i> Enviar Proposta Agora
+          </button>
+        </div>
+      `;
+    } else {
+      propostasHtml = `
+        <div class="proposals-list">
+          ${propostas.map(prop => {
+            const status = prop.status || 'pendente';
+            const isAceita = status === 'aceita';
+            const isRecusada = status === 'recusada';
+
+            let statusBadge = `<span class="proposal-status-badge status-pendente"><i class="fa-solid fa-hourglass-half"></i> Aguardando Aprovação</span>`;
+            if (isAceita) {
+              statusBadge = `<span class="proposal-status-badge status-aceita"><i class="fa-solid fa-circle-check"></i> Proposta Aceita</span>`;
+            } else if (isRecusada) {
+              statusBadge = `<span class="proposal-status-badge status-recusada"><i class="fa-solid fa-circle-xmark"></i> Recusada</span>`;
+            }
+
+            let acoes = `
+              <button type="button" class="btn-view-profile" onclick="abrirPerfilModal('${prop.usuarioId || ''}', '${escapeHtml(prop.usuarioEmail || '')}')">
+                <i class="fa-solid fa-id-card"></i> Ver Perfil Completo
+              </button>
+            `;
+
+            if (status === 'pendente') {
+              acoes += `
+                <button type="button" class="btn-accept-proposal" onclick="aceitarProposta('${projeto.id}', '${prop.id}')">
+                  <i class="fa-solid fa-check"></i> Aceitar Proposta
+                </button>
+                <button type="button" class="btn-reject-proposal" onclick="recusarProposta('${projeto.id}', '${prop.id}')">
+                  <i class="fa-solid fa-xmark"></i> Recusar
+                </button>
+              `;
+            } else if (isAceita) {
+              acoes += `
+                <button type="button" class="btn-open-chat" onclick="abrirChatProjeto('${projeto.id}', '${prop.id}')">
+                  <i class="fa-solid fa-comments"></i> Conversar no Chat
+                </button>
+              `;
+
+              if (projeto.statusContratacao === 'em_andamento') {
+                acoes += `
+                  <button type="button" class="btn-finish-project" onclick="abrirModalAvaliacao('${projeto.id}', 'contratante')">
+                    <i class="fa-solid fa-star"></i> Finalizar Projeto &amp; Avaliar
+                  </button>
+                `;
+              } else if (projeto.statusContratacao === 'concluido') {
+                acoes += `
+                  <button type="button" class="btn-finish-project" style="background: var(--bg-card); color: #f59e0b !important; border: 1.5px solid #f59e0b;" onclick="abrirModalAvaliacao('${projeto.id}', 'contratante')">
+                    <i class="fa-solid fa-star"></i> Ver Avaliação
+                  </button>
+                `;
+              }
+            }
+
+            const avatarLetra = (prop.usuarioNome || 'F').charAt(0).toUpperCase();
+            const avatarHtml = (prop.usuarioFoto && prop.usuarioFoto.trim() !== '') 
+              ? `<img src="${prop.usuarioFoto}" alt="${escapeHtml(prop.usuarioNome)}" class="proposal-avatar">`
+              : `<div class="proposal-avatar"><span>${avatarLetra}</span></div>`;
+
+            return `
+              <div class="proposal-item-card ${isAceita ? 'is-accepted' : ''}">
+                <div class="proposal-card-header">
+                  <div class="proposal-freelancer-info" style="cursor: pointer;" onclick="abrirPerfilModal('${prop.usuarioId || ''}', '${escapeHtml(prop.usuarioEmail || '')}')" title="Clique para ver o perfil completo">
+                    ${avatarHtml}
+                    <div>
+                      <div class="proposal-freelancer-name" style="text-decoration: underline; text-decoration-color: transparent; transition: text-decoration-color 0.2s;">
+                        ${escapeHtml(prop.usuarioNome)} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px; margin-left: 4px; opacity: 0.6;"></i>
+                      </div>
+                      <div class="proposal-freelancer-date"><i class="fa-regular fa-calendar"></i> Enviada em ${escapeHtml(prop.data || 'Hoje')}</div>
+                    </div>
+                  </div>
+
+                  <div class="proposal-metrics-group">
+                    <span class="proposal-val-badge">R$ ${escapeHtml(prop.valor)}</span>
+                    <span class="proposal-time-badge"><i class="fa-regular fa-clock"></i> ${escapeHtml(prop.prazo)}</span>
+                    ${statusBadge}
+                  </div>
+                </div>
+
+                <div class="proposal-msg-content">${escapeHtml(prop.mensagem)}</div>
+
+                ${acoes ? `<div class="proposal-actions-row">${acoes}</div>` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    containerAcao.innerHTML = `
+      ${bannerConcluidoHtml}
+
+      <div class="contractor-proposals-panel">
+        <div class="panel-header-proposals">
+          <div>
+            <h2>
+              <i class="fa-solid fa-users-gear" style="color: var(--primary-color);"></i>
+              Painel do Contratante: Candidatos &amp; Propostas
+            </h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+              Você é o autor deste projeto. Avalie as propostas recebidas, confira o perfil de cada candidato ou envie uma nova proposta.
+            </p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <span class="proposals-count-badge">
+              ${propostas.length} ${propostas.length === 1 ? 'proposta recebida' : 'propostas recebidas'}
+            </span>
+            <button type="button" id="btn-enviar-proposta" class="login-btn btn-trigger-proposta" onclick="abrirModalProposta()" style="padding: 10px 20px; font-size: 13.5px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+              <i class="fa-solid fa-paper-plane"></i> Enviar Proposta
+            </button>
+          </div>
+        </div>
+        ${propostasHtml}
+      </div>
+
+      <!-- Card Dedicado para Envio de Proposta pelo Criador do Freela -->
+      <div style="margin-top: 24px; background: var(--bg-card); border: 1.5px solid var(--primary-border); padding: 22px 28px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; box-shadow: var(--shadow-sm);">
+        <div>
+          <h3 style="font-size: 17px; color: var(--text-heading); margin-bottom: 4px; font-weight: 700;">
+            <i class="fa-solid fa-paper-plane" style="color: var(--primary-color);"></i> Deseja enviar uma proposta para este freela?
+          </h3>
+          <p style="color: var(--text-muted); font-size: 13.5px;">
+            Mesmo sendo a pessoa que publicou o projeto, você pode submeter propostas para testar ou apresentar a plataforma.
+          </p>
+        </div>
+        <button type="button" class="login-btn btn-trigger-proposta" onclick="abrirModalProposta()" style="padding: 12px 26px; font-size: 14.5px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+          <i class="fa-solid fa-paper-plane"></i> Enviar Proposta
+        </button>
+      </div>
+    `;
+  } else {
+    // --- MODO VISITANTE / FREELANCER ---
+    const minhaProposta = usuarioLogado ? propostas.find(p => p.usuarioId === usuarioLogado.id || (p.usuarioEmail && p.usuarioEmail === usuarioLogado.email)) : null;
+
+    if (minhaProposta) {
+      if (minhaProposta.status === 'aceita') {
+        const isConcluido = projeto.statusContratacao === 'concluido';
+        const jaAvaliou = Boolean(projeto.avaliacaoFreelancer);
+
+        containerAcao.innerHTML = `
+          ${bannerConcluidoHtml}
+
+          <div style="background: var(--primary-light); border: 2px solid var(--primary-color); padding: 25px 30px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; box-shadow: var(--shadow-sm);">
+            <div>
+              <h3 style="font-size: 18px; color: var(--text-heading); margin-bottom: 4px; font-weight: 700;">
+                <i class="fa-solid ${isConcluido ? 'fa-trophy' : 'fa-circle-check'}" style="color: ${isConcluido ? '#f59e0b' : 'var(--primary-color)'};"></i> 
+                ${isConcluido ? 'Projeto Concluído com Sucesso!' : 'Parabéns! Sua proposta foi ACEITA pelo cliente!'}
+              </h3>
+              <p style="color: var(--text-muted); font-size: 14px;">
+                ${isConcluido 
+                  ? 'A parceria foi finalizada e os registros de avaliação estão arquivados.' 
+                  : `Valor acordado: <strong>R$ ${escapeHtml(minhaProposta.valor)}</strong> | Prazo: <strong>${escapeHtml(minhaProposta.prazo)}</strong>. O canal de chat direto está liberado para vocês alinharem o freela.`}
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn-open-chat" onclick="abrirChatProjeto('${projeto.id}', '${minhaProposta.id}')">
+                <i class="fa-solid fa-comments"></i> ${isConcluido ? 'Ver Chat' : 'Abrir Chat com o Contratante'}
+              </button>
+              ${isConcluido 
+                ? `<button type="button" class="btn-finish-project" onclick="abrirModalAvaliacao('${projeto.id}', 'freelancer')"><i class="fa-solid fa-star"></i> ${jaAvaliou ? 'Ver Avaliação' : 'Avaliar Contratante'}</button>`
+                : `<button type="button" class="btn-finish-project" onclick="abrirModalAvaliacao('${projeto.id}', 'freelancer')"><i class="fa-solid fa-star"></i> Concluir &amp; Avaliar Cliente</button>`
+              }
+            </div>
+          </div>
+        `;
+        return;
+      } else if (minhaProposta.status === 'recusada') {
+        containerAcao.innerHTML = `
+          <div style="background: var(--bg-card); border: 1.5px solid var(--border-color); padding: 22px 28px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+              <h4 style="font-size: 16px; color: var(--text-heading); margin-bottom: 4px;">Proposta Encerrada</h4>
+              <p style="font-size: 13.5px; color: var(--text-muted);">O contratante optou por outro profissional para esta oportunidade.</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="proposal-status-badge status-recusada"><i class="fa-solid fa-circle-xmark"></i> Não Selecionado</span>
+              <button type="button" class="login-btn btn-trigger-proposta" style="padding: 8px 16px; font-size: 13px; cursor: pointer;">
+                <i class="fa-solid fa-paper-plane"></i> Tentar Novamente
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        containerAcao.innerHTML = `
+          <div style="background: var(--bg-card); border: 1.5px solid var(--primary-border); padding: 22px 28px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+              <h3 style="font-size: 17px; color: var(--text-heading); margin-bottom: 4px;">
+                <i class="fa-solid fa-paper-plane" style="color: var(--primary-color);"></i> Sua proposta já foi enviada!
+              </h3>
+              <p style="color: var(--text-muted); font-size: 13.5px;">
+                Valor proposto: <strong>R$ ${escapeHtml(minhaProposta.valor)}</strong> em <strong>${escapeHtml(minhaProposta.prazo)}</strong>.
+              </p>
+            </div>
+            <span class="proposal-status-badge status-pendente" style="padding: 7px 15px; font-size: 13px;">
+              <i class="fa-solid fa-hourglass-half"></i> Em análise pelo contratante
+            </span>
+          </div>
+        `;
+        return;
+      }
+    } else {
+      // Se não enviou proposta ainda, exibe o botão padrão de envio
+      containerAcao.innerHTML = `
+        ${bannerConcluidoHtml}
+
+        <div style="background: var(--bg-card); border: 1.5px solid var(--primary-border); padding: 25px 30px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; box-shadow: var(--shadow-sm);">
+          <div>
+            <h3 style="font-size: 18px; color: var(--text-heading); margin-bottom: 4px; font-weight: 700;">Interessado nesta oportunidade?</h3>
+            <p style="color: var(--text-muted); font-size: 14px;">
+              <i class="fa-solid fa-user-check" style="color: var(--primary-color); margin-right: 4px;"></i> <span>${propostas.length} ${propostas.length === 1 ? 'proposta recebida' : 'propostas recebidas'} até o momento.</span>
+            </p>
+          </div>
+
+          <button id="btn-enviar-proposta" class="login-btn btn-trigger-proposta" onclick="abrirModalProposta()" style="padding: 14px 28px; font-size: 15px; display: inline-flex; align-items: center; gap: 10px; cursor: pointer;">
+            <i class="fa-solid fa-paper-plane"></i> Enviar Proposta
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  // Configura os botões de abertura do modal de envio
+  const btnsEnviar = document.querySelectorAll('#btn-enviar-proposta, .btn-trigger-proposta');
   const modalProposta = document.getElementById('modal-proposta');
   const formProposta = document.getElementById('form-proposta-envio');
   const btnFecharModal = document.getElementById('btn-fechar-modal');
   const btnCancelarModal = document.getElementById('btn-cancelar-modal');
 
-  if (btnEnviar) {
-    btnEnviar.addEventListener('click', () => {
-      if (modalProposta) {
-        modalProposta.style.display = 'flex';
-      }
-    });
+  window.abrirModalProposta = function() {
+    const modal = document.getElementById('modal-proposta');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  window.fecharModalProposta = function() {
+    const modal = document.getElementById('modal-proposta');
+    if (modal) modal.style.display = 'none';
+  };
+
+  btnsEnviar.forEach(btn => {
+    btn.onclick = function(e) {
+      if (e) e.preventDefault();
+      window.abrirModalProposta();
+    };
+  });
+
+  if (btnFecharModal) {
+    btnFecharModal.onclick = window.fecharModalProposta;
   }
 
-  if (btnFecharModal && modalProposta) {
-    btnFecharModal.addEventListener('click', () => {
-      modalProposta.style.display = 'none';
-    });
+  if (btnCancelarModal) {
+    btnCancelarModal.onclick = window.fecharModalProposta;
   }
 
-  if (btnCancelarModal && modalProposta) {
-    btnCancelarModal.addEventListener('click', () => {
-      modalProposta.style.display = 'none';
-    });
+  if (modalProposta) {
+    modalProposta.onclick = function(e) {
+      if (e.target === modalProposta) window.fecharModalProposta();
+    };
   }
 
   if (formProposta && modalProposta) {
-    formProposta.addEventListener('submit', (e) => {
+    formProposta.onsubmit = function(e) {
       e.preventDefault();
-      
-      const valor = document.getElementById('proposta-valor') ? document.getElementById('proposta-valor').value : '';
+
+      const inputValor = document.getElementById('proposta-valor');
+      const inputPrazo = document.getElementById('proposta-prazo');
+      const inputMensagem = document.getElementById('proposta-mensagem');
+
+      const valor = inputValor ? inputValor.value.trim() : '';
+      const prazo = inputPrazo ? inputPrazo.value.trim() : '';
+      const mensagem = inputMensagem ? inputMensagem.value.trim() : '';
+
+      if (!valor || !prazo || !mensagem) {
+        showToast('Por favor, preencha todos os campos da proposta.', 'error');
+        return;
+      }
+
+      let usuarioAtual = getCurrentUser();
+      if (!usuarioAtual) {
+        usuarioAtual = {
+          id: `user_freelancer_${Date.now()}`,
+          nome: "Freelancer Visitante",
+          email: "candidato@freelink.com",
+          tipo: "freelancer",
+          foto: "",
+          especialidade: "Desenvolvedor Freelancer"
+        };
+        login(usuarioAtual);
+        if (typeof atualizarNavbarAutenticacao === 'function') {
+          atualizarNavbarAutenticacao();
+        }
+      }
+
+      const novaProposta = {
+        id: `prop_${Date.now()}`,
+        usuarioId: usuarioAtual ? usuarioAtual.id : 'anon',
+        usuarioNome: usuarioAtual ? usuarioAtual.nome : 'Freelancer',
+        usuarioEmail: usuarioAtual ? usuarioAtual.email : '',
+        usuarioFoto: usuarioAtual ? (usuarioAtual.foto || usuarioAtual.avatar || '') : '',
+        valor: valor.replace(/^R\$\s*/i, '').trim(),
+        prazo: prazo,
+        mensagem: mensagem,
+        status: 'pendente',
+        data: new Date().toLocaleDateString('pt-BR')
+      };
+
+      const projetos = obterProjetos();
+      const idx = projetos.findIndex(p => String(p.id) === String(projeto.id));
+      if (idx !== -1) {
+        if (!Array.isArray(projetos[idx].listaPropostas)) {
+          projetos[idx].listaPropostas = [];
+        }
+        projetos[idx].listaPropostas.push(novaProposta);
+        projetos[idx].propostas = projetos[idx].listaPropostas.length;
+        salvarProjetos(projetos, projetos[idx]);
+        projeto.listaPropostas = projetos[idx].listaPropostas;
+        projeto.propostas = projetos[idx].propostas;
+      }
 
       modalProposta.style.display = 'none';
+      formProposta.reset();
 
       const elemPropostas = document.getElementById('detalhe-propostas');
       if (elemPropostas) {
-        const totalAtual = (projeto.propostas || 0) + 1;
-        elemPropostas.textContent = `${totalAtual} propostas recebidas`;
+        elemPropostas.textContent = `${projeto.propostas} propostas recebidas`;
       }
 
-      alert(`🎉 Parabéns! Sua proposta de R$ ${valor || projeto.orcamento} foi enviada com sucesso para o projeto "${projeto.titulo}". O cliente entrará em contato em breve!`);
-    });
+      showToast(`🎉 Proposta de R$ ${novaProposta.valor} enviada com sucesso!`, 'success');
+      configurarEnvioProposta(projeto);
+    };
   }
 }
 
 // ====================================================================
-// 7. TELA DE CONFIGURAÇÕES (configuracoes.html)
+// AÇÕES DO CONTRATANTE: ACEITAR E RECUSAR PROPOSTAS
 // ====================================================================
+
+window.aceitarProposta = function(projetoId, propostaId) {
+  const projetos = obterProjetos();
+  const proj = projetos.find(p => String(p.id) === String(projetoId));
+  if (!proj || !Array.isArray(proj.listaPropostas)) return;
+
+  const prop = proj.listaPropostas.find(p => String(p.id) === String(propostaId));
+  if (!prop) return;
+
+  prop.status = 'aceita';
+  proj.statusContratacao = 'em_andamento';
+  proj.freelancerContratado = prop.usuarioNome;
+  proj.freelancerContratadoId = prop.usuarioId;
+  proj.freelancerContratadoEmail = prop.usuarioEmail || '';
+  proj.propostaAceitaId = prop.id;
+  salvarProjetos(projetos, proj);
+
+  const chatId = `chat_${projetoId}_${propostaId}`;
+  const msgSistemaAceite = `🎉 Proposta aceita! O canal de comunicação entre ${proj.empresa} e ${prop.usuarioNome} está aberto para o projeto "${proj.titulo}".`;
+  const chats = obterChats();
+  if (!chats[chatId]) {
+    chats[chatId] = {
+      id: chatId,
+      projetoId: projetoId,
+      projetoTitulo: proj.titulo,
+      clienteNome: proj.empresa,
+      clienteEmail: proj.criadorEmail || '',
+      freelancerId: prop.usuarioId,
+      freelancerNome: prop.usuarioNome,
+      freelancerEmail: prop.usuarioEmail || '',
+      mensagens: [
+        {
+          id: `msg_sys_1`,
+          remetenteId: 'sistema',
+          remetenteNome: 'FreeLink',
+          texto: msgSistemaAceite,
+          dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        }
+      ]
+    };
+    salvarChats(chats);
+  }
+
+  const token = localStorage.getItem('freelink_token');
+  if (token) {
+    const outroEmail = resolverEmailUsuario({ email: prop.usuarioEmail, id: prop.usuarioId, nome: prop.usuarioNome });
+    fetch('/api/chats/abrir', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        idSala: chatId,
+        titulo: proj.titulo,
+        projetoId,
+        propostaId,
+        outroEmail,
+        outroNome: prop.usuarioNome,
+        mensagemSistema: msgSistemaAceite
+      })
+    }).catch(() => {});
+  }
+
+  showToast(`🎉 Proposta de ${prop.usuarioNome} aceita! Abrindo canal de chat...`, 'success');
+  carregarDetalhesProjeto();
+
+  setTimeout(() => {
+    abrirChatProjeto(projetoId, propostaId);
+  }, 600);
+};
+
+// ====================================================================
+// MODAL DE VISUALIZAÇÃO DE PERFIL DO CANDIDATO
+// ====================================================================
+
+window.abrirPerfilModal = async function(usuarioId, usuarioEmail) {
+  const usuarios = obterUsuarios();
+  let user = null;
+  if (usuarioId) user = usuarios.find(u => String(u.id) === String(usuarioId));
+  if (!user && usuarioEmail) user = usuarios.find(u => u.email && u.email.toLowerCase() === usuarioEmail.toLowerCase());
+
+  // Busca sempre a versão mais recente do servidor (PostgreSQL), útil entre PCs diferentes
+  if (usuarioId || usuarioEmail) {
+    try {
+      const qs = new URLSearchParams();
+      if (usuarioId) qs.set('id', usuarioId);
+      if (usuarioEmail) qs.set('email', usuarioEmail);
+      const res = await fetch('/api/usuarios/perfil?' + qs.toString());
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.usuario) {
+          user = Object.assign({}, user || {}, data.usuario);
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (!user) {
+    user = {
+      nome: 'Freelancer FreeLink',
+      especialidade: 'Profissional Cadastrado',
+      localizacao: 'Remoto',
+      taxaHoraria: 'A combinar',
+      disponibilidade: 'Disponível',
+      tempoResposta: '< 2 horas',
+      bio: 'Perfil cadastrado na plataforma FreeLink.',
+      habilidades: 'Desenvolvimento Web, Front-End, UI/UX, Dedicação',
+      avaliacoes: []
+    };
+  }
+
+  const modal = document.getElementById('modal-perfil-candidato');
+  if (!modal) return;
+
+  const elemName = document.getElementById('cpmName');
+  const elemSpec = document.getElementById('cpmSpecialty');
+  const elemLoc = document.getElementById('cpmLocationText');
+  const elemAvatarWrap = document.getElementById('cpmAvatarWrap');
+  const elemBio = document.getElementById('cpmBio');
+  const elemRating = document.getElementById('cpmRating');
+  const elemRate = document.getElementById('cpmRate');
+  const elemAvail = document.getElementById('cpmAvailability');
+  const elemResp = document.getElementById('cpmResponse');
+  const elemSkills = document.getElementById('cpmSkills');
+  const elemExpText = document.getElementById('cpmExperienceText');
+  const elemPortText = document.getElementById('cpmPortfolioText');
+  const elemExpSection = document.getElementById('cpmExpSection');
+  const elemPortSection = document.getElementById('cpmPortSection');
+  const elemReviewsList = document.getElementById('cpmReviewsList');
+  const elemLinkFull = document.getElementById('cpmLinkPaginaCompleta');
+
+  if (elemName) elemName.textContent = user.nome || 'Freelancer';
+  if (elemSpec) elemSpec.textContent = user.especialidade || 'Especialista FreeLink';
+  if (elemLoc) elemLoc.textContent = user.localizacao || 'Remoto';
+
+  // Avatar
+  if (elemAvatarWrap) {
+    const foto = user.foto || user.avatar;
+    if (foto && foto.trim() !== '') {
+      elemAvatarWrap.innerHTML = `<img src="${foto}" alt="${escapeHtml(user.nome)}" class="cpm-avatar-img">`;
+    } else {
+      const inicial = (user.nome && user.nome.trim() !== '') ? user.nome.charAt(0).toUpperCase() : 'F';
+      elemAvatarWrap.innerHTML = `<span style="font-size: 32px; font-weight: 800; color: var(--primary-color);">${inicial}</span>`;
+    }
+  }
+
+  // Métricas
+  const avals = Array.isArray(user.avaliacoes) ? user.avaliacoes : [];
+  if (elemRating) {
+    if (avals.length > 0) {
+      const media = (avals.reduce((acc, cur) => acc + (cur.estrelas || 5), 0) / avals.length).toFixed(1);
+      elemRating.innerHTML = `<i class="fa-solid fa-star" style="color: #f59e0b;"></i> ${media} (${avals.length})`;
+    } else {
+      elemRating.innerHTML = `<i class="fa-solid fa-star" style="color: #f59e0b;"></i> 5.0 (Novo)`;
+    }
+  }
+
+  if (elemRate) {
+    elemRate.textContent = user.taxaHoraria ? (user.taxaHoraria.startsWith('R$') ? user.taxaHoraria : `R$ ${user.taxaHoraria}/h`) : 'A combinar';
+  }
+  if (elemAvail) elemAvail.textContent = user.disponibilidade || 'Disponível';
+  if (elemResp) elemResp.textContent = user.tempoResposta || '< 2 horas';
+
+  // Bio
+  if (elemBio) {
+    elemBio.textContent = user.bio || 'Este freelancer ainda não adicionou uma apresentação detalhada ao perfil.';
+  }
+
+  // Habilidades
+  if (elemSkills) {
+    const tags = (user.habilidades || 'Geral, Front-End, Dedicação').split(',').map(s => s.trim()).filter(Boolean);
+    elemSkills.innerHTML = tags.map(t => `<span class="cpm-skill-pill">${escapeHtml(t)}</span>`).join('');
+  }
+
+  // Experiência
+  if (elemExpSection && elemExpText) {
+    if (user.experienciaTexto && user.experienciaTexto.trim() !== '') {
+      elemExpText.textContent = user.experienciaTexto;
+      elemExpSection.style.display = 'block';
+    } else {
+      elemExpSection.style.display = 'none';
+    }
+  }
+
+  // Portfólio
+  if (elemPortSection && elemPortText) {
+    if (user.portfolioTexto && user.portfolioTexto.trim() !== '') {
+      elemPortText.textContent = user.portfolioTexto;
+      elemPortSection.style.display = 'block';
+    } else {
+      elemPortSection.style.display = 'none';
+    }
+  }
+
+  // Avaliações
+  if (elemReviewsList) {
+    if (avals.length > 0) {
+      elemReviewsList.innerHTML = avals.map(av => `
+        <div class="cpm-review-card">
+          <div class="cpm-review-top">
+            <span class="cpm-reviewer-name">${escapeHtml(av.autor || 'Cliente')}</span>
+            <span class="cpm-review-stars">${'<i class="fa-solid fa-star"></i>'.repeat(av.estrelas || 5)}</span>
+          </div>
+          <p class="cpm-review-text">"${escapeHtml(av.comentario || '')}"</p>
+        </div>
+      `).join('');
+    } else {
+      elemReviewsList.innerHTML = `<p style="font-size: 13px; color: var(--text-muted); font-style: italic;">Ainda não há avaliações anteriores registradas para este profissional.</p>`;
+    }
+  }
+
+  // Link para página completa
+  if (elemLinkFull) {
+    const qsFull = new URLSearchParams();
+    if (user.id) qsFull.set('id', user.id);
+    if (user.email) qsFull.set('email', user.email);
+    elemLinkFull.href = `perfil.html?${qsFull.toString()}`;
+  }
+
+  modal.style.display = 'flex';
+};
+
+window.fecharPerfilModal = function() {
+  const modal = document.getElementById('modal-perfil-candidato');
+  if (modal) modal.style.display = 'none';
+};
+
+// ====================================================================
+// MODAL DE FINALIZAÇÃO DE PROJETO & AVALIAÇÃO MÚTUA
+// ====================================================================
+
+window.avaliacaoAtiva = {
+  projetoId: null,
+  papel: 'contratante',
+  nota: 5,
+  tagsSelecionadas: []
+};
+
+window.abrirModalAvaliacao = function(projetoId, papel = 'contratante') {
+  const projetos = obterProjetos();
+  const proj = projetos.find(p => String(p.id) === String(projetoId));
+  if (!proj) return;
+
+  const modal = document.getElementById('modal-avaliacao');
+  if (!modal) return;
+
+  window.avaliacaoAtiva = {
+    projetoId: projetoId,
+    papel: papel,
+    nota: 5,
+    tagsSelecionadas: papel === 'contratante' ? ['Pontualidade', 'Qualidade Técnica'] : ['Briefing Claro', 'Pagamento Pontual']
+  };
+
+  const elemTitulo = document.getElementById('modalAvaliacaoTitulo');
+  const elemSub = document.getElementById('modalAvaliacaoSubtitulo');
+  const tagsContainer = document.getElementById('reviewTagsContainer');
+  const inputComentario = document.getElementById('avaliacao-comentario');
+
+  const outroNome = papel === 'contratante' ? (proj.freelancerContratado || 'Freelancer') : (proj.empresa || 'Cliente');
+
+  if (elemTitulo) {
+    elemTitulo.textContent = papel === 'contratante' 
+      ? `Finalizar & Avaliar ${outroNome}` 
+      : `Concluir Freela & Avaliar ${outroNome}`;
+  }
+  if (elemSub) {
+    elemSub.textContent = `Projeto: "${proj.titulo}"`;
+  }
+
+  selecionarEstrelaAvaliacao(5);
+
+  const tagsDisponiveis = papel === 'contratante'
+    ? ['Pontualidade', 'Qualidade Técnica', 'Comunicação Clara', 'Proatividade', 'Recomendo']
+    : ['Briefing Claro', 'Pagamento Pontual', 'Boa Comunicação', 'Respeito aos Prazos', 'Recomendo'];
+
+  if (tagsContainer) {
+    tagsContainer.innerHTML = tagsDisponiveis.map(tag => {
+      const isSel = window.avaliacaoAtiva.tagsSelecionadas.includes(tag);
+      return `<button type="button" class="review-tag-chip ${isSel ? 'selected' : ''}" onclick="toggleTagAvaliacao(this, '${escapeHtml(tag)}')">${escapeHtml(tag)}</button>`;
+    }).join('');
+  }
+
+  if (inputComentario) {
+    inputComentario.value = papel === 'contratante'
+      ? 'Excelente profissional! Entregou antes do prazo com ótima qualidade técnica e comunicação ágil.'
+      : 'Ótima experiência! Cliente forneceu orientações claras e suporte contínuo durante o freela.';
+  }
+
+  modal.style.display = 'flex';
+};
+
+window.fecharModalAvaliacao = function() {
+  const modal = document.getElementById('modal-avaliacao');
+  if (modal) modal.style.display = 'none';
+};
+
+window.selecionarEstrelaAvaliacao = function(nota) {
+  window.avaliacaoAtiva.nota = nota;
+  const botoes = document.querySelectorAll('#starRatingRow .star-icon-btn');
+  botoes.forEach(btn => {
+    const starVal = parseInt(btn.getAttribute('data-star'), 10);
+    if (starVal <= nota) {
+      btn.classList.add('filled');
+    } else {
+      btn.classList.remove('filled');
+    }
+  });
+
+  const display = document.getElementById('ratingLabelDisplay');
+  if (display) {
+    const rotulos = {
+      1: '⭐ 1.0 - Insatisfatório',
+      2: '⭐⭐ 2.0 - Regular',
+      3: '⭐⭐⭐ 3.0 - Bom trabalho',
+      4: '⭐⭐⭐⭐ 4.0 - Muito bom!',
+      5: '⭐⭐⭐⭐⭐ 5.0 - Excelente trabalho!'
+    };
+    display.textContent = rotulos[nota] || `⭐ ${nota}.0`;
+  }
+};
+
+window.toggleTagAvaliacao = function(btn, tag) {
+  const idx = window.avaliacaoAtiva.tagsSelecionadas.indexOf(tag);
+  if (idx !== -1) {
+    window.avaliacaoAtiva.tagsSelecionadas.splice(idx, 1);
+    btn.classList.remove('selected');
+  } else {
+    window.avaliacaoAtiva.tagsSelecionadas.push(tag);
+    btn.classList.add('selected');
+  }
+};
+
+window.submeterAvaliacao = function() {
+  if (!window.avaliacaoAtiva || !window.avaliacaoAtiva.projetoId) return;
+
+  const { projetoId, papel, nota, tagsSelecionadas } = window.avaliacaoAtiva;
+  const inputComentario = document.getElementById('avaliacao-comentario');
+  const comentario = inputComentario ? inputComentario.value.trim() : '';
+
+  if (!comentario) {
+    showToast('Por favor, escreva um breve comentário sobre a experiência.', 'error');
+    return;
+  }
+
+  const projetos = obterProjetos();
+  const proj = projetos.find(p => String(p.id) === String(projetoId));
+  if (!proj) return;
+
+  const usuarioLogado = getCurrentUser();
+  const meuNome = usuarioLogado ? usuarioLogado.nome : (papel === 'contratante' ? proj.empresa : 'Freelancer');
+
+  const novaAvaliacao = {
+    id: `aval_${Date.now()}`,
+    autor: meuNome,
+    projeto: proj.titulo,
+    estrelas: nota,
+    comentario: comentario,
+    tags: tagsSelecionadas,
+    data: new Date().toLocaleDateString('pt-BR')
+  };
+
+  // Marca projeto como concluído
+  proj.statusContratacao = 'concluido';
+  if (papel === 'contratante') {
+    proj.avaliacaoContratante = novaAvaliacao;
+  } else {
+    proj.avaliacaoFreelancer = novaAvaliacao;
+  }
+  salvarProjetos(projetos, proj);
+
+  // Adiciona a avaliação ao usuário avaliado na base global de usuários
+  const usuarios = obterUsuarios();
+  let usuarioAlvo = null;
+  if (papel === 'contratante') {
+    usuarioAlvo = usuarios.find(u => (proj.freelancerContratadoId && u.id === proj.freelancerContratadoId) || (proj.freelancerContratado && u.nome && u.nome.toLowerCase() === proj.freelancerContratado.toLowerCase()));
+  } else {
+    usuarioAlvo = usuarios.find(u => (proj.criadorId && u.id === proj.criadorId) || (proj.criadorEmail && u.email === proj.criadorEmail) || (proj.empresa && u.nome && u.nome.toLowerCase() === proj.empresa.toLowerCase()));
+  }
+
+  if (usuarioAlvo) {
+    if (!Array.isArray(usuarioAlvo.avaliacoes)) {
+      usuarioAlvo.avaliacoes = [];
+    }
+    usuarioAlvo.avaliacoes.unshift(novaAvaliacao);
+    salvarUsuarios(usuarios);
+  }
+
+  // Notificação no Chat (servidor + local)
+  const msgFim = `🏆 Projeto finalizado com sucesso! ${meuNome} avaliou a parceria com ${nota} estrelas: "${comentario}"`;
+  const token = localStorage.getItem('freelink_token');
+  if (token && proj.propostaAceitaId) {
+    fetch(`/api/chats/${encodeURIComponent(`chat_${projetoId}_${proj.propostaAceitaId}`)}/mensagens`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ texto: msgFim, sistema: true })
+    }).catch(() => {});
+  }
+
+  const chats = obterChats();
+  Object.keys(chats).forEach(k => {
+    if (chats[k].projetoId === String(projetoId)) {
+      chats[k].mensagens.push({
+        id: `msg_finish_${Date.now()}`,
+        remetenteId: 'sistema',
+        remetenteNome: 'FreeLink',
+        texto: msgFim,
+        dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      });
+      salvarChats(chats);
+      if (window.chatAtivo && window.chatAtivo.chatId === k) {
+        renderizarMensagensChat(chats[k]);
+      }
+    }
+  });
+
+  fecharModalAvaliacao();
+  showToast(`⭐ Avaliação enviada e projeto finalizado com sucesso!`, 'success');
+  carregarDetalhesProjeto();
+};
+
+window.recusarProposta = function(projetoId, propostaId) {
+  if (!confirm('Deseja realmente recusar esta proposta?')) return;
+
+  const projetos = obterProjetos();
+  const proj = projetos.find(p => String(p.id) === String(projetoId));
+  if (!proj || !Array.isArray(proj.listaPropostas)) return;
+
+  const prop = proj.listaPropostas.find(p => String(p.id) === String(propostaId));
+  if (!prop) return;
+
+  prop.status = 'recusada';
+  salvarProjetos(projetos, proj);
+
+  showToast('Proposta recusada.', 'info');
+  carregarDetalhesProjeto();
+};
+
+// ====================================================================
+// SISTEMA DE CHAT EM TEMPO REAL (FREELINK CHAT - POSTGRESQL + TEMPO REAL)
+// ====================================================================
+
+let chatPollingTimer = null;
+let chatsListaPollingTimer = null;
+let ultimaPromessaAbrirSala = Promise.resolve();
+let chatDrawerClickOutsideRegistrado = false;
+
+function resolverEmailUsuario({ email, id, nome }) {
+  if (email && String(email).trim()) return String(email).trim().toLowerCase();
+  const usuarios = obterUsuarios();
+  const encontrado = usuarios.find(u =>
+    (id && u.id && String(u.id) === String(id)) ||
+    (nome && u.nome && u.nome.toLowerCase() === String(nome).toLowerCase())
+  );
+  return encontrado && encontrado.email ? String(encontrado.email).trim().toLowerCase() : '';
+}
+
+function obterVistosChat() {
+  try {
+    return JSON.parse(localStorage.getItem('freelink_chat_vistos') || '{}') || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function marcarChatComoVisto(chatId, ultimoId) {
+  if (!chatId || !ultimoId) return;
+  try {
+    const vistos = obterVistosChat();
+    if (Number(ultimoId) > Number(vistos[chatId] || 0)) {
+      vistos[chatId] = Number(ultimoId);
+      localStorage.setItem('freelink_chat_vistos', JSON.stringify(vistos));
+    }
+  } catch (e) {}
+}
+
+function atualizarBadgeChatsNavbar(salas) {
+  const badge = document.getElementById('navbar-chat-badge');
+  if (!badge) return;
+  const usuarioLogado = getCurrentUser();
+  const meuEmail = usuarioLogado && usuarioLogado.email ? String(usuarioLogado.email).toLowerCase() : '';
+  const vistos = obterVistosChat();
+  let naoLidas = 0;
+
+  (salas || []).forEach(s => {
+    const ultimoId = Number(s.ultimo_id_mensagem || 0);
+    const remetenteEmail = String(s.ultimo_remetente_email || '').toLowerCase();
+    const salaAtiva = window.chatAtivo && window.chatAtivo.chatId === s.id_sala;
+    const chatBox = document.getElementById('freelink-chat-box');
+    const janelaAberta = salaAtiva && chatBox && !chatBox.classList.contains('hidden');
+
+    if (janelaAberta && ultimoId) {
+      marcarChatComoVisto(s.id_sala, ultimoId);
+      return;
+    }
+    if (ultimoId > Number(vistos[s.id_sala] || 0) && remetenteEmail && remetenteEmail !== meuEmail) {
+      naoLidas++;
+    }
+  });
+
+  if (naoLidas > 0) {
+    badge.textContent = naoLidas > 9 ? '9+' : String(naoLidas);
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function pararPollingListaChats() {
+  if (chatsListaPollingTimer) {
+    clearInterval(chatsListaPollingTimer);
+    chatsListaPollingTimer = null;
+  }
+}
+
+async function verificarConversasServidor() {
+  const token = localStorage.getItem('freelink_token');
+  if (!token || !isAuthenticated()) return;
+  try {
+    const res = await fetch('/api/chats', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!res.ok) return;
+    const data = await res.json();
+    const salas = Array.isArray(data.chats) ? data.chats : [];
+    atualizarBadgeChatsNavbar(salas);
+    const drawer = document.getElementById('freelink-chats-drawer');
+    if (drawer && !drawer.classList.contains('hidden')) {
+      renderizarListaConversasDrawer(salas, null);
+    }
+  } catch (e) {}
+}
+
+function iniciarPollingListaChats() {
+  pararPollingListaChats();
+  const token = localStorage.getItem('freelink_token');
+  if (!token || !isAuthenticated()) return;
+  verificarConversasServidor();
+  chatsListaPollingTimer = setInterval(verificarConversasServidor, 5000);
+}
+
+function obterChats() {
+  try {
+    const dados = localStorage.getItem(STORAGE_KEYS.CHATS);
+    return dados ? JSON.parse(dados) : {};
+  } catch(e) {
+    return {};
+  }
+}
+
+function salvarChats(chats) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(chats));
+  } catch (e) {}
+}
+
+function pararPollingChat() {
+  if (chatPollingTimer) {
+    clearInterval(chatPollingTimer);
+    chatPollingTimer = null;
+  }
+}
+
+function iniciarPollingChat(chatId) {
+  pararPollingChat();
+  const token = localStorage.getItem('freelink_token');
+  if (!token || !chatId) return;
+
+  chatPollingTimer = setInterval(async () => {
+    if (!window.chatAtivo || window.chatAtivo.chatId !== chatId) return;
+    const chatBox = document.getElementById('freelink-chat-box');
+    if (!chatBox || chatBox.classList.contains('hidden')) return;
+    await buscarMensagensChatServidor(chatId);
+  }, 2000);
+}
+
+async function buscarMensagensChatServidor(chatId) {
+  const token = localStorage.getItem('freelink_token');
+  if (!token || !chatId) return;
+  try {
+    const res = await fetch(`/api/chats/${encodeURIComponent(chatId)}/mensagens`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const msgs = Array.isArray(data.mensagens) ? data.mensagens : [];
+
+    const ultimoIdNovo = msgs.length ? msgs[msgs.length - 1].id : null;
+    if (ultimoIdNovo && window.chatAtivo && window.chatAtivo.chatId === chatId) {
+      marcarChatComoVisto(chatId, ultimoIdNovo);
+    }
+
+    const chats = obterChats();
+    const anterior = chats[chatId] || { id: chatId, mensagens: [] };
+    const ultimoIdAnterior = anterior.mensagens && anterior.mensagens.length ? anterior.mensagens[anterior.mensagens.length - 1].id : null;
+
+    if (msgs.length !== (anterior.mensagens ? anterior.mensagens.length : 0) || ultimoIdAnterior !== ultimoIdNovo) {
+      anterior.mensagens = msgs;
+      chats[chatId] = anterior;
+      salvarChats(chats);
+      if (window.chatAtivo && window.chatAtivo.chatId === chatId) {
+        renderizarMensagensChat(anterior);
+      }
+    }
+  } catch (e) {}
+}
+
+async function abrirSalaChat({ chatId, titulo, outroNome, outroEmail, projetoId, propostaId, mensagemSistema, mensagemBot }) {
+  const usuarioLogado = getCurrentUser();
+  if (!usuarioLogado) {
+    showToast('Faça login para conversar no chat.', 'info');
+    return;
+  }
+
+  let chatBox = document.getElementById('freelink-chat-box');
+  if (!chatBox) {
+    chatBox = garantirElementoChat();
+  }
+
+  const drawer = document.getElementById('freelink-chats-drawer');
+  if (drawer) drawer.classList.add('hidden');
+
+  const isSalaBot = String(chatId || '').startsWith('bot_');
+  window.chatAtivo = {
+    projetoId: projetoId || null,
+    propostaId: propostaId || null,
+    chatId,
+    titulo: titulo || (isSalaBot ? 'Assistente de Perfil' : 'Conversa FreeLink'),
+    outroEmail: outroEmail || (isSalaBot ? 'bot@freelink.com' : ''),
+    outroNome: outroNome || (isSalaBot ? 'Assistente FreeLink' : 'Contato')
+  };
+
+  const elemNome = document.getElementById('chatHeaderName');
+  const elemAvatar = document.getElementById('chatHeaderAvatar');
+  const elemTitulo = document.getElementById('chatHeaderProjectTitle');
+  const quickBox = chatBox.querySelector('.chat-quick-suggestions');
+
+  if (elemNome) elemNome.textContent = window.chatAtivo.outroNome;
+  if (elemAvatar) {
+    elemAvatar.innerHTML = isSalaBot
+      ? '<i class="fa-solid fa-robot"></i>'
+      : escapeHtml((window.chatAtivo.outroNome || 'U').charAt(0).toUpperCase());
+  }
+  if (elemTitulo) elemTitulo.textContent = titulo || (isSalaBot ? 'Assistente de Perfil' : 'Chat Direto');
+  if (quickBox) {
+    quickBox.innerHTML = isSalaBot
+      ? `
+        <button type="button" class="chat-quick-chip" onclick="irParaCompletarPerfil()"><i class="fa-solid fa-wand-magic-sparkles"></i> Completar Perfil Agora</button>
+        <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('O que falta no meu perfil?')">O que falta?</button>
+        <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('Como edito meu perfil?')">Como editar?</button>
+      `
+      : `
+        <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('Olá! Quando podemos iniciar o trabalho?')">Quando começamos?</button>
+        <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('Estou disponível para tirar dúvidas sobre o projeto.')">Tirar dúvidas</button>
+        <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('Perfeito! Vou iniciar a primeira etapa.')">Iniciando etapa</button>
+      `;
+  }
+
+  const chats = obterChats();
+  if (!chats[chatId]) {
+    const msgInicialTexto = mensagemBot || mensagemSistema;
+    chats[chatId] = {
+      id: chatId,
+      projetoId: projetoId || null,
+      projetoTitulo: window.chatAtivo.titulo,
+      mensagens: msgInicialTexto ? [{
+        id: isSalaBot ? `msg_bot_${Date.now()}` : `msg_sys_${Date.now()}`,
+        remetenteId: isSalaBot ? 'bot' : 'sistema',
+        remetenteEmail: isSalaBot ? 'bot@freelink.com' : '',
+        remetenteNome: isSalaBot ? 'Assistente FreeLink' : 'FreeLink',
+        texto: msgInicialTexto,
+        dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      }] : []
+    };
+    salvarChats(chats);
+  }
+
+  renderizarMensagensChat(chats[chatId]);
+  chatBox.classList.remove('hidden');
+
+  const inputMsg = document.getElementById('chatInputMessage');
+  if (inputMsg) setTimeout(() => inputMsg.focus(), 150);
+
+  const token = localStorage.getItem('freelink_token');
+  if (token) {
+    ultimaPromessaAbrirSala = (async () => {
+      try {
+        const res = await fetch('/api/chats/abrir', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({
+            idSala: chatId,
+            titulo: window.chatAtivo.titulo,
+            projetoId: projetoId || null,
+            propostaId: propostaId || null,
+            outroEmail: window.chatAtivo.outroEmail,
+            outroNome: window.chatAtivo.outroNome,
+            mensagemSistema: mensagemSistema || '',
+            mensagemBot: mensagemBot || ''
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const msgs = Array.isArray(data.mensagens) ? data.mensagens : [];
+          chats[chatId].mensagens = msgs;
+          salvarChats(chats);
+          if (msgs.length) marcarChatComoVisto(chatId, msgs[msgs.length - 1].id);
+          if (window.chatAtivo && window.chatAtivo.chatId === chatId) {
+            renderizarMensagensChat(chats[chatId]);
+          }
+          verificarConversasServidor();
+        }
+      } catch (e) {}
+    })();
+    await ultimaPromessaAbrirSala;
+    iniciarPollingChat(chatId);
+  }
+}
+
+window.abrirChatProjeto = function(projetoId, propostaId) {
+  const projetos = obterProjetos();
+  const proj = projetos.find(p => String(p.id) === String(projetoId));
+  if (!proj) return;
+
+  const prop = Array.isArray(proj.listaPropostas) ? proj.listaPropostas.find(p => String(p.id) === String(propostaId)) : null;
+  const usuarioLogado = getCurrentUser();
+  const chatId = `chat_${projetoId}_${propostaId}`;
+
+  const isCliente = usuarioLogado && (
+    (proj.criadorId && proj.criadorId === usuarioLogado.id) ||
+    (proj.criadorEmail && usuarioLogado.email && proj.criadorEmail.toLowerCase() === usuarioLogado.email.toLowerCase()) ||
+    (proj.empresa && usuarioLogado.nome && proj.empresa.toLowerCase() === usuarioLogado.nome.toLowerCase())
+  );
+
+  const outroNome = isCliente ? (prop ? prop.usuarioNome : 'Freelancer') : proj.empresa;
+  const outroEmail = isCliente
+    ? resolverEmailUsuario({ email: prop && prop.usuarioEmail, id: prop && prop.usuarioId, nome: prop && prop.usuarioNome })
+    : resolverEmailUsuario({ email: proj.criadorEmail, id: proj.criadorId, nome: proj.empresa });
+
+  abrirSalaChat({
+    chatId,
+    titulo: proj.titulo,
+    outroNome,
+    outroEmail,
+    projetoId,
+    propostaId,
+    mensagemSistema: `🎉 Proposta aceita! O canal de comunicação para o projeto "${proj.titulo}" está ativo.`
+  });
+};
+
+window.abrirChatDireto = function(outroEmail, outroNome, tituloOpcional) {
+  const usuarioLogado = getCurrentUser();
+  if (!usuarioLogado) {
+    showToast('Faça login para conversar no chat.', 'info');
+    return;
+  }
+  const emailA = String(usuarioLogado.email || '').trim().toLowerCase();
+  const emailB = String(outroEmail || '').trim().toLowerCase();
+  if (!emailA) {
+    showToast('Sua conta precisa de um e-mail válido para usar o chat.', 'error');
+    return;
+  }
+  if (!emailB) {
+    showToast('Contato sem e-mail identificado para chat.', 'error');
+    return;
+  }
+  if (emailA === emailB) {
+    showToast('Você está visualizando seu próprio perfil.', 'info');
+    return;
+  }
+  const ordenado = [emailA, emailB].sort();
+  // Gera identificador determinístico curto para caber em VARCHAR(120)
+  let hash = 0;
+  const chave = ordenado.join('|');
+  for (let i = 0; i < chave.length; i++) {
+    hash = ((hash << 5) - hash + chave.charCodeAt(i)) | 0;
+  }
+  const chatId = `dm_${Math.abs(hash).toString(36)}_${ordenado[0].slice(0, 20)}_${ordenado[1].slice(0, 20)}`.replace(/[^a-zA-Z0-9_@.-]/g, '').slice(0, 115);
+
+  abrirSalaChat({
+    chatId,
+    titulo: tituloOpcional || 'Conversa Direta',
+    outroNome: outroNome || emailB,
+    outroEmail: emailB,
+    mensagemSistema: `💬 Canal direto aberto entre ${usuarioLogado.nome} e ${outroNome || emailB}.`
+  });
+};
+
+function renderizarListaConversasDrawer(salas, erroSessaoMsg) {
+  const listEl = document.getElementById('chatsDrawerList');
+  if (!listEl) return;
+
+  const usuarioLogado = getCurrentUser();
+  const meuEmail = usuarioLogado && usuarioLogado.email ? String(usuarioLogado.email).toLowerCase() : '';
+  const meuNome = usuarioLogado && usuarioLogado.nome ? String(usuarioLogado.nome).toLowerCase() : '';
+  const vistos = obterVistosChat();
+
+  if (erroSessaoMsg && !salas.length) {
+    listEl.innerHTML = `
+      <div style="text-align: center; padding: 22px 14px; color: var(--text-muted); font-size: 13px;">
+        <i class="fa-solid fa-circle-exclamation" style="font-size: 26px; color: #f59e0b; display: block; margin-bottom: 8px;"></i>
+        ${escapeHtml(erroSessaoMsg)}
+      </div>
+    `;
+    return;
+  }
+
+  if (!salas.length) {
+    listEl.innerHTML = `
+      <div style="text-align: center; padding: 26px 14px; color: var(--text-muted); font-size: 13px;">
+        <i class="fa-regular fa-comment-dots" style="font-size: 28px; display: block; margin-bottom: 8px; opacity: 0.6;"></i>
+        Nenhuma conversa ainda.<br>Escolha um contato abaixo ou aceite uma proposta em um projeto!
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = salas.map(s => {
+    const p1Email = String(s.participante1_email || '').toLowerCase();
+    const p2Email = String(s.participante2_email || '').toLowerCase();
+    const p1Nome = String(s.participante1_nome || '').toLowerCase();
+    const souP1 = (meuEmail && p1Email) ? (p1Email === meuEmail) : (meuNome && p1Nome === meuNome);
+
+    const nomeOutro = souP1 ? (s.participante2_nome || s.participante2_email || 'Contato') : (s.participante1_nome || s.participante1_email || 'Contato');
+    const emailOutro = souP1 ? (p2Email || '') : (p1Email || '');
+    const inicial = (nomeOutro || 'C').charAt(0).toUpperCase();
+    const preview = s.ultima_mensagem ? escapeHtml(s.ultima_mensagem) : escapeHtml(s.titulo || 'Abrir conversa');
+
+    const ultimoId = Number(s.ultimo_id_mensagem || 0);
+    const remetenteEmail = String(s.ultimo_remetente_email || '').toLowerCase();
+    const naoLida = ultimoId > Number(vistos[s.id_sala] || 0) && remetenteEmail && remetenteEmail !== meuEmail;
+
+    return `
+      <button type="button" class="chats-drawer-item ${naoLida ? 'is-unread' : ''}" data-sala="${escapeHtml(s.id_sala)}" data-titulo="${escapeHtml(s.titulo || 'Conversa')}" data-nome="${escapeHtml(nomeOutro)}" data-email="${escapeHtml(emailOutro)}" data-proj="${escapeHtml(s.projeto_id || '')}" data-prop="${escapeHtml(s.proposta_id || '')}" data-ultimo-id="${ultimoId}">
+        <div class="chats-drawer-avatar">${escapeHtml(inicial)}</div>
+        <div class="chats-drawer-meta">
+          <div class="chats-drawer-name">${escapeHtml(nomeOutro)} <span style="font-weight: 500; font-size: 11px; color: var(--primary-color);">· ${escapeHtml(s.titulo || 'Chat')}</span></div>
+          <div class="chats-drawer-sub">${preview}</div>
+        </div>
+        ${naoLida ? '<span class="chats-drawer-unread-dot" title="Nova mensagem"></span>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  listEl.querySelectorAll('.chats-drawer-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const uId = Number(btn.getAttribute('data-ultimo-id') || 0);
+      const sId = btn.getAttribute('data-sala');
+      if (uId) marcarChatComoVisto(sId, uId);
+      abrirSalaChat({
+        chatId: sId,
+        titulo: btn.getAttribute('data-titulo'),
+        outroNome: btn.getAttribute('data-nome'),
+        outroEmail: btn.getAttribute('data-email'),
+        projetoId: btn.getAttribute('data-proj') || null,
+        propostaId: btn.getAttribute('data-prop') || null
+      });
+    });
+  });
+}
+
+window.abrirListaConversas = async function() {
+  const usuarioLogado = getCurrentUser();
+  if (!usuarioLogado) {
+    showToast('Faça login para acessar suas conversas.', 'info');
+    return;
+  }
+
+  let drawer = document.getElementById('freelink-chats-drawer');
+  if (!drawer) {
+    drawer = document.createElement('div');
+    drawer.id = 'freelink-chats-drawer';
+    drawer.className = 'freelink-chats-drawer hidden';
+    drawer.innerHTML = `
+      <div class="chats-drawer-header">
+        <h4><i class="fa-solid fa-comments" style="color: var(--primary-color);"></i> Minhas Conversas</h4>
+        <button type="button" class="chat-header-close" onclick="document.getElementById('freelink-chats-drawer').classList.add('hidden')" title="Fechar">&times;</button>
+      </div>
+      <div class="chats-drawer-list" id="chatsDrawerList">
+        <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px;">Carregando conversas...</div>
+      </div>
+      <div class="chats-drawer-new">
+        <select id="chatsDrawerContatoSelect">
+          <option value="">Iniciar nova conversa com...</option>
+        </select>
+        <button type="button" id="btnIniciarNovaConversa" class="btn-navbar-chat" style="background: var(--primary-color); color: #fff; border: none;">
+          <i class="fa-solid fa-paper-plane"></i> Abrir
+        </button>
+      </div>
+    `;
+    document.body.appendChild(drawer);
+
+    drawer.querySelector('#btnIniciarNovaConversa').addEventListener('click', () => {
+      const sel = document.getElementById('chatsDrawerContatoSelect');
+      if (!sel || !sel.value) {
+        showToast('Selecione uma pessoa para iniciar a conversa.', 'info');
+        return;
+      }
+      const opt = sel.options[sel.selectedIndex];
+      abrirChatDireto(sel.value, opt.getAttribute('data-nome') || sel.value, 'Conversa Direta');
+    });
+
+    if (!chatDrawerClickOutsideRegistrado) {
+      chatDrawerClickOutsideRegistrado = true;
+      document.addEventListener('click', (e) => {
+        const drw = document.getElementById('freelink-chats-drawer');
+        const btnNav = document.getElementById('btn-navbar-chat');
+        if (!drw || drw.classList.contains('hidden')) return;
+        if (drw.contains(e.target) || (btnNav && btnNav.contains(e.target))) return;
+        drw.classList.add('hidden');
+      });
+    }
+  }
+
+  if (!drawer.classList.contains('hidden')) {
+    drawer.classList.add('hidden');
+    return;
+  }
+  drawer.classList.remove('hidden');
+
+  const selEl = document.getElementById('chatsDrawerContatoSelect');
+  const token = localStorage.getItem('freelink_token');
+  const meuEmail = String(usuarioLogado.email || '').toLowerCase();
+
+  // Popula seletor de contatos reais do banco de dados (com fallback local)
+  if (selEl) {
+    let usuariosLista = [];
+    try {
+      const resU = await fetch('/api/usuarios');
+      if (resU.ok) {
+        const dataU = await resU.json();
+        usuariosLista = Array.isArray(dataU.usuarios) ? dataU.usuarios : [];
+      }
+    } catch (e) {}
+
+    if (!usuariosLista.length) {
+      usuariosLista = obterUsuarios();
+    }
+
+    const outros = usuariosLista.filter(u => u.email && u.email.toLowerCase() !== meuEmail);
+    selEl.innerHTML = `<option value="">Iniciar nova conversa com...</option>` +
+      outros.map(u => `<option value="${escapeHtml(u.email)}" data-nome="${escapeHtml(u.nome)}">${escapeHtml(u.nome)} (${u.tipo === 'contratante' ? 'Empresa' : 'Freelancer'})</option>`).join('');
+  }
+
+  // Carrega salas do servidor
+  let salas = [];
+  let erroSessaoMsg = '';
+  if (token) {
+    try {
+      const resC = await fetch('/api/chats', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (resC.ok) {
+        const dataC = await resC.json();
+        salas = Array.isArray(dataC.chats) ? dataC.chats : [];
+        atualizarBadgeChatsNavbar(salas);
+      } else if (resC.status === 401) {
+        erroSessaoMsg = 'Sua sessão no servidor expirou. Faça login novamente para sincronizar as conversas.';
+      }
+    } catch (e) {}
+  } else {
+    erroSessaoMsg = 'Entre novamente para sincronizar suas conversas em tempo real.';
+  }
+
+  if (!salas.length) {
+    const locais = Object.values(obterChats());
+    if (locais.length) {
+      salas = locais.map(c => ({
+        id_sala: c.id,
+        titulo: c.projetoTitulo || 'Conversa',
+        projeto_id: c.projetoId,
+        proposta_id: null,
+        participante1_email: c.clienteEmail || '',
+        participante1_nome: c.clienteNome || '',
+        participante2_email: c.freelancerEmail || '',
+        participante2_nome: c.freelancerNome || '',
+        ultima_mensagem: (c.mensagens && c.mensagens.length) ? c.mensagens[c.mensagens.length - 1].texto : ''
+      }));
+    }
+  }
+
+  renderizarListaConversasDrawer(salas, erroSessaoMsg);
+};
+
+window.fecharChatProjeto = function() {
+  pararPollingChat();
+  const chatBox = document.getElementById('freelink-chat-box');
+  if (chatBox) chatBox.classList.add('hidden');
+};
+
+window.inserirSugestaoChat = function(texto) {
+  const inputMsg = document.getElementById('chatInputMessage');
+  if (inputMsg) {
+    inputMsg.value = texto;
+    inputMsg.focus();
+  }
+};
+
+function renderizarMensagensChat(chat) {
+  const container = document.getElementById('chatMessagesContainer');
+  if (!container || !chat) return;
+
+  const usuarioLogado = getCurrentUser();
+  const meuId = usuarioLogado ? usuarioLogado.id : 'meu_usuario';
+  const meuEmail = usuarioLogado && usuarioLogado.email ? usuarioLogado.email.toLowerCase() : '';
+  const isSalaBot = window.chatAtivo && String(window.chatAtivo.chatId || '').startsWith('bot_');
+
+  const msgs = Array.isArray(chat.mensagens) ? chat.mensagens : [];
+
+  container.innerHTML = msgs.map(m => {
+    if (m.remetenteId === 'sistema') {
+      return `
+        <div class="chat-bubble chat-bubble-system">
+          <i class="fa-solid fa-circle-check" style="color: var(--primary-color); margin-right: 4px;"></i>
+          ${escapeHtml(m.texto)}
+        </div>
+      `;
+    }
+
+    const emailMsg = m.remetenteEmail ? m.remetenteEmail.toLowerCase() : '';
+    const isBotMsg = m.remetenteId === 'bot' || emailMsg === 'bot@freelink.com';
+    const isMinha = !isBotMsg && ((meuEmail && emailMsg)
+      ? (emailMsg === meuEmail)
+      : (m.remetenteId === meuId || (usuarioLogado && m.remetenteNome === usuarioLogado.nome)));
+    const bubbleClass = isMinha ? 'chat-bubble-me' : 'chat-bubble-other';
+
+    let botaoBotHtml = '';
+    if (isBotMsg && isSalaBot) {
+      const analise = avaliarCompletudePerfil(usuarioLogado);
+      if (analise.faltando.length > 0) {
+        botaoBotHtml = `
+          <button type="button" class="chat-bot-action-btn" onclick="irParaCompletarPerfil()">
+            <i class="fa-solid fa-user-pen"></i> Completar Meu Perfil Agora (${analise.percentual}%)
+          </button>
+        `;
+      }
+    }
+
+    return `
+      <div class="chat-bubble ${bubbleClass}">
+        ${!isMinha ? `<div style="font-size: 11px; font-weight: 700; color: var(--primary-color); margin-bottom: 2px;">${isBotMsg ? '<i class="fa-solid fa-robot" style="margin-right: 4px;"></i>' : ''}${escapeHtml(m.remetenteNome || '')}</div>` : ''}
+        <div style="white-space: pre-line;">${escapeHtml(m.texto)}</div>
+        ${botaoBotHtml}
+        <span class="chat-msg-time">${escapeHtml(m.dataHora || '')}</span>
+      </div>
+    `;
+  }).join('');
+
+  container.scrollTop = container.scrollHeight;
+}
+
+window.enviarMensagemChat = async function() {
+  if (!window.chatAtivo) return;
+
+  const input = document.getElementById('chatInputMessage');
+  if (!input) return;
+
+  const texto = input.value.trim();
+  if (!texto) return;
+
+  const { chatId, titulo, projetoId, propostaId, outroEmail, outroNome } = window.chatAtivo;
+  const isSalaBot = String(chatId || '').startsWith('bot_');
+  const usuarioLogado = getCurrentUser();
+  if (!usuarioLogado) {
+    showToast('Faça login para enviar mensagens.', 'error');
+    return;
+  }
+
+  const token = localStorage.getItem('freelink_token');
+  input.value = '';
+
+  if (token) {
+    try {
+      await ultimaPromessaAbrirSala;
+      const res = await fetch(`/api/chats/${encodeURIComponent(chatId)}/mensagens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ texto, titulo, projetoId, propostaId, outroEmail, outroNome })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.erro || 'Erro ao enviar mensagem.', 'error');
+        input.value = texto;
+        return;
+      }
+      await buscarMensagensChatServidor(chatId);
+      if (isSalaBot) {
+        await responderBotOnboardingNoChat(chatId, texto);
+      }
+      verificarConversasServidor();
+      return;
+    } catch (e) {
+      showToast('Falha de conexão ao enviar mensagem.', 'error');
+      input.value = texto;
+      return;
+    }
+  }
+
+  // Fallback local apenas para contas demo sem token no banco
+  const chats = obterChats();
+  const chat = chats[chatId] || { id: chatId, mensagens: [] };
+  chat.mensagens.push({
+    id: `msg_${Date.now()}`,
+    remetenteId: usuarioLogado.id,
+    remetenteEmail: usuarioLogado.email || '',
+    remetenteNome: usuarioLogado.nome || 'Você',
+    texto: texto,
+    dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  });
+  chats[chatId] = chat;
+  salvarChats(chats);
+  renderizarMensagensChat(chat);
+
+  if (isSalaBot) {
+    await responderBotOnboardingNoChat(chatId, texto);
+  }
+};
+
+// ====================================================================
+// BOT ASSISTENTE DE PERFIL + NOTIFICAÇÃO GRANDE EM DESTAQUE
+// ====================================================================
+
+window.marcarContaRecemCriada = function(email) {
+  if (!email) return;
+  try {
+    localStorage.setItem('freelink_conta_nova_' + String(email).trim().toLowerCase(), '1');
+  } catch (e) {}
+};
+
+function limparContaRecemCriada(email) {
+  if (!email) return;
+  try {
+    localStorage.removeItem('freelink_conta_nova_' + String(email).trim().toLowerCase());
+  } catch (e) {}
+}
+
+function obterIdSalaBotUsuario(email) {
+  const e = String(email || '').trim().toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < e.length; i++) {
+    hash = ((hash << 5) - hash + e.charCodeAt(i)) | 0;
+  }
+  return `bot_onboarding_${Math.abs(hash).toString(36)}_${e.slice(0, 30)}`.replace(/[^a-zA-Z0-9_@.-]/g, '').slice(0, 115);
+}
+
+window.avaliarCompletudePerfil = function(usuario) {
+  const u = usuario || getCurrentUser();
+  if (!u || !u.email) {
+    return { percentual: 100, completo: true, precisaAtencao: false, faltando: [], primeiraAba: 'pane-identificacao', primeiroCampo: 'editSpecialty', novaConta: false };
+  }
+
+  const email = String(u.email).trim().toLowerCase();
+  const novaConta = localStorage.getItem('freelink_conta_nova_' + email) === '1';
+  const isContratante = u.tipo === 'contratante';
+  const tem = (v) => Boolean(v && String(v).trim() !== '');
+
+  const itens = [
+    { chave: 'especialidade', label: 'Especialidade / Título', aba: 'pane-identificacao', campo: 'editSpecialty', obrigatorio: true, ok: tem(u.especialidade) },
+    { chave: 'localizacao', label: 'Cidade / Localização', aba: 'pane-identificacao', campo: 'editLocation', obrigatorio: true, ok: tem(u.localizacao) },
+    { chave: 'bio', label: 'Apresentação (Sobre Mim)', aba: 'pane-sobre', campo: 'editBio', obrigatorio: true, ok: tem(u.bio) },
+    { chave: 'habilidades', label: 'Habilidades / Competências', aba: 'pane-skills', campo: 'editSkills', obrigatorio: true, ok: tem(u.habilidades) },
+    { chave: 'foto', label: 'Foto de Perfil', aba: 'pane-midia', campo: 'editAvatar', obrigatorio: false, ok: tem(u.foto || u.avatar) }
+  ];
+
+  if (!isContratante) {
+    itens.push(
+      { chave: 'taxaHoraria', label: 'Taxa Horária', aba: 'pane-condicoes', campo: 'editHourlyRate', obrigatorio: false, ok: tem(u.taxaHoraria) },
+      { chave: 'experienciaTexto', label: 'Experiência Profissional', aba: 'pane-experiencia', campo: 'editExperience', obrigatorio: false, ok: tem(u.experienciaTexto) },
+      { chave: 'portfolioTexto', label: 'Portfólio de Trabalhos', aba: 'pane-experiencia', campo: 'editPortfolio', obrigatorio: false, ok: tem(u.portfolioTexto || u.portfolio) }
+    );
+  } else {
+    itens.push(
+      { chave: 'portfolioTexto', label: 'Portfólio / Projetos da Empresa', aba: 'pane-experiencia', campo: 'editPortfolio', obrigatorio: false, ok: tem(u.portfolioTexto || u.portfolio) }
+    );
+  }
+
+  const preenchidos = itens.filter(i => i.ok).length;
+  const percentual = Math.round((preenchidos / itens.length) * 100);
+  const faltando = itens.filter(i => !i.ok);
+  const faltamObrigatorios = faltando.some(i => i.obrigatorio);
+  const completo = faltando.length === 0;
+  const precisaAtencao = faltamObrigatorios || (novaConta && faltando.length > 0) || percentual < 60;
+
+  return {
+    percentual,
+    completo,
+    precisaAtencao,
+    faltando,
+    primeiraAba: faltando[0] ? faltando[0].aba : 'pane-identificacao',
+    primeiroCampo: faltando[0] ? faltando[0].campo : 'editSpecialty',
+    novaConta
+  };
+};
+
+function montarMensagemBotOnboarding(usuario, analise) {
+  const primeiroNome = (usuario && usuario.nome) ? usuario.nome.split(' ')[0] : 'Freelancer';
+  const lista = analise.faltando.map(f => `• ${f.label}`).join('\n');
+  return `Olá, ${primeiroNome}! 🤖 Eu sou o Assistente FreeLink.\n\nSeu perfil está em ${analise.percentual}%. Para aparecer melhor nas buscas e transmitir confiança, ainda falta preencher:\n${lista}\n\nClique no botão abaixo para completar seu perfil em menos de 2 minutos!`;
+}
+
+window.irParaCompletarPerfil = function(aba, campo) {
+  const overlay = document.getElementById('freelink-bot-spotlight');
+  if (overlay) overlay.classList.add('hidden');
+
+  const usuario = getCurrentUser();
+  const analise = avaliarCompletudePerfil(usuario);
+  const abaAlvo = aba || analise.primeiraAba;
+  const campoAlvo = campo || analise.primeiroCampo;
+
+  const isPerfilPage = window.location.pathname.toLowerCase().includes('perfil.html');
+  if (isPerfilPage && typeof window.openEditModal === 'function') {
+    window.openEditModal(campoAlvo, abaAlvo);
+    return;
+  }
+
+  const isSubfolder = window.location.pathname.includes('/html/') ||
+                      window.location.pathname.includes('\\html\\') ||
+                      document.querySelector('link[href*="../css/"]');
+  const prefix = isSubfolder ? '' : 'html/';
+  const qs = new URLSearchParams({ completar: '1', tab: abaAlvo, campo: campoAlvo });
+  window.location.href = `${prefix}perfil.html?${qs.toString()}`;
+};
+
+window.abrirChatComBot = async function() {
+  const overlay = document.getElementById('freelink-bot-spotlight');
+  if (overlay) overlay.classList.add('hidden');
+
+  const usuario = getCurrentUser();
+  if (!usuario || !usuario.email) return;
+
+  const analise = avaliarCompletudePerfil(usuario);
+  const chatId = obterIdSalaBotUsuario(usuario.email);
+  const msgInicial = analise.faltando.length > 0
+    ? montarMensagemBotOnboarding(usuario, analise)
+    : `Olá, ${usuario.nome.split(' ')[0]}! 🤖 Seu perfil está 100% completo e pronto para receber oportunidades no FreeLink!`;
+
+  await abrirSalaChat({
+    chatId,
+    titulo: 'Assistente de Perfil',
+    outroNome: 'Assistente FreeLink',
+    outroEmail: 'bot@freelink.com',
+    mensagemBot: msgInicial
+  });
+};
+
+async function responderBotOnboardingNoChat(chatId, textoUsuario) {
+  const usuario = getCurrentUser();
+  if (!usuario) return;
+  const analise = avaliarCompletudePerfil(usuario);
+  const msgLower = String(textoUsuario || '').toLowerCase();
+
+  let resposta = '';
+  if (analise.faltando.length === 0) {
+    resposta = '🎉 Seu perfil já está 100% completo! Agora você pode enviar propostas ou publicar projetos normalmente.';
+  } else if (msgLower.includes('ok') || msgLower.includes('obrigad') || msgLower.includes('valeu')) {
+    resposta = `Por nada! 😊 Quando quiser finalizar (${analise.faltando.map(f => f.label).join(', ')}), clique no botão abaixo para ir direto ao editor de perfil.`;
+  } else {
+    resposta = `Analisei seu perfil agora (${analise.percentual}% completo). Ainda falta preencher:\n` +
+      analise.faltando.map(f => `• ${f.label}`).join('\n') +
+      `\n\nClique em "Completar Meu Perfil Agora" abaixo para preencher diretamente!`;
+  }
+
+  const token = localStorage.getItem('freelink_token');
+  if (token) {
+    try {
+      await fetch(`/api/chats/${encodeURIComponent(chatId)}/mensagens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ texto: resposta, bot: true })
+      });
+      await buscarMensagensChatServidor(chatId);
+      return;
+    } catch (e) {}
+  }
+
+  const chats = obterChats();
+  const chat = chats[chatId] || { id: chatId, mensagens: [] };
+  chat.mensagens.push({
+    id: `msg_bot_${Date.now()}`,
+    remetenteId: 'bot',
+    remetenteEmail: 'bot@freelink.com',
+    remetenteNome: 'Assistente FreeLink',
+    texto: resposta,
+    dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  });
+  chats[chatId] = chat;
+  salvarChats(chats);
+  renderizarMensagensChat(chat);
+}
+
+async function garantirChatBotOnboarding(usuario, analise) {
+  if (!usuario || !usuario.email || !analise.precisaAtencao) return;
+  const email = String(usuario.email).trim().toLowerCase();
+  const chatId = obterIdSalaBotUsuario(email);
+  const msgInicial = montarMensagemBotOnboarding(usuario, analise);
+
+  const chats = obterChats();
+  if (!chats[chatId]) {
+    chats[chatId] = {
+      id: chatId,
+      projetoTitulo: 'Assistente de Perfil',
+      clienteEmail: email,
+      clienteNome: usuario.nome,
+      freelancerEmail: 'bot@freelink.com',
+      freelancerNome: 'Assistente FreeLink',
+      mensagens: [{
+        id: `msg_bot_${Date.now()}`,
+        remetenteId: 'bot',
+        remetenteEmail: 'bot@freelink.com',
+        remetenteNome: 'Assistente FreeLink',
+        texto: msgInicial,
+        dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      }]
+    };
+    salvarChats(chats);
+  }
+
+  const token = localStorage.getItem('freelink_token');
+  const chaveSync = 'freelink_bot_sync_' + email;
+  if (token && !sessionStorage.getItem(chaveSync)) {
+    sessionStorage.setItem(chaveSync, '1');
+    try {
+      await fetch('/api/chats/abrir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({
+          idSala: chatId,
+          titulo: 'Assistente de Perfil',
+          outroEmail: 'bot@freelink.com',
+          outroNome: 'Assistente FreeLink',
+          mensagemBot: msgInicial
+        })
+      });
+      verificarConversasServidor();
+    } catch (e) {}
+  }
+}
+
+function exibirNotificacaoBotGrande(usuario, analise) {
+  const path = window.location.pathname.toLowerCase();
+  if (path.includes('login.html') || path.includes('registro.html')) return;
+  if (path.includes('perfil.html') && window.location.search.includes('completar=1')) return;
+
+  const email = String(usuario.email || '').trim().toLowerCase();
+  const chaveAdiado = 'freelink_bot_adiado_' + email;
+  if (!analise.novaConta && sessionStorage.getItem(chaveAdiado) === '1') return;
+
+  let overlay = document.getElementById('freelink-bot-spotlight');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'freelink-bot-spotlight';
+    overlay.className = 'freelink-bot-spotlight-overlay hidden';
+    document.body.appendChild(overlay);
+  }
+
+  const primeiroNome = (usuario.nome || 'Olá').split(' ')[0];
+  const tituloCard = analise.novaConta
+    ? `Bem-vindo(a), ${primeiroNome}! Termine seu perfil`
+    : `${primeiroNome}, seu perfil ainda está incompleto`;
+
+  const pillsHtml = analise.faltando.map(item => `
+    <button type="button" class="bot-missing-pill" onclick="irParaCompletarPerfil('${escapeHtml(item.aba)}', '${escapeHtml(item.campo)}')">
+      <i class="fa-solid fa-circle-exclamation"></i> ${escapeHtml(item.label)}
+    </button>
+  `).join('');
+
+  overlay.innerHTML = `
+    <div class="freelink-bot-spotlight-card" role="dialog" aria-modal="true" aria-labelledby="botSpotlightTitle">
+      <div class="bot-spotlight-header">
+        <div class="bot-spotlight-identity">
+          <div class="bot-spotlight-avatar"><i class="fa-solid fa-robot"></i></div>
+          <div>
+            <div class="bot-spotlight-badge">
+              <span class="chat-online-dot" style="background:#fff;"></span> Assistente FreeLink · Mensagem no Chat
+            </div>
+            <h3 id="botSpotlightTitle">${escapeHtml(tituloCard)}</h3>
+          </div>
+        </div>
+        <button type="button" class="bot-spotlight-close" id="btnFecharBotSpotlight" title="Lembrar mais tarde">&times;</button>
+      </div>
+
+      <div class="bot-spotlight-body">
+        <div class="bot-spotlight-progress-wrap">
+          <div class="bot-spotlight-progress-top">
+            <span>Progresso do seu perfil</span>
+            <span style="color: var(--primary-color);">${analise.percentual}% completo</span>
+          </div>
+          <div class="bot-progress-track">
+            <div class="bot-progress-fill" style="width: ${analise.percentual}%;"></div>
+          </div>
+        </div>
+
+        <div class="bot-spotlight-bubble">
+          <strong>🤖 Assistente FreeLink diz:</strong><br>
+          Percebi que você ainda não terminou de montar seu perfil! Completar suas informações faz seu perfil aparecer primeiro e passa muito mais confiança para fechar trabalhos.
+        </div>
+
+        <div class="bot-missing-title">O que falta preencher (clique para ir direto):</div>
+        <div class="bot-missing-pills">${pillsHtml}</div>
+
+        <div class="bot-spotlight-actions">
+          <button type="button" class="bot-cta-primary" onclick="irParaCompletarPerfil()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Completar Meu Perfil Agora
+          </button>
+          <button type="button" class="bot-cta-secondary" onclick="abrirChatComBot()">
+            <i class="fa-solid fa-comments"></i> Falar com o Bot no Chat
+          </button>
+        </div>
+
+        <div class="bot-spotlight-later">
+          <button type="button" id="btnAdiarBotSpotlight">Fazer isso mais tarde</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const fecharAdiar = () => {
+    overlay.classList.add('hidden');
+    sessionStorage.setItem(chaveAdiado, '1');
+    limparContaRecemCriada(email);
+  };
+
+  overlay.querySelector('#btnFecharBotSpotlight').addEventListener('click', fecharAdiar);
+  overlay.querySelector('#btnAdiarBotSpotlight').addEventListener('click', fecharAdiar);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) fecharAdiar();
+  });
+
+  overlay.classList.remove('hidden');
+}
+
+function verificarOnboardingBotPerfil() {
+  if (!isAuthenticated()) return;
+  const usuario = getCurrentUser();
+  if (!usuario || !usuario.email) return;
+
+  const analise = avaliarCompletudePerfil(usuario);
+  if (!analise.precisaAtencao) {
+    limparContaRecemCriada(usuario.email);
+    const overlay = document.getElementById('freelink-bot-spotlight');
+    if (overlay) overlay.classList.add('hidden');
+    return;
+  }
+
+  garantirChatBotOnboarding(usuario, analise);
+  exibirNotificacaoBotGrande(usuario, analise);
+}
+
+window.aoAtualizarPerfilOnboarding = async function(usuarioAtualizado) {
+  const u = usuarioAtualizado || getCurrentUser();
+  if (!u || !u.email) return;
+  limparContaRecemCriada(u.email);
+  const analise = avaliarCompletudePerfil(u);
+  if (!analise.precisaAtencao) {
+    const overlay = document.getElementById('freelink-bot-spotlight');
+    if (overlay) overlay.classList.add('hidden');
+    const chatId = obterIdSalaBotUsuario(u.email);
+    const token = localStorage.getItem('freelink_token');
+    const msgParabens = '🎉 Parabéns! Seu perfil está completo e pronto para receber oportunidades no FreeLink!';
+    if (token) {
+      fetch(`/api/chats/${encodeURIComponent(chatId)}/mensagens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ texto: msgParabens, bot: true })
+      }).catch(() => {});
+    }
+  }
+};
+
+function garantirElementoChat() {
+  let chatBox = document.getElementById('freelink-chat-box');
+  if (!chatBox) {
+    chatBox = document.createElement('div');
+    chatBox.id = 'freelink-chat-box';
+    chatBox.className = 'freelink-chat-window hidden';
+    chatBox.innerHTML = `
+      <div class="chat-header">
+        <div class="chat-header-user">
+          <div class="chat-header-avatar" id="chatHeaderAvatar">FL</div>
+          <div class="chat-header-details">
+            <h4 id="chatHeaderName">Nome do Interlocutor</h4>
+            <span class="chat-header-status"><span class="chat-online-dot"></span> Online no Freela</span>
+          </div>
+        </div>
+        <button type="button" class="chat-header-close" onclick="fecharChatProjeto()" title="Fechar Chat">&times;</button>
+      </div>
+
+      <div class="chat-project-badge-bar">
+        <span><i class="fa-solid fa-briefcase"></i> Projeto: <strong id="chatHeaderProjectTitle">-</strong></span>
+        <span style="color: var(--primary-color); font-weight: 700;"><i class="fa-solid fa-shield-halved"></i> Chat Seguro</span>
+      </div>
+
+      <div class="chat-messages-container" id="chatMessagesContainer"></div>
+
+      <div class="chat-quick-suggestions">
+        <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('Olá! Quando podemos iniciar o trabalho?')">Quando começamos?</button>
+        <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('Estou disponível para tirar dúvidas sobre o projeto.')">Tirar dúvidas</button>
+        <button type="button" class="chat-quick-chip" onclick="inserirSugestaoChat('Perfeito! Vou iniciar a primeira etapa.')">Iniciando etapa</button>
+      </div>
+
+      <form id="chatForm" class="chat-input-row" onsubmit="event.preventDefault(); enviarMensagemChat();">
+        <input type="text" id="chatInputMessage" class="chat-input-field" placeholder="Digite uma mensagem para alinhar o freela..." autocomplete="off">
+        <button type="submit" class="chat-send-btn" title="Enviar Mensagem">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    `;
+    document.body.appendChild(chatBox);
+  }
+  return chatBox;
+}
+
+// ====================================================================
+// 11. TELA DE CONFIGURAÇÕES (configuracoes.html)
+// ====================================================================
+
+window.resetarBancoDados = function() {
+  if (confirm('Deseja restaurar todos os projetos e usuários para os valores padrão do TCC?')) {
+    localStorage.removeItem(STORAGE_KEYS.PROJECTS);
+    localStorage.removeItem(STORAGE_KEYS.USERS);
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_PROJECTS);
+    localStorage.removeItem(STORAGE_KEYS.LEGACY_USERS);
+    salvarProjetos(PROJETOS_SEED);
+    salvarUsuarios(USUARIOS_SEED);
+    setFlashMessage('Dados iniciais restaurados com sucesso!', 'success');
+    window.location.reload();
+  }
+};
+
+window.dispararNotificacaoTeste = function() {
+  showToast('🔔 [Notificação Freelink]: Nova proposta recebida no seu projeto!', 'info');
+};
+
+window.detectarLocalizacao = function() {
+  const statusLocalizacao = document.getElementById('status-localizacao');
+  if (!navigator.geolocation) {
+    showToast('Geolocalização não é suportada neste navegador.', 'error');
+    return;
+  }
+
+  if (statusLocalizacao) {
+    statusLocalizacao.innerHTML = `<i class="fa-solid fa-spinner fa-spin" style="color: var(--primary-color);"></i> Detectando localização aproximada...`;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude.toFixed(4);
+      const lon = pos.coords.longitude.toFixed(4);
+      const locString = `Lat: ${lat}, Long: ${lon}`;
+      localStorage.setItem(STORAGE_KEYS.LOCATION, locString);
+      if (statusLocalizacao) {
+        statusLocalizacao.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--primary-color);"></i> Status: Localização detectada com sucesso (${locString})`;
+      }
+      showToast('Sua localização foi detectada e salva!', 'success');
+    },
+    (err) => {
+      console.warn('Erro de geolocalização:', err);
+      const fallbackLoc = 'São Paulo - SP (Automático)';
+      localStorage.setItem(STORAGE_KEYS.LOCATION, fallbackLoc);
+      if (statusLocalizacao) {
+        statusLocalizacao.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--primary-color);"></i> Status: Definido para ${fallbackLoc}`;
+      }
+      showToast('Localização padrão definida com sucesso!', 'info');
+    },
+    { timeout: 8000 }
+  );
+};
 
 function configurarTelaConfiguracoes() {
   const btnClaro = document.getElementById('btn-tema-claro');
   const btnEscuro = document.getElementById('btn-tema-escuro');
-  const btnLocalizacao = document.getElementById('btn-obter-localizacao');
-  const statusLocalizacao = document.getElementById('status-localizacao');
-  const btnTestarNotif = document.getElementById('btn-testar-notificacao');
   const btnResetarBanco = document.getElementById('btn-resetar-banco');
+  const btnTestarNotif = document.getElementById('btn-testar-notificacao');
 
-  // Alternar Tema Claro / Escuro
-  if (btnClaro) {
-    btnClaro.addEventListener('click', () => {
-      aplicarTema('light');
-    });
-  }
-
-  if (btnEscuro) {
-    btnEscuro.addEventListener('click', () => {
-      aplicarTema('dark');
-    });
-  }
-
+  if (btnClaro) btnClaro.addEventListener('click', () => aplicarTema('light'));
+  if (btnEscuro) btnEscuro.addEventListener('click', () => aplicarTema('dark'));
   atualizarInterfaceTemaConfig();
 
-  // Localização Própria
-  if (statusLocalizacao) {
-    const locSalva = localStorage.getItem(STORAGE_KEYS.LOCALIZACAO);
-    if (locSalva) {
-      statusLocalizacao.innerHTML = `<i class="fa-solid fa-check-circle" style="color: var(--primary-color);"></i> Localização ativa: <strong>${escapeHtml(locSalva)}</strong>`;
-    }
+  if (btnResetarBanco) {
+    btnResetarBanco.addEventListener('click', window.resetarBancoDados);
+  }
+
+  if (btnTestarNotif) {
+    btnTestarNotif.addEventListener('click', window.dispararNotificacaoTeste);
+  }
+
+  // --- Geolocation ---
+  const btnLocalizacao = document.getElementById('btn-obter-localizacao');
+  const statusLocalizacao = document.getElementById('status-localizacao');
+
+  // Carrega localização previamente salva
+  const locSalva = localStorage.getItem(STORAGE_KEYS.LOCATION);
+  if (locSalva && statusLocalizacao) {
+    statusLocalizacao.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--primary-color);"></i> Status: Localização ativa (${escapeHtml(locSalva)})`;
   }
 
   if (btnLocalizacao) {
-    btnLocalizacao.addEventListener('click', () => {
-      if (statusLocalizacao) {
-        statusLocalizacao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Obtendo coordenadas do dispositivo...`;
-      }
-
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const locTexto = `Lat: ${position.coords.latitude.toFixed(2)}, Long: ${position.coords.longitude.toFixed(2)} (Brasil)`;
-            localStorage.setItem(STORAGE_KEYS.LOCALIZACAO, locTexto);
-            if (statusLocalizacao) {
-              statusLocalizacao.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--primary-color);"></i> Localização detectada: <strong>${locTexto}</strong>`;
-            }
-            alert(`📍 Localização detectada com sucesso!\n${locTexto}`);
-          },
-          (error) => {
-            // Simulação caso o navegador bloqueie ou em ambiente local
-            const locSimulada = "São Paulo, SP - Brasil";
-            localStorage.setItem(STORAGE_KEYS.LOCALIZACAO, locSimulada);
-            if (statusLocalizacao) {
-              statusLocalizacao.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--primary-color);"></i> Localização definida: <strong>${locSimulada}</strong>`;
-            }
-            alert(`📍 Localização definida como: ${locSimulada}`);
-          },
-          { timeout: 5000 }
-        );
-      } else {
-        const locPadrao = "São Paulo, SP - Brasil";
-        localStorage.setItem(STORAGE_KEYS.LOCALIZACAO, locPadrao);
-        if (statusLocalizacao) {
-          statusLocalizacao.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--primary-color);"></i> Localização: <strong>${locPadrao}</strong>`;
-        }
-      }
-    });
+    btnLocalizacao.addEventListener('click', window.detectarLocalizacao);
   }
 
-  // Notificações do Site
-  if (btnTestarNotif) {
-    btnTestarNotif.addEventListener('click', () => {
-      // Solicita permissão se suportado
-      if ("Notification" in window) {
-        if (Notification.permission === "granted") {
-          new Notification("FreeLink | Notificação", {
-            body: "🚀 Você recebeu 2 novas propostas no seu projeto publicado!",
-            icon: "../logo.png"
-          });
-        } else if (Notification.permission !== "denied") {
-          Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-              new Notification("FreeLink | Notificação", {
-                body: "🚀 Notificações do FreeLink ativadas com sucesso!",
-                icon: "../logo.png"
-              });
-            }
-          });
-        }
-      }
+  // --- Notificações ---
+  const checkProjetos = document.getElementById('check-notif-projetos');
+  const checkPropostas = document.getElementById('check-notif-propostas');
 
-      alert("🔔 [Notificação do FreeLink]\n\nNovo alerta: Você tem 2 novas propostas aguardando sua resposta no projeto!");
-    });
+  try {
+    const notifsSalvas = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '{}');
+    if (checkProjetos && typeof notifsSalvas.projetos !== 'undefined') {
+      checkProjetos.checked = notifsSalvas.projetos;
+    }
+    if (checkPropostas && typeof notifsSalvas.propostas !== 'undefined') {
+      checkPropostas.checked = notifsSalvas.propostas;
+    }
+  } catch(e) {}
+
+  function salvarNotificacoes() {
+    const prefs = {
+      projetos: checkProjetos ? checkProjetos.checked : true,
+      propostas: checkPropostas ? checkPropostas.checked : true
+    };
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(prefs));
+    showToast('Preferências de notificação salvas!', 'success');
   }
 
-  // Reset de Dados para o TCC
-  if (btnResetarBanco) {
-    btnResetarBanco.addEventListener('click', () => {
-      const confirmar = confirm("Deseja restaurar todos os dados mockados de trabalhos e usuários para o estado original do TCC?");
-      if (confirmar) {
-        localStorage.removeItem(STORAGE_KEYS.TRABALHOS);
-        localStorage.removeItem(STORAGE_KEYS.USUARIOS);
-        localStorage.removeItem(STORAGE_KEYS.USUARIO_LOGADO);
-        salvarTrabalhos(PROJETOS_INICIAIS);
-        salvarUsuarios(USUARIOS_PADRAO);
-        alert("✅ Dados locais restaurados com sucesso para o padrão de demonstração!");
-        window.location.reload();
-      }
-    });
-  }
+  if (checkProjetos) checkProjetos.addEventListener('change', salvarNotificacoes);
+  if (checkPropostas) checkPropostas.addEventListener('change', salvarNotificacoes);
 }
 
 // ====================================================================
-// 8. NAVBAR RESPONSIVA & EFEITOS
+// 12. UTILITÁRIOS E INICIALIZAÇÃO GERAL
 // ====================================================================
 
-function configurarNavbar() {
-  const navLinks = document.querySelector('.nav-links');
-  const btnToggle = document.querySelector('.nav-toggle');
-
-  if (btnToggle && navLinks) {
-    btnToggle.addEventListener('click', function() {
-      navLinks.classList.toggle('open');
-    });
-  }
-
-  if (navLinks) {
-    const links = navLinks.querySelectorAll('a');
-
-    function atualizarBarra(link) {
-      if (!link) return;
-      const left = link.offsetLeft;
-      const width = link.offsetWidth;
-      navLinks.style.setProperty('--nav-left', left + 'px');
-      navLinks.style.setProperty('--nav-width', width + 'px');
-    }
-
-    const linkAtivo = navLinks.querySelector('a.active');
-    if (linkAtivo) {
-      atualizarBarra(linkAtivo);
-    }
-
-    links.forEach(link => {
-      link.addEventListener('mouseenter', () => {
-        atualizarBarra(link);
-      });
-    });
-
-    navLinks.addEventListener('mouseleave', () => {
-      if (linkAtivo) {
-        atualizarBarra(linkAtivo);
-      }
-    });
-  }
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
-// ====================================================================
-// 9. INICIALIZAÇÃO GERAL (DOMContentLoaded)
-// ====================================================================
-
-// Aplica o tema salvo imediatamente
-carregarTemaSalvo();
-
-document.addEventListener('DOMContentLoaded', () => {
+function executarInicializacaoGeral() {
+  inicializarSeedBanco();
   carregarTemaSalvo();
+  verificarProtecaoRotas();
+  checkFlashMessage();
   configurarNavbar();
   atualizarNavbarAutenticacao();
-  
-  // Execução de controladores por página
-  renderizarTrabalhos();
-  configurarBuscaIndex();
+
+  inicializarIndexPage();
+  configurarRegistro();
+  configurarLogin();
   configurarFormularioPostagem();
   carregarDetalhesProjeto();
-  configurarLogin();
-  configurarRegistro();
   configurarTelaConfiguracoes();
+
+  sincronizarSessaoComServidor();
+  sincronizarProjetosComServidor();
+  iniciarPollingListaChats();
+  verificarOnboardingBotPerfil();
+}
+
+carregarTemaSalvo();
+verificarProtecaoRotas();
+
+document.addEventListener('DOMContentLoaded', () => {
+  executarInicializacaoGeral();
 });
+
+async function carregarServicos() {
+    const container = document.getElementById('lista-servicos');
+    if (!container) return;
+    try {
+        const resposta = await fetch('/api/servicos');
+        const servicos = await resposta.json();
+        container.innerHTML = '';
+
+        servicos.forEach(servico => {
+            const card = document.createElement('div');
+            card.className = 'card-servico';
+            card.innerHTML = `
+                <h3>${escapeHtml(servico.titulo)}</h3>
+                <p>${escapeHtml(servico.descricao)}</p>
+                <span>Categoria: ${escapeHtml(servico.categoria)}</span>
+                <strong>R$ ${escapeHtml(servico.valor_sugerido)}</strong>
+            `;
+            container.appendChild(card);
+        });
+    } catch (erro) {
+        console.error('Erro ao carregar os serviços:', erro);
+    }
+}
