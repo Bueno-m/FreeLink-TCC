@@ -804,7 +804,7 @@ function atualizarLogosTema(tema) {
                           window.location.pathname.includes('\\html\\') ||
                           document.querySelector('link[href*="../css/"]');
   const prefix = isHtmlSubfolder ? '../' : '';
-  const arquivoLogo = tema === 'dark' ? 'logo-dark.png' : 'imagem.png';
+  const arquivoLogo = 'imagem.png';
   const novoSrc = `${prefix}img/${arquivoLogo}`;
 
   logos.forEach(logo => {
