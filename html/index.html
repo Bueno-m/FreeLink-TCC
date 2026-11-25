@@ -85,7 +85,7 @@
                 <div class="metric-brand-text">Métricas da Plataforma</div>
               </div>
               <div class="metric-live-badge">
-                <span class="metric-live-dot"></span> Dados em Tempo Real
+                <span class="metric-live-dot"></span> <span id="metrica-status" aria-live="polite">Carregando...</span>
               </div>
             </div>
 
@@ -96,15 +96,15 @@
               </div>
               <div class="metric-box">
                 <div class="metric-number" id="metrica-satisfacao">…</div>
-                <div class="metric-label">Taxa de Satisfação</div>
+                <div class="metric-label">Avaliações positivas</div>
               </div>
               <div class="metric-box">
                 <div class="metric-number" id="metrica-repassado">…</div>
-                <div class="metric-label">Repassados aos Talentos</div>
+                <div class="metric-label">Valor de projetos concluídos</div>
               </div>
               <div class="metric-box">
                 <div class="metric-number" id="metrica-resposta">…</div>
-                <div class="metric-label">Primeiras Propostas</div>
+                <div class="metric-label">Tempo até 1ª proposta</div>
               </div>
             </div>
           </div>
@@ -475,9 +475,8 @@
   </footer>
 
   <!-- Script principal do projeto -->
-  <script src="../js/main.js?v=6"></script>
+  <script src="../js/main.js?v=7"></script>
   <script>
-    // Métricas reais vindas do banco de dados (via /api/metricas)
     (async function carregarMetricas() {
       const set = (id, texto) => { const el = document.getElementById(id); if (el) el.textContent = texto; };
       try {
@@ -487,11 +486,11 @@
 
         set('metrica-projetos', m.projetos_concluidos.toLocaleString('pt-BR'));
         set('metrica-profissionais', m.profissionais.toLocaleString('pt-BR'));
-        set('metrica-repassado', m.total_repassado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+        set('metrica-repassado', m.valor_projetos_concluidos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
 
         if (m.media_avaliacoes !== null) {
           set('metrica-media', m.media_avaliacoes.toFixed(1) + ' / 5.0');
-          set('metrica-satisfacao', Math.round(m.media_avaliacoes / 5 * 100) + '%');
+          set('metrica-satisfacao', m.taxa_satisfacao === null ? '—' : Math.round(m.taxa_satisfacao) + '%');
         } else {
           set('metrica-media', '—');
           set('metrica-satisfacao', '—');
@@ -503,10 +502,12 @@
         } else {
           set('metrica-resposta', '—');
         }
+        set('metrica-status', 'Dados atualizados');
       } catch (e) {
         console.error('Não foi possível carregar as métricas:', e);
         ['metrica-projetos', 'metrica-profissionais', 'metrica-repassado', 'metrica-media', 'metrica-satisfacao', 'metrica-resposta']
           .forEach(id => set(id, '—'));
+        set('metrica-status', 'Métricas indisponíveis');
       }
     })();
   </script>

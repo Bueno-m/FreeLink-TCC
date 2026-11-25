@@ -2162,6 +2162,7 @@ function configurarEnvioProposta(projeto) {
       const valor = inputValor ? inputValor.value.trim() : '';
       const prazo = inputPrazo ? inputPrazo.value.trim() : '';
       const mensagem = inputMensagem ? inputMensagem.value.trim() : '';
+      const agora = new Date();
 
       if (!valor || !prazo || !mensagem) {
         showToast('Por favor, preencha todos os campos da proposta.', 'error');
@@ -2194,7 +2195,8 @@ function configurarEnvioProposta(projeto) {
         prazo: prazo,
         mensagem: mensagem,
         status: 'pendente',
-        data: new Date().toLocaleDateString('pt-BR')
+        data: agora.toLocaleDateString('pt-BR'),
+        criadaEm: agora.toISOString()
       };
 
       const projetos = obterProjetos();

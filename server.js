@@ -59,30 +59,77 @@ app.get('/api/servicos', async (req, res) => {
 });
 
 // Métricas reais da plataforma (tela inicial)
+function lerValorProposta(valor) {
+    if (typeof valor === 'number') return Number.isFinite(valor) && valor >= 0 ? valor : null;
+    const texto = String(valor || '').replace(/[^\d,.-]/g, '');
+    if (!texto) return null;
+    const normalizado = texto.includes(',') ? texto.replace(/\./g, '').replace(',', '.') : texto;
+    const numero = Number(normalizado);
+    return Number.isFinite(numero) && numero >= 0 ? numero : null;
+}
+
 app.get('/api/metricas', async (req, res) => {
-    const sql = `
-        SELECT
-            (SELECT COUNT(*) FROM SERVICO WHERE status = 'CONCLUIDO') AS projetos_concluidos,
-            (SELECT COUNT(*) FROM USUARIO WHERE tipo_usuario = 'FREELANCER') AS profissionais,
-            (SELECT AVG(nota) FROM AVALIACAO) AS media_avaliacoes,
-            (SELECT COUNT(*) FROM AVALIACAO) AS total_avaliacoes,
-            (SELECT COALESCE(SUM(valor), 0) FROM PAGAMENTO WHERE status = 'CONCLUIDO') AS total_repassado,
-            (SELECT AVG(h) FROM (
-                SELECT EXTRACT(EPOCH FROM (MIN(p.data_proposta) - s.data_publicacao)) / 3600.0 AS h
-                FROM SERVICO s JOIN PROPOSTA p ON p.id_servico = s.id_servico
-                GROUP BY s.id_servico, s.data_publicacao
-            ) t) AS horas_primeira_proposta
-    `;
     try {
-        const { rows } = await db.query(sql);
-        const r = rows[0];
+        const [usuariosResult, projetosResult] = await Promise.all([
+            db.query("SELECT COUNT(*) AS total FROM USUARIO WHERE tipo_usuario = 'FREELANCER'"),
+            db.query('SELECT dados_json, criado_em FROM PLATAFORMA_PROJETO')
+        ]);
+
+        let projetosConcluidos = 0;
+        let valorProjetosConcluidos = 0;
+        const avaliacoes = [];
+        const horasPrimeiraProposta = [];
+
+        for (const row of projetosResult.rows) {
+            const projeto = lerPerfil(row.dados_json);
+            const propostas = Array.isArray(projeto.listaPropostas)
+                ? projeto.listaPropostas.filter(p => p && typeof p === 'object')
+                : [];
+
+            if (String(projeto.statusContratacao || '').toLowerCase() === 'concluido') {
+                projetosConcluidos += 1;
+                const propostaAceita = projeto.propostaAceitaId
+                    ? propostas.find(p => String(p.id) === String(projeto.propostaAceitaId))
+                    : null;
+                const propostaFinalizada = propostaAceita
+                    || propostas.find(p => String(p.status || '').toLowerCase() === 'aceita');
+                const valor = propostaFinalizada ? lerValorProposta(propostaFinalizada.valor) : null;
+                if (valor !== null) valorProjetosConcluidos += valor;
+            }
+
+            for (const avaliacao of [projeto.avaliacaoContratante, projeto.avaliacaoFreelancer]) {
+                const nota = Number(avaliacao && avaliacao.estrelas);
+                if (Number.isFinite(nota) && nota >= 1 && nota <= 5) avaliacoes.push(nota);
+            }
+
+            const criadoEm = new Date(row.criado_em).getTime();
+            if (!Number.isFinite(criadoEm)) continue;
+            const propostasComData = propostas
+                .map(p => Date.parse(p.criadaEm))
+                .filter(data => Number.isFinite(data) && data >= criadoEm);
+            if (propostasComData.length) {
+                const primeiraProposta = Math.min(...propostasComData);
+                horasPrimeiraProposta.push((primeiraProposta - criadoEm) / 3600000);
+            }
+        }
+
+        const mediaAvaliacoes = avaliacoes.length
+            ? avaliacoes.reduce((total, nota) => total + nota, 0) / avaliacoes.length
+            : null;
+        const taxaSatisfacao = avaliacoes.length
+            ? avaliacoes.filter(nota => nota >= 4).length / avaliacoes.length * 100
+            : null;
+
         res.json({
-            projetos_concluidos: Number(r.projetos_concluidos),
-            profissionais: Number(r.profissionais),
-            media_avaliacoes: r.media_avaliacoes === null ? null : Number(r.media_avaliacoes),
-            total_avaliacoes: Number(r.total_avaliacoes),
-            total_repassado: Number(r.total_repassado),
-            horas_primeira_proposta: r.horas_primeira_proposta === null ? null : Number(r.horas_primeira_proposta)
+            projetos_concluidos: projetosConcluidos,
+            profissionais: Number(usuariosResult.rows[0].total),
+            media_avaliacoes: mediaAvaliacoes,
+            total_avaliacoes: avaliacoes.length,
+            taxa_satisfacao: taxaSatisfacao,
+            valor_projetos_concluidos: valorProjetosConcluidos,
+            horas_primeira_proposta: horasPrimeiraProposta.length
+                ? horasPrimeiraProposta.reduce((total, horas) => total + horas, 0) / horasPrimeiraProposta.length
+                : null
         });
     } catch (erro) {
         console.error('Erro ao calcular métricas:', erro.message);
