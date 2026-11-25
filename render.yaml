@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: freelink
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node scripts/init-db.js && node server.js
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: freelink-db
+          property: connectionString
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+databases:
+  - name: freelink-db
+    databaseName: freelink_db
+    user: freelink_user
+    plan: free
