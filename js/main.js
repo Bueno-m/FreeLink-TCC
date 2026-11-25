@@ -696,7 +696,7 @@ function verificarProtecaoRotas() {
   const autenticado = isAuthenticated();
   const path = window.location.pathname.toLowerCase();
 
-  const rotasPrivadas = ['postar-trabalho.html', 'perfil.html', 'configuracoes.html'];
+  const rotasPrivadas = ['postar-trabalho.html', 'perfil.html'];
   const rotasAuth = ['login.html', 'registro.html'];
 
   const emRotaPrivada = rotasPrivadas.some(rota => path.includes(rota));
@@ -3945,6 +3945,18 @@ function configurarTelaConfiguracoes() {
   const btnTestarNotif = document.getElementById('btn-testar-notificacao');
   const btnPermitirNotif = document.getElementById('btn-permitir-notificacoes');
   const usuario = getCurrentUser();
+
+  const contaAutenticada = document.getElementById('config-account-authenticated');
+  const contaVisitante = document.getElementById('config-account-guest');
+  const eyebrow = document.getElementById('config-page-eyebrow');
+  const descricao = document.getElementById('config-page-description');
+  const autenticado = isAuthenticated();
+  if (contaAutenticada) contaAutenticada.hidden = !autenticado;
+  if (contaVisitante) contaVisitante.hidden = autenticado;
+  if (!autenticado && eyebrow) eyebrow.textContent = 'Preferências do navegador';
+  if (!autenticado && descricao) {
+    descricao.textContent = 'Personalize a plataforma sem entrar. As preferências ficam salvas neste navegador.';
+  }
 
   const nomeUsuario = document.getElementById('config-nome-usuario');
   const emailUsuario = document.getElementById('config-email-usuario');

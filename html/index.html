@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FreeLink - Encontre Freelancers e Projetos Incríveis</title>
-  <link rel="stylesheet" href="../css/Style.css?v=4">
+  <link rel="stylesheet" href="../css/Style.css?v=5">
   <!-- Ícones do FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -238,37 +238,142 @@
     </section>
 
     <section class="landing-section" id="configuracoes-home">
-      <div class="landing-section-header">
-        <span class="landing-section-tag">Sua experiência</span>
-        <h2 class="landing-section-title">Configurações do FreeLink</h2>
-        <p class="landing-section-desc">Personalize as preferências da sua conta para deixar a plataforma do seu jeito.</p>
-      </div>
-
-      <div class="landing-settings-card">
-        <div class="landing-settings-intro">
-          <div class="landing-settings-icon"><i class="fa-solid fa-gear"></i></div>
+      <div class="settings-home-content">
+        <div class="settings-page-header">
           <div>
-            <h3>Gerencie suas preferências</h3>
-            <p>Ajuste essas opções quando quiser na área de configurações da sua conta.</p>
+            <span class="settings-eyebrow">Preferências do navegador</span>
+            <h2 class="landing-section-title"><i class="fa-solid fa-gear"></i> Configurações</h2>
+            <p>Personalize a aparência, localização e notificações, mesmo sem entrar na sua conta.</p>
           </div>
+          <a href="configuracoes.html" class="settings-back-link"><i class="fa-solid fa-up-right-from-square"></i> Abrir página completa</a>
         </div>
-        <div class="landing-settings-options">
-          <div class="landing-settings-option">
-            <i class="fa-solid fa-circle-half-stroke"></i>
-            <span>Aparência e tema</span>
+
+        <nav class="settings-anchor-nav" aria-label="Seções de configurações">
+          <a href="#home-config-conta"><i class="fa-regular fa-user"></i> Conta</a>
+          <a href="#home-config-aparencia"><i class="fa-solid fa-circle-half-stroke"></i> Aparência</a>
+          <a href="#home-config-localizacao"><i class="fa-solid fa-location-dot"></i> Localização</a>
+          <a href="#home-config-notificacoes"><i class="fa-regular fa-bell"></i> Notificações</a>
+          <a href="#home-config-privacidade"><i class="fa-solid fa-shield-halved"></i> Dados e privacidade</a>
+        </nav>
+
+        <section class="settings-section" id="home-config-conta">
+          <div class="settings-section-heading">
+            <span class="settings-section-icon"><i class="fa-regular fa-user"></i></span>
+            <div>
+              <h3>Minha conta</h3>
+              <p>Você pode alterar as preferências do navegador sem entrar. O perfil exige uma conta.</p>
+            </div>
           </div>
-          <div class="landing-settings-option">
-            <i class="fa-solid fa-location-crosshairs"></i>
-            <span>Localização</span>
+          <div class="settings-guest-card">
+            <div>
+              <strong>Preferências disponíveis sem login</strong>
+              <p>Tema, localização e opções de notificação serão salvos neste navegador.</p>
+            </div>
+            <div class="settings-actions">
+              <a href="login.html" class="settings-button settings-button-primary"><i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar</a>
+              <a href="registro.html" class="settings-button settings-button-secondary"><i class="fa-solid fa-user-plus"></i> Criar conta</a>
+            </div>
           </div>
-          <div class="landing-settings-option">
-            <i class="fa-regular fa-bell"></i>
-            <span>Notificações</span>
+        </section>
+
+        <section class="settings-section" id="home-config-aparencia">
+          <div class="settings-section-heading">
+            <span class="settings-section-icon"><i class="fa-solid fa-circle-half-stroke"></i></span>
+            <div>
+              <h3>Aparência</h3>
+              <p>Escolha o tema que prefere. Sua seleção fica salva neste navegador.</p>
+            </div>
           </div>
-        </div>
-        <a href="configuracoes.html" class="landing-settings-link">
-          <i class="fa-solid fa-sliders"></i> Acessar configurações
-        </a>
+          <div class="settings-theme-options">
+            <button id="btn-tema-claro" class="settings-theme-option" type="button" aria-pressed="false">
+              <i class="fa-solid fa-sun"></i>
+              <span class="settings-theme-title">Modo claro</span>
+              <span class="settings-theme-description">Visual padrão, com fundo claro.</span>
+            </button>
+            <button id="btn-tema-escuro" class="settings-theme-option" type="button" aria-pressed="false">
+              <i class="fa-solid fa-moon"></i>
+              <span class="settings-theme-title">Modo escuro</span>
+              <span class="settings-theme-description">Tons escuros para ambientes com pouca luz.</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="settings-section" id="home-config-localizacao">
+          <div class="settings-section-heading">
+            <span class="settings-section-icon"><i class="fa-solid fa-location-crosshairs"></i></span>
+            <div>
+              <h3>Localização</h3>
+              <p>Salve uma cidade ou use a localização aproximada do dispositivo como preferência.</p>
+            </div>
+          </div>
+          <div class="settings-location-card">
+            <label for="input-localizacao">Cidade ou região</label>
+            <div class="settings-location-controls">
+              <input id="input-localizacao" type="text" maxlength="100" placeholder="Ex.: São Paulo, SP" autocomplete="address-level2">
+              <button id="btn-salvar-localizacao" type="button" class="settings-button settings-button-primary"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+              <button id="btn-obter-localizacao" type="button" class="settings-button settings-button-secondary"><i class="fa-solid fa-location-arrow"></i> Detectar</button>
+              <button id="btn-limpar-localizacao" type="button" class="settings-button settings-button-danger"><i class="fa-regular fa-trash-can"></i> Remover</button>
+            </div>
+            <p id="status-localizacao" class="settings-status" aria-live="polite">Nenhuma localização salva neste navegador.</p>
+            <p class="settings-help-text">A localização detectada é aproximada e só é salva após sua autorização. Essa preferência não altera o endereço do seu perfil.</p>
+          </div>
+        </section>
+
+        <section class="settings-section" id="home-config-notificacoes">
+          <div class="settings-section-heading">
+            <span class="settings-section-icon"><i class="fa-regular fa-bell"></i></span>
+            <div>
+              <h3>Notificações</h3>
+              <p>Escolha quais avisos da plataforma deseja acompanhar.</p>
+            </div>
+          </div>
+          <div class="settings-toggle-list">
+            <label class="settings-toggle-row" for="check-notif-projetos">
+              <span><strong>Novos projetos</strong><small>Alertas sobre oportunidades e trabalhos publicados.</small></span>
+              <input type="checkbox" id="check-notif-projetos">
+            </label>
+            <label class="settings-toggle-row" for="check-notif-propostas">
+              <span><strong>Propostas e respostas</strong><small>Avisos sobre propostas recebidas ou atualizadas.</small></span>
+              <input type="checkbox" id="check-notif-propostas">
+            </label>
+          </div>
+          <div class="settings-browser-notification">
+            <div>
+              <strong>Notificações do navegador</strong>
+              <p id="status-permissao-notificacoes" class="settings-help-text" aria-live="polite">Verificando suporte do navegador...</p>
+            </div>
+            <button id="btn-permitir-notificacoes" type="button" class="settings-button settings-button-secondary">
+              <i class="fa-regular fa-bell"></i> Ativar no navegador
+            </button>
+          </div>
+          <div class="settings-notification-footer">
+            <p id="status-notificacoes" class="settings-status" aria-live="polite">As preferências são salvas neste navegador.</p>
+            <button id="btn-testar-notificacao" type="button" class="settings-button settings-button-secondary"><i class="fa-solid fa-bell"></i> Testar aviso</button>
+          </div>
+        </section>
+
+        <section class="settings-section" id="home-config-privacidade">
+          <div class="settings-section-heading">
+            <span class="settings-section-icon"><i class="fa-solid fa-shield-halved"></i></span>
+            <div>
+              <h3>Dados e privacidade</h3>
+              <p>Restaure somente as configurações locais; os dados da conta não serão apagados.</p>
+            </div>
+          </div>
+          <div class="settings-privacy-card">
+            <div>
+              <strong><i class="fa-solid fa-database"></i> Preferências deste navegador</strong>
+              <p>Tema, localização e preferências de avisos ficam neste dispositivo. Dados da conta e projetos são sincronizados pelo FreeLink quando você entra.</p>
+            </div>
+            <div class="settings-reset-row">
+              <div>
+                <strong>Restaurar preferências deste navegador</strong>
+                <p>Volta o tema para claro e remove a localização e as preferências de avisos salvas localmente.</p>
+              </div>
+              <button id="btn-resetar-preferencias" type="button" class="settings-button settings-button-danger"><i class="fa-solid fa-rotate-left"></i> Restaurar preferências</button>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -510,7 +615,7 @@
   </footer>
 
   <!-- Script principal do projeto -->
-  <script src="../js/main.js?v=4"></script>
+  <script src="../js/main.js?v=5"></script>
   <script>
     // Métricas reais vindas do banco de dados (via /api/metricas)
     (async function carregarMetricas() {

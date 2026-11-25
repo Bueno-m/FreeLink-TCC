@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FreeLink | Configurações</title>
-  <link rel="stylesheet" href="../css/Style.css?v=4">
+  <link rel="stylesheet" href="../css/Style.css?v=5">
   <link rel="stylesheet" href="../css/login.css">
   <!-- Ícones FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,9 +32,9 @@
   <main class="settings-page">
     <header class="settings-page-header">
       <div>
-        <span class="settings-eyebrow">Sua conta</span>
+        <span class="settings-eyebrow" id="config-page-eyebrow">Sua conta</span>
         <h1><i class="fa-solid fa-gear"></i> Configurações</h1>
-        <p>Gerencie seu perfil, personalize a plataforma e controle suas preferências.</p>
+        <p id="config-page-description">Gerencie seu perfil, personalize a plataforma e controle suas preferências.</p>
       </div>
       <a href="index.html" class="settings-back-link"><i class="fa-solid fa-arrow-left"></i> Voltar ao início</a>
     </header>
@@ -55,7 +55,7 @@
           <p>Confira seus dados e acesse a edição do perfil.</p>
         </div>
       </div>
-      <div class="settings-account-card">
+      <div id="config-account-authenticated" class="settings-account-card">
         <div class="settings-account-avatar"><i class="fa-solid fa-user"></i></div>
         <div class="settings-account-info">
           <strong id="config-nome-usuario">Carregando conta...</strong>
@@ -65,6 +65,16 @@
         <div class="settings-actions">
           <a href="perfil.html" class="settings-button settings-button-primary"><i class="fa-solid fa-pen"></i> Editar perfil</a>
           <button id="btn-logout-settings" type="button" class="settings-button settings-button-secondary"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sair da conta</button>
+        </div>
+      </div>
+      <div id="config-account-guest" class="settings-guest-card" hidden>
+        <div>
+          <strong>Você está usando o FreeLink sem entrar.</strong>
+          <p>As preferências desta página podem ser alteradas agora e ficam salvas neste navegador. Entre para acessar seu perfil e dados da conta.</p>
+        </div>
+        <div class="settings-actions">
+          <a href="login.html" class="settings-button settings-button-primary"><i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar</a>
+          <a href="registro.html" class="settings-button settings-button-secondary"><i class="fa-solid fa-user-plus"></i> Criar conta</a>
         </div>
       </div>
     </section>
@@ -169,6 +179,6 @@
     </section>
   </main>
 
-  <script src="../js/main.js?v=4"></script>
+  <script src="../js/main.js?v=5"></script>
 </body>
 </html>
