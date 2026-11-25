@@ -1669,16 +1669,6 @@ function configurarLogin() {
   });
 }
 
-window.preencherLoginDemo = function(email, senha) {
-  const emailInput = document.getElementById('login-email');
-  const senhaInput = document.getElementById('login-senha');
-  if (emailInput) emailInput.value = email;
-  if (senhaInput) senhaInput.value = senha;
-  if (typeof showToast === 'function') {
-    showToast(`Credenciais selecionadas: ${email}`, 'info');
-  }
-};
-
 function criarAlertContainer(form) {
   const alertDiv = document.createElement('div');
   alertDiv.className = 'form-alert-error';
