@@ -3069,9 +3069,7 @@ async function buscarMensagensChatServidor(chatId) {
 
     const chats = obterChats();
     const anterior = chats[chatId] || { id: chatId, mensagens: [] };
-    const ultimoIdAnterior = anterior.mensagens && anterior.mensagens.length ? anterior.mensagens[anterior.mensagens.length - 1].id : null;
-
-    if (msgs.length !== (anterior.mensagens ? anterior.mensagens.length : 0) || ultimoIdAnterior !== ultimoIdNovo) {
+    if (JSON.stringify(msgs) !== JSON.stringify(anterior.mensagens || [])) {
       anterior.mensagens = msgs;
       chats[chatId] = anterior;
       salvarChats(chats);
@@ -3104,8 +3102,13 @@ async function abrirSalaChat({ chatId, titulo, outroNome, outroEmail, projetoId,
     chatId,
     titulo: titulo || (isSalaBot ? 'Assistente de Perfil' : 'Conversa FreeLink'),
     outroEmail: outroEmail || (isSalaBot ? 'bot@freelink.com' : ''),
-    outroNome: outroNome || (isSalaBot ? 'Assistente FreeLink' : 'Contato')
+    outroNome: outroNome || (isSalaBot ? 'Assistente FreeLink' : 'Contato'),
+    respostaParaId: null,
+    editarMensagemId: null
   };
+  window.cancelarAcaoMensagemChat();
+  const campoMensagem = document.getElementById('chatInputMessage');
+  if (campoMensagem) campoMensagem.value = '';
 
   const elemNome = document.getElementById('chatHeaderName');
   const elemAvatar = document.getElementById('chatHeaderAvatar');
@@ -3482,6 +3485,32 @@ function renderizarMensagensChat(chat) {
 
   const msgs = Array.isArray(chat.mensagens) ? chat.mensagens : [];
 
+  const montarAcoesMensagem = (mensagem, podeAlterar) => {
+    if (mensagem.id == null) return '';
+    const id = escapeHtml(String(mensagem.id));
+    const acoes = [
+      `<button type="button" class="chat-message-action" data-chat-message-action="reply" data-message-id="${id}" title="Responder" aria-label="Responder"><i class="fa-solid fa-reply"></i><span>Responder</span></button>`
+    ];
+    if (!mensagem.apagada) {
+      acoes.push(`<button type="button" class="chat-message-action" data-chat-message-action="copy" data-message-id="${id}" title="Copiar mensagem" aria-label="Copiar mensagem"><i class="fa-regular fa-copy"></i><span>Copiar</span></button>`);
+    }
+    if (podeAlterar && !mensagem.apagada) {
+      acoes.push(`<button type="button" class="chat-message-action" data-chat-message-action="edit" data-message-id="${id}" title="Editar mensagem" aria-label="Editar mensagem"><i class="fa-solid fa-pen"></i><span>Editar</span></button>`);
+      acoes.push(`<button type="button" class="chat-message-action chat-message-action-danger" data-chat-message-action="delete" data-message-id="${id}" title="Apagar mensagem" aria-label="Apagar mensagem"><i class="fa-regular fa-trash-can"></i><span>Apagar</span></button>`);
+    }
+    return `<div class="chat-message-actions">${acoes.join('')}</div>`;
+  };
+
+  const montarRespostaMensagem = mensagem => {
+    if (!mensagem.respostaPara) return '';
+    return `
+      <div class="chat-reply-quote">
+        <strong>${escapeHtml(mensagem.respostaPara.remetenteNome || 'Mensagem')}</strong>
+        <span>${escapeHtml(mensagem.respostaPara.texto || '')}</span>
+      </div>
+    `;
+  };
+
   container.innerHTML = msgs.map(m => {
     if (m.remetenteId === 'sistema') {
       return `
@@ -3489,6 +3518,7 @@ function renderizarMensagensChat(chat) {
           <i class="fa-solid fa-circle-check" style="color: var(--primary-color); margin-right: 4px;"></i>
           ${escapeHtml(m.texto)}
           <span class="chat-msg-time">${escapeHtml(formatarHorarioMensagemChat(m))}</span>
+          ${montarAcoesMensagem(m, false)}
         </div>
       `;
     }
@@ -3499,6 +3529,7 @@ function renderizarMensagensChat(chat) {
       ? (emailMsg === meuEmail)
       : (m.remetenteId === meuId || (usuarioLogado && m.remetenteNome === usuarioLogado.nome)));
     const bubbleClass = isMinha ? 'chat-bubble-me' : 'chat-bubble-other';
+    const podeAlterar = mensagemPertenceAoUsuario(m, usuarioLogado);
 
     let botaoBotHtml = '';
     if (isBotMsg && isSalaBot) {
@@ -3515,14 +3546,172 @@ function renderizarMensagensChat(chat) {
     return `
       <div class="chat-bubble ${bubbleClass}">
         ${!isMinha ? `<div style="font-size: 11px; font-weight: 700; color: var(--primary-color); margin-bottom: 2px;">${isBotMsg ? '<i class="fa-solid fa-robot" style="margin-right: 4px;"></i>' : ''}${escapeHtml(m.remetenteNome || '')}</div>` : ''}
-        <div style="white-space: pre-line;">${escapeHtml(m.texto)}</div>
+        ${montarRespostaMensagem(m)}
+        <div class="${m.apagada ? 'chat-message-deleted' : ''}" style="white-space: pre-line;">${escapeHtml(m.texto)}</div>
         ${botaoBotHtml}
-        <span class="chat-msg-time">${escapeHtml(formatarHorarioMensagemChat(m))}</span>
+        <span class="chat-msg-time">${m.editado ? 'Editada · ' : ''}${escapeHtml(formatarHorarioMensagemChat(m))}</span>
+        ${montarAcoesMensagem(m, podeAlterar)}
       </div>
     `;
   }).join('');
 
+  container.querySelectorAll('[data-chat-message-action]').forEach(button => {
+    button.addEventListener('click', () => {
+      const mensagem = msgs.find(item => String(item.id) === button.getAttribute('data-message-id'));
+      if (mensagem) executarAcaoMensagemChat(button.getAttribute('data-chat-message-action'), mensagem);
+    });
+  });
+
   container.scrollTop = container.scrollHeight;
+}
+
+function mensagemPertenceAoUsuario(mensagem, usuario) {
+  if (!mensagem || !usuario) return false;
+  const emailMensagem = String(mensagem.remetenteEmail || '').trim().toLowerCase();
+  if (mensagem.remetenteId === 'sistema' || mensagem.remetenteId === 'bot' || emailMensagem === 'bot@freelink.com') return false;
+  const emailUsuario = String(usuario.email || '').trim().toLowerCase();
+  if (emailMensagem && emailUsuario) return emailMensagem === emailUsuario;
+
+  const normalizarId = valor => String(valor == null ? '' : valor).replace(/^(db_|google_)/i, '');
+  const idMensagem = normalizarId(mensagem.remetenteId);
+  const idUsuario = normalizarId(usuario.id);
+  return Boolean(idMensagem && idUsuario && idMensagem === idUsuario);
+}
+
+function atualizarEstadoCompositorChat(titulo, texto) {
+  const status = document.getElementById('chatComposerStatus');
+  const tituloEl = document.getElementById('chatComposerStatusTitle');
+  const textoEl = document.getElementById('chatComposerStatusText');
+  if (!status || !tituloEl || !textoEl) return;
+  status.classList.toggle('hidden', !titulo);
+  tituloEl.textContent = titulo || '';
+  textoEl.textContent = texto || '';
+}
+
+window.cancelarAcaoMensagemChat = function() {
+  if (!window.chatAtivo) return;
+  const estavaEditando = window.chatAtivo.editarMensagemId != null;
+  window.chatAtivo.respostaParaId = null;
+  window.chatAtivo.editarMensagemId = null;
+  atualizarEstadoCompositorChat('', '');
+  const input = document.getElementById('chatInputMessage');
+  const icone = document.getElementById('chatSendIcon');
+  const botao = document.querySelector('#chatForm .chat-send-btn');
+  if (estavaEditando && input) input.value = '';
+  if (input) input.placeholder = 'Digite uma mensagem para alinhar o freela...';
+  if (icone) icone.className = 'fa-solid fa-paper-plane';
+  if (botao) botao.title = 'Enviar Mensagem';
+};
+
+function prepararRespostaMensagemChat(mensagem) {
+  if (!window.chatAtivo) return;
+  if (window.chatAtivo.editarMensagemId != null) {
+    window.cancelarAcaoMensagemChat();
+  }
+  window.chatAtivo.respostaParaId = mensagem.id;
+  window.chatAtivo.editarMensagemId = null;
+  atualizarEstadoCompositorChat(
+    `Respondendo a ${mensagem.remetenteNome || 'mensagem'}`,
+    mensagem.apagada ? 'Mensagem apagada' : String(mensagem.texto || '').slice(0, 140)
+  );
+  const input = document.getElementById('chatInputMessage');
+  const icone = document.getElementById('chatSendIcon');
+  const botao = document.querySelector('#chatForm .chat-send-btn');
+  if (input) {
+    input.placeholder = 'Escreva sua resposta...';
+    input.focus();
+  }
+  if (icone) icone.className = 'fa-solid fa-paper-plane';
+  if (botao) botao.title = 'Enviar resposta';
+}
+
+function prepararEdicaoMensagemChat(mensagem) {
+  if (!window.chatAtivo) return;
+  window.chatAtivo.respostaParaId = null;
+  window.chatAtivo.editarMensagemId = mensagem.id;
+  atualizarEstadoCompositorChat('Editando mensagem', String(mensagem.texto || '').slice(0, 140));
+  const input = document.getElementById('chatInputMessage');
+  const icone = document.getElementById('chatSendIcon');
+  const botao = document.querySelector('#chatForm .chat-send-btn');
+  if (input) {
+    input.value = mensagem.texto || '';
+    input.placeholder = 'Edite sua mensagem...';
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+  if (icone) icone.className = 'fa-solid fa-check';
+  if (botao) botao.title = 'Salvar edição';
+}
+
+async function executarAcaoMensagemChat(acao, mensagem) {
+  const chatAtivo = window.chatAtivo;
+  if (!chatAtivo) return;
+
+  if (acao === 'reply') {
+    prepararRespostaMensagemChat(mensagem);
+    return;
+  }
+  if (acao === 'copy') {
+    try {
+      await navigator.clipboard.writeText(String(mensagem.texto || ''));
+      showToast('Mensagem copiada.', 'success');
+    } catch (error) {
+      console.error('Não foi possível copiar a mensagem:', error);
+      showToast('Não foi possível copiar a mensagem neste navegador.', 'error');
+    }
+    return;
+  }
+
+  const usuario = getCurrentUser();
+  if (!mensagemPertenceAoUsuario(mensagem, usuario) || mensagem.apagada) {
+    showToast('Só é possível alterar suas próprias mensagens.', 'error');
+    return;
+  }
+  if (acao === 'edit') {
+    prepararEdicaoMensagemChat(mensagem);
+    return;
+  }
+  if (acao !== 'delete' || !confirm('Apagar esta mensagem para todos nesta conversa?')) return;
+
+  const token = localStorage.getItem('freelink_token');
+  if (token) {
+    const idMensagem = Number(mensagem.id);
+    if (!Number.isSafeInteger(idMensagem) || idMensagem < 1) {
+      showToast('Esta mensagem antiga não pode ser alterada no servidor.', 'error');
+      return;
+    }
+    try {
+      const response = await fetch(`/api/chats/${encodeURIComponent(chatAtivo.chatId)}/mensagens/${idMensagem}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!response.ok) {
+        const erro = await response.json().catch(() => ({}));
+        showToast(erro.erro || 'Não foi possível apagar a mensagem.', 'error');
+        return;
+      }
+      cancelarAcaoMensagemChat();
+      await buscarMensagensChatServidor(chatAtivo.chatId);
+      showToast('Mensagem apagada.', 'success');
+    } catch (error) {
+      console.error('Erro ao apagar mensagem:', error);
+      showToast('Falha de conexão ao apagar a mensagem.', 'error');
+    }
+    return;
+  }
+
+  const chats = obterChats();
+  const chat = chats[chatAtivo.chatId];
+  const mensagemLocal = chat && (chat.mensagens || []).find(item => String(item.id) === String(mensagem.id));
+  if (!mensagemLocal) return;
+  mensagemLocal.texto = 'Mensagem apagada';
+  mensagemLocal.apagada = true;
+  mensagemLocal.editado = false;
+  mensagemLocal.editadoEm = null;
+  salvarChats(chats);
+  cancelarAcaoMensagemChat();
+  renderizarMensagensChat(chat);
+  showToast('Mensagem apagada.', 'success');
 }
 
 window.enviarMensagemChat = async function() {
@@ -3551,31 +3740,53 @@ window.enviarMensagemChat = async function() {
     return;
   }
 
+  const editarMensagemId = window.chatAtivo.editarMensagemId;
+  const respostaParaId = window.chatAtivo.respostaParaId;
+  const estaEditando = editarMensagemId != null;
   const token = localStorage.getItem('freelink_token');
   input.value = '';
 
   if (token) {
     try {
       await ultimaPromessaAbrirSala;
-      const res = await fetch(`/api/chats/${encodeURIComponent(chatId)}/mensagens`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ texto, titulo, projetoId, propostaId, outroEmail, outroNome })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        showToast(err.erro || 'Erro ao enviar mensagem.', 'error');
+      const idMensagem = estaEditando ? Number(editarMensagemId) : null;
+      const idResposta = respostaParaId == null ? null : Number(respostaParaId);
+      if (estaEditando && (!Number.isSafeInteger(idMensagem) || idMensagem < 1)) {
+        showToast('Esta mensagem antiga não pode ser editada no servidor.', 'error');
         input.value = texto;
         return;
       }
+      if (!estaEditando && idResposta !== null && (!Number.isSafeInteger(idResposta) || idResposta < 1)) {
+        showToast('Esta mensagem antiga não pode ser respondida no servidor.', 'error');
+        input.value = texto;
+        return;
+      }
+      const url = estaEditando
+        ? `/api/chats/${encodeURIComponent(chatId)}/mensagens/${idMensagem}`
+        : `/api/chats/${encodeURIComponent(chatId)}/mensagens`;
+      const res = await fetch(url, {
+        method: estaEditando ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(estaEditando
+          ? { texto }
+          : { texto, titulo, projetoId, propostaId, outroEmail, outroNome, respostaParaId: idResposta })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.erro || (estaEditando ? 'Erro ao editar mensagem.' : 'Erro ao enviar mensagem.'), 'error');
+        input.value = texto;
+        return;
+      }
+      cancelarAcaoMensagemChat();
       await buscarMensagensChatServidor(chatId);
-      if (isSalaBot) {
+      if (!estaEditando && isSalaBot) {
         await responderBotOnboardingNoChat(chatId, texto);
       }
       verificarConversasServidor();
       return;
     } catch (e) {
-      showToast('Falha de conexão ao enviar mensagem.', 'error');
+      console.error('Falha ao salvar mensagem no chat:', e);
+      showToast(estaEditando ? 'Falha de conexão ao editar mensagem.' : 'Falha de conexão ao enviar mensagem.', 'error');
       input.value = texto;
       return;
     }
@@ -3584,6 +3795,27 @@ window.enviarMensagemChat = async function() {
   // Fallback local apenas para contas demo sem token no banco
   const chats = obterChats();
   const chat = chats[chatId] || { id: chatId, mensagens: [] };
+  if (estaEditando) {
+    const mensagem = (chat.mensagens || []).find(item => String(item.id) === String(editarMensagemId));
+    if (!mensagem || !mensagemPertenceAoUsuario(mensagem, usuarioLogado) || mensagem.apagada) {
+      input.value = texto;
+      showToast('Mensagem não encontrada ou não pode ser editada.', 'error');
+      return;
+    }
+    mensagem.texto = texto;
+    mensagem.editado = true;
+    mensagem.editadoEm = new Date().toISOString();
+    chats[chatId] = chat;
+    salvarChats(chats);
+    cancelarAcaoMensagemChat();
+    renderizarMensagensChat(chat);
+    showToast('Mensagem editada.', 'success');
+    return;
+  }
+
+  const mensagemRespondida = respostaParaId == null
+    ? null
+    : (chat.mensagens || []).find(item => String(item.id) === String(respostaParaId));
   chat.mensagens.push({
     id: `msg_${Date.now()}`,
     remetenteId: usuarioLogado.id,
@@ -3591,10 +3823,16 @@ window.enviarMensagemChat = async function() {
     remetenteNome: usuarioLogado.nome || 'Você',
     texto: texto,
     criadoEm: new Date().toISOString(),
-    dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    respostaPara: mensagemRespondida ? {
+      id: mensagemRespondida.id,
+      remetenteNome: mensagemRespondida.remetenteNome || 'Mensagem',
+      texto: mensagemRespondida.apagada ? 'Mensagem apagada' : mensagemRespondida.texto
+    } : null
   });
   chats[chatId] = chat;
   salvarChats(chats);
+  cancelarAcaoMensagemChat();
   renderizarMensagensChat(chat);
 
   if (isSalaBot) {
@@ -4001,10 +4239,21 @@ function garantirElementoChat() {
       </div>
 
       <form id="chatForm" class="chat-input-row" onsubmit="event.preventDefault(); enviarMensagemChat();">
-        <input type="text" id="chatInputMessage" class="chat-input-field" placeholder="Digite uma mensagem para alinhar o freela..." autocomplete="off">
-        <button type="submit" class="chat-send-btn" title="Enviar Mensagem">
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
+        <div id="chatComposerStatus" class="chat-composer-status hidden">
+          <div class="chat-composer-status-copy">
+            <strong id="chatComposerStatusTitle"></strong>
+            <span id="chatComposerStatusText"></span>
+          </div>
+          <button type="button" class="chat-composer-cancel" onclick="cancelarAcaoMensagemChat()" aria-label="Cancelar ação">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="chat-input-controls">
+          <input type="text" id="chatInputMessage" class="chat-input-field" placeholder="Digite uma mensagem para alinhar o freela..." autocomplete="off">
+          <button type="submit" class="chat-send-btn" title="Enviar Mensagem">
+            <i id="chatSendIcon" class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
       </form>
     `;
     document.body.appendChild(chatBox);

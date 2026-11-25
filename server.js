@@ -647,8 +647,14 @@ async function garantirTabelasExtra() {
             remetente_email VARCHAR(150),
             remetente_nome VARCHAR(150) NOT NULL,
             conteudo TEXT NOT NULL,
-            criado_em TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            criado_em TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            resposta_para_id INTEGER REFERENCES CHAT_MENSAGEM(id_mensagem) ON DELETE SET NULL,
+            editado_em TIMESTAMPTZ,
+            apagado_em TIMESTAMPTZ
         )`,
+        `ALTER TABLE CHAT_MENSAGEM ADD COLUMN IF NOT EXISTS resposta_para_id INTEGER REFERENCES CHAT_MENSAGEM(id_mensagem) ON DELETE SET NULL`,
+        `ALTER TABLE CHAT_MENSAGEM ADD COLUMN IF NOT EXISTS editado_em TIMESTAMPTZ`,
+        `ALTER TABLE CHAT_MENSAGEM ADD COLUMN IF NOT EXISTS apagado_em TIMESTAMPTZ`,
         `DO $$
         DECLARE tipo_criado_em TEXT;
         BEGIN
@@ -759,7 +765,7 @@ async function semearUsuariosDemo() {
         }
     }
 }
-garantirTabelasExtra();
+const inicializacaoTabelasExtra = garantirTabelasExtra();
 
 function formatarMsgChat(m) {
     const d = m.criado_em ? new Date(m.criado_em) : null;
@@ -769,17 +775,25 @@ function formatarMsgChat(m) {
         remetenteId: m.remetente_id,
         remetenteEmail: m.remetente_email || '',
         remetenteNome: m.remetente_nome,
-        texto: m.conteudo,
+        texto: m.apagado_em ? 'Mensagem apagada' : m.conteudo,
         dataHora: instanteValido
             ? instanteValido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
             : '',
-        criadoEm: instanteValido ? instanteValido.toISOString() : null
+        criadoEm: instanteValido ? instanteValido.toISOString() : null,
+        respostaPara: m.resposta_para_id ? {
+            id: m.resposta_para_id,
+            remetenteNome: m.resposta_para_remetente_nome || 'Mensagem',
+            texto: m.resposta_para_apagada_em ? 'Mensagem apagada' : (m.resposta_para_conteudo || '')
+        } : null,
+        editado: Boolean(m.editado_em),
+        apagada: Boolean(m.apagado_em)
     };
 }
 
 // Lista conversas do usuário autenticado
 app.get('/api/chats', autenticar, async (req, res) => {
     try {
+        await inicializacaoTabelasExtra;
         const { rows: rowsU } = await db.query('SELECT email FROM USUARIO WHERE id_usuario = $1', [req.idUsuario]);
         if (!rowsU.length) return res.status(401).json({ erro: 'Usuário inválido' });
         const email = String(rowsU[0].email || '').toLowerCase();
@@ -812,6 +826,7 @@ app.post('/api/chats/abrir', autenticar, async (req, res) => {
     const isSalaBot = salaId.startsWith('bot_');
 
     try {
+        await inicializacaoTabelasExtra;
         const { rows: rowsU } = await db.query('SELECT id_usuario, nome, email, perfil_json FROM USUARIO WHERE id_usuario = $1', [req.idUsuario]);
         if (!rowsU.length) return res.status(401).json({ erro: 'Usuário inválido' });
         const eu = rowsU[0];
@@ -863,7 +878,15 @@ app.post('/api/chats/abrir', autenticar, async (req, res) => {
             );
         }
 
-        const { rows: msgs } = await db.query('SELECT * FROM CHAT_MENSAGEM WHERE id_sala = $1 ORDER BY id_mensagem ASC', [salaId]);
+        const { rows: msgs } = await db.query(
+            `SELECT m.*, r.remetente_nome AS resposta_para_remetente_nome,
+                    r.conteudo AS resposta_para_conteudo, r.apagado_em AS resposta_para_apagada_em
+             FROM CHAT_MENSAGEM m
+             LEFT JOIN CHAT_MENSAGEM r ON r.id_mensagem = m.resposta_para_id
+             WHERE m.id_sala = $1
+             ORDER BY m.id_mensagem ASC`,
+            [salaId]
+        );
         const textoInicial = mensagemBot || mensagemSistema;
         if (msgs.length === 0 && textoInicial) {
             const remId = mensagemBot ? 'bot' : 'sistema';
@@ -892,11 +915,22 @@ app.get('/api/chats/:chatId/mensagens', autenticar, async (req, res) => {
     const chatId = String(req.params.chatId || '');
     const aposId = Number(req.query.apos || 0);
     const sql = aposId > 0
-        ? 'SELECT * FROM CHAT_MENSAGEM WHERE id_sala = $1 AND id_mensagem > $2 ORDER BY id_mensagem ASC'
-        : 'SELECT * FROM CHAT_MENSAGEM WHERE id_sala = $1 ORDER BY id_mensagem ASC';
+        ? `SELECT m.*, r.remetente_nome AS resposta_para_remetente_nome,
+                  r.conteudo AS resposta_para_conteudo, r.apagado_em AS resposta_para_apagada_em
+           FROM CHAT_MENSAGEM m
+           LEFT JOIN CHAT_MENSAGEM r ON r.id_mensagem = m.resposta_para_id
+           WHERE m.id_sala = $1 AND m.id_mensagem > $2
+           ORDER BY m.id_mensagem ASC`
+        : `SELECT m.*, r.remetente_nome AS resposta_para_remetente_nome,
+                  r.conteudo AS resposta_para_conteudo, r.apagado_em AS resposta_para_apagada_em
+           FROM CHAT_MENSAGEM m
+           LEFT JOIN CHAT_MENSAGEM r ON r.id_mensagem = m.resposta_para_id
+           WHERE m.id_sala = $1
+           ORDER BY m.id_mensagem ASC`;
     const params = aposId > 0 ? [chatId, aposId] : [chatId];
 
     try {
+        await inicializacaoTabelasExtra;
         const { rows: msgs } = await db.query(sql, params);
         res.json({ mensagens: msgs.map(formatarMsgChat) });
     } catch (erro) {
@@ -907,15 +941,20 @@ app.get('/api/chats/:chatId/mensagens', autenticar, async (req, res) => {
 // Envia uma nova mensagem real na sala
 app.post('/api/chats/:chatId/mensagens', autenticar, async (req, res) => {
     const chatId = String(req.params.chatId || '').slice(0, 120);
-    const { texto, sistema, bot, titulo, projetoId, propostaId, outroEmail, outroNome } = req.body || {};
+    const { texto, sistema, bot, titulo, projetoId, propostaId, outroEmail, outroNome, respostaParaId } = req.body || {};
     const conteudo = String(texto || '').trim();
     if (!conteudo) return res.status(400).json({ erro: 'Mensagem vazia' });
     if (contemTermoExplicito(conteudo)) {
         return res.status(400).json({ erro: 'A mensagem contém termos impróprios. Revise o texto antes de enviar.' });
     }
+    const idResposta = respostaParaId == null || respostaParaId === '' ? null : Number(respostaParaId);
+    if (idResposta !== null && (!Number.isSafeInteger(idResposta) || idResposta < 1)) {
+        return res.status(400).json({ erro: 'Mensagem respondida inválida' });
+    }
     const isMsgBot = Boolean(bot && chatId.startsWith('bot_'));
 
     try {
+        await inicializacaoTabelasExtra;
         const { rows: rowsU } = await db.query('SELECT id_usuario, nome, email, perfil_json FROM USUARIO WHERE id_usuario = $1', [req.idUsuario]);
         if (!rowsU.length) return res.status(401).json({ erro: 'Usuário inválido' });
         const eu = rowsU[0];
@@ -925,6 +964,17 @@ app.post('/api/chats/:chatId/mensagens', autenticar, async (req, res) => {
         const remetenteId = isMsgBot ? 'bot' : (sistema ? 'sistema' : ('db_' + eu.id_usuario));
         const remetenteEmail = isMsgBot ? 'bot@freelink.com' : (sistema ? '' : meuEmail);
         const remetenteNome = isMsgBot ? 'Assistente FreeLink' : (sistema ? 'FreeLink' : meuNome);
+        let mensagemRespondida = null;
+        if (idResposta !== null) {
+            const resultadoResposta = await db.query(
+                'SELECT id_mensagem, remetente_nome, conteudo, apagado_em FROM CHAT_MENSAGEM WHERE id_sala = $1 AND id_mensagem = $2',
+                [chatId, idResposta]
+            );
+            if (!resultadoResposta.rows.length) {
+                return res.status(400).json({ erro: 'A mensagem respondida não existe nesta conversa.' });
+            }
+            mensagemRespondida = resultadoResposta.rows[0];
+        }
 
         // Garante que a sala exista mesmo se a mensagem for enviada antes de /api/chats/abrir responder
         await db.query(
@@ -942,16 +992,76 @@ app.post('/api/chats/:chatId/mensagens', autenticar, async (req, res) => {
         );
 
         const rIns = await db.query(
-            'INSERT INTO CHAT_MENSAGEM (id_sala, remetente_id, remetente_email, remetente_nome, conteudo) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [chatId, remetenteId, remetenteEmail, remetenteNome, conteudo]
+            'INSERT INTO CHAT_MENSAGEM (id_sala, remetente_id, remetente_email, remetente_nome, conteudo, resposta_para_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [chatId, remetenteId, remetenteEmail, remetenteNome, conteudo, idResposta]
         );
 
         await db.query('UPDATE CHAT_SALA SET atualizado_em = CURRENT_TIMESTAMP WHERE id_sala = $1', [chatId]);
 
         res.status(201).json({
-            mensagem: formatarMsgChat(rIns.rows[0])
+            mensagem: formatarMsgChat({
+                ...rIns.rows[0],
+                resposta_para_remetente_nome: mensagemRespondida && mensagemRespondida.remetente_nome,
+                resposta_para_conteudo: mensagemRespondida && mensagemRespondida.conteudo,
+                resposta_para_apagada_em: mensagemRespondida && mensagemRespondida.apagado_em
+            })
         });
     } catch (erro) {
         return res.status(500).json({ erro: 'Erro ao enviar mensagem' });
+    }
+});
+
+app.patch('/api/chats/:chatId/mensagens/:messageId', autenticar, async (req, res) => {
+    const chatId = String(req.params.chatId || '').slice(0, 120);
+    const idMensagem = Number(req.params.messageId);
+    const conteudo = String(req.body && req.body.texto || '').trim();
+    if (!Number.isSafeInteger(idMensagem) || idMensagem < 1) {
+        return res.status(400).json({ erro: 'Identificador de mensagem inválido' });
+    }
+    if (!conteudo) return res.status(400).json({ erro: 'Mensagem vazia' });
+    if (contemTermoExplicito(conteudo)) {
+        return res.status(400).json({ erro: 'A mensagem contém termos impróprios. Revise o texto antes de salvar.' });
+    }
+
+    try {
+        await inicializacaoTabelasExtra;
+        const { rows } = await db.query(
+            `UPDATE CHAT_MENSAGEM
+             SET conteudo = $1, editado_em = CURRENT_TIMESTAMP
+             WHERE id_sala = $2 AND id_mensagem = $3
+               AND remetente_id = $4 AND apagado_em IS NULL
+             RETURNING *`,
+            [conteudo, chatId, idMensagem, `db_${req.idUsuario}`]
+        );
+        if (!rows.length) return res.status(404).json({ erro: 'Mensagem não encontrada ou não pode ser editada.' });
+        return res.json({ mensagem: formatarMsgChat(rows[0]) });
+    } catch (erro) {
+        console.error('Erro ao editar mensagem do chat:', erro.message);
+        return res.status(500).json({ erro: 'Erro ao editar mensagem' });
+    }
+});
+
+app.delete('/api/chats/:chatId/mensagens/:messageId', autenticar, async (req, res) => {
+    const chatId = String(req.params.chatId || '').slice(0, 120);
+    const idMensagem = Number(req.params.messageId);
+    if (!Number.isSafeInteger(idMensagem) || idMensagem < 1) {
+        return res.status(400).json({ erro: 'Identificador de mensagem inválido' });
+    }
+
+    try {
+        await inicializacaoTabelasExtra;
+        const { rows } = await db.query(
+            `UPDATE CHAT_MENSAGEM
+             SET conteudo = 'Mensagem apagada', apagado_em = CURRENT_TIMESTAMP
+             WHERE id_sala = $1 AND id_mensagem = $2
+               AND remetente_id = $3 AND apagado_em IS NULL
+             RETURNING *`,
+            [chatId, idMensagem, `db_${req.idUsuario}`]
+        );
+        if (!rows.length) return res.status(404).json({ erro: 'Mensagem não encontrada ou não pode ser apagada.' });
+        return res.json({ mensagem: formatarMsgChat(rows[0]) });
+    } catch (erro) {
+        console.error('Erro ao apagar mensagem do chat:', erro.message);
+        return res.status(500).json({ erro: 'Erro ao apagar mensagem' });
     }
 });

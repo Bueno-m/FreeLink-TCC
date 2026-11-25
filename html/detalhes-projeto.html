@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FreeLink | Detalhes do Projeto</title>
-  <link rel="stylesheet" href="../css/Style.css?v=9">
+  <link rel="stylesheet" href="../css/Style.css?v=10">
   <link rel="stylesheet" href="../css/login.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -373,15 +373,26 @@
     </div>
 
     <form id="chatForm" class="chat-input-row" onsubmit="event.preventDefault(); enviarMensagemChat();">
-      <input type="text" id="chatInputMessage" class="chat-input-field" placeholder="Digite uma mensagem para alinhar o freela..." autocomplete="off">
-      <button type="submit" class="chat-send-btn" title="Enviar Mensagem">
-        <i class="fa-solid fa-paper-plane"></i>
-      </button>
+      <div id="chatComposerStatus" class="chat-composer-status hidden">
+        <div class="chat-composer-status-copy">
+          <strong id="chatComposerStatusTitle"></strong>
+          <span id="chatComposerStatusText"></span>
+        </div>
+        <button type="button" class="chat-composer-cancel" onclick="cancelarAcaoMensagemChat()" aria-label="Cancelar ação">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="chat-input-controls">
+        <input type="text" id="chatInputMessage" class="chat-input-field" placeholder="Digite uma mensagem para alinhar o freela..." autocomplete="off">
+        <button type="submit" class="chat-send-btn" title="Enviar Mensagem">
+          <i id="chatSendIcon" class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
     </form>
   </div>
 
   <!-- Script principal do projeto -->
   <script src="../js/chat-moderacao.js?v=1"></script>
-  <script src="../js/main.js?v=17"></script>
+  <script src="../js/main.js?v=18"></script>
 </body>
 </html>

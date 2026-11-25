@@ -137,7 +137,10 @@ CREATE TABLE IF NOT EXISTS CHAT_MENSAGEM (
     remetente_email VARCHAR(150),
     remetente_nome VARCHAR(150) NOT NULL,
     conteudo TEXT NOT NULL,
-    criado_em TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    criado_em TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    resposta_para_id INT REFERENCES CHAT_MENSAGEM(id_mensagem) ON DELETE SET NULL,
+    editado_em TIMESTAMPTZ,
+    apagado_em TIMESTAMPTZ
 );
 
 CREATE INDEX IF NOT EXISTS idx_chat_sala ON CHAT_MENSAGEM (id_sala, id_mensagem);
