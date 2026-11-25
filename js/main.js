@@ -1842,10 +1842,15 @@ function configurarEnvioProposta(projeto) {
 
   const usuarioLogado = getCurrentUser();
   const isDono = Boolean(usuarioLogado && (
-    (projeto.criadorId && projeto.criadorId === usuarioLogado.id) ||
-    (projeto.criadorEmail && projeto.criadorEmail === usuarioLogado.email) ||
-    (projeto.empresa && usuarioLogado.nome && projeto.empresa.toLowerCase() === usuarioLogado.nome.toLowerCase())
+    (projeto.criadorId != null && usuarioLogado.id != null && String(projeto.criadorId) === String(usuarioLogado.id)) ||
+    (projeto.criadorEmail && usuarioLogado.email && projeto.criadorEmail.trim().toLowerCase() === usuarioLogado.email.trim().toLowerCase()) ||
+    (projeto.empresa && usuarioLogado.nome && projeto.empresa.trim().toLowerCase() === usuarioLogado.nome.trim().toLowerCase())
   ));
+  const bloquearPropostaDoCriador = () => {
+    if (!isDono) return false;
+    showToast('Você não pode enviar proposta para um projeto que publicou.', 'error');
+    return true;
+  };
 
   const propostas = Array.isArray(projeto.listaPropostas) ? projeto.listaPropostas : [];
 
@@ -1917,12 +1922,9 @@ function configurarEnvioProposta(projeto) {
         <div class="empty-state-clean" style="padding: 35px 20px; background: var(--bg-card); border-radius: 14px; border: 1.5px dashed var(--border-color); text-align: center;">
           <i class="fa-solid fa-folder-open empty-state-icon" style="font-size: 32px; color: var(--text-muted); margin-bottom: 10px; display: block;"></i>
           <h4 style="font-size: 16px; font-weight: 700; color: var(--text-heading); margin-bottom: 6px;">Nenhuma proposta recebida ainda</h4>
-          <p style="font-size: 13.5px; color: var(--text-muted); max-width: 480px; margin: 0 auto 18px;">
-            Você é o autor deste projeto. Você pode aguardar outros freelancers ou enviar você mesmo uma proposta para testar e simular o fluxo da plataforma.
+          <p style="font-size: 13.5px; color: var(--text-muted); max-width: 480px; margin: 0 auto;">
+            Quando um freelancer enviar uma proposta, ela aparecerá aqui para você avaliar.
           </p>
-          <button type="button" class="login-btn btn-trigger-proposta" style="padding: 10px 22px; font-size: 13.5px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
-            <i class="fa-solid fa-paper-plane"></i> Enviar Proposta Agora
-          </button>
         </div>
       `;
     } else {
@@ -2023,34 +2025,16 @@ function configurarEnvioProposta(projeto) {
               Painel do Contratante: Candidatos &amp; Propostas
             </h2>
             <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
-              Você é o autor deste projeto. Avalie as propostas recebidas, confira o perfil de cada candidato ou envie uma nova proposta.
+              Você publicou este projeto. Acompanhe as propostas recebidas e confira os perfis dos candidatos; não é possível enviar proposta para o próprio projeto.
             </p>
           </div>
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <span class="proposals-count-badge">
               ${propostas.length} ${propostas.length === 1 ? 'proposta recebida' : 'propostas recebidas'}
             </span>
-            <button type="button" id="btn-enviar-proposta" class="login-btn btn-trigger-proposta" onclick="abrirModalProposta()" style="padding: 10px 20px; font-size: 13.5px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
-              <i class="fa-solid fa-paper-plane"></i> Enviar Proposta
-            </button>
           </div>
         </div>
         ${propostasHtml}
-      </div>
-
-      <!-- Card Dedicado para Envio de Proposta pelo Criador do Freela -->
-      <div style="margin-top: 24px; background: var(--bg-card); border: 1.5px solid var(--primary-border); padding: 22px 28px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; box-shadow: var(--shadow-sm);">
-        <div>
-          <h3 style="font-size: 17px; color: var(--text-heading); margin-bottom: 4px; font-weight: 700;">
-            <i class="fa-solid fa-paper-plane" style="color: var(--primary-color);"></i> Deseja enviar uma proposta para este freela?
-          </h3>
-          <p style="color: var(--text-muted); font-size: 13.5px;">
-            Mesmo sendo a pessoa que publicou o projeto, você pode submeter propostas para testar ou apresentar a plataforma.
-          </p>
-        </div>
-        <button type="button" class="login-btn btn-trigger-proposta" onclick="abrirModalProposta()" style="padding: 12px 26px; font-size: 14.5px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
-          <i class="fa-solid fa-paper-plane"></i> Enviar Proposta
-        </button>
       </div>
     `;
   } else {
@@ -2151,6 +2135,7 @@ function configurarEnvioProposta(projeto) {
   const btnCancelarModal = document.getElementById('btn-cancelar-modal');
 
   window.abrirModalProposta = function() {
+    if (bloquearPropostaDoCriador()) return;
     const modal = document.getElementById('modal-proposta');
     if (modal) modal.style.display = 'flex';
   };
@@ -2184,6 +2169,10 @@ function configurarEnvioProposta(projeto) {
   if (formProposta && modalProposta) {
     formProposta.onsubmit = function(e) {
       e.preventDefault();
+      if (bloquearPropostaDoCriador()) {
+        modalProposta.style.display = 'none';
+        return;
+      }
 
       const inputValor = document.getElementById('proposta-valor');
       const inputPrazo = document.getElementById('proposta-prazo');
