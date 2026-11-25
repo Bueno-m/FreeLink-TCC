@@ -3498,7 +3498,14 @@ function renderizarMensagensChat(chat) {
       acoes.push(`<button type="button" class="chat-message-action" data-chat-message-action="edit" data-message-id="${id}" title="Editar mensagem" aria-label="Editar mensagem"><i class="fa-solid fa-pen"></i><span>Editar</span></button>`);
       acoes.push(`<button type="button" class="chat-message-action chat-message-action-danger" data-chat-message-action="delete" data-message-id="${id}" title="Apagar mensagem" aria-label="Apagar mensagem"><i class="fa-regular fa-trash-can"></i><span>Apagar</span></button>`);
     }
-    return `<div class="chat-message-actions">${acoes.join('')}</div>`;
+    return `
+      <details class="chat-message-menu">
+        <summary title="Ações da mensagem" aria-label="Ações da mensagem">
+          <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+        </summary>
+        <div class="chat-message-actions">${acoes.join('')}</div>
+      </details>
+    `;
   };
 
   const montarRespostaMensagem = mensagem => {
@@ -3517,8 +3524,10 @@ function renderizarMensagensChat(chat) {
         <div class="chat-bubble chat-bubble-system">
           <i class="fa-solid fa-circle-check" style="color: var(--primary-color); margin-right: 4px;"></i>
           ${escapeHtml(m.texto)}
-          <span class="chat-msg-time">${escapeHtml(formatarHorarioMensagemChat(m))}</span>
-          ${montarAcoesMensagem(m, false)}
+          <div class="chat-message-meta">
+            <span class="chat-msg-time">${escapeHtml(formatarHorarioMensagemChat(m))}</span>
+            ${montarAcoesMensagem(m, false)}
+          </div>
         </div>
       `;
     }
@@ -3549,16 +3558,29 @@ function renderizarMensagensChat(chat) {
         ${montarRespostaMensagem(m)}
         <div class="${m.apagada ? 'chat-message-deleted' : ''}" style="white-space: pre-line;">${escapeHtml(m.texto)}</div>
         ${botaoBotHtml}
-        <span class="chat-msg-time">${m.editado ? 'Editada · ' : ''}${escapeHtml(formatarHorarioMensagemChat(m))}</span>
-        ${montarAcoesMensagem(m, podeAlterar)}
+        <div class="chat-message-meta">
+          <span class="chat-msg-time">${m.editado ? 'Editada · ' : ''}${escapeHtml(formatarHorarioMensagemChat(m))}</span>
+          ${montarAcoesMensagem(m, podeAlterar)}
+        </div>
       </div>
     `;
   }).join('');
 
   container.querySelectorAll('[data-chat-message-action]').forEach(button => {
     button.addEventListener('click', () => {
+      const menu = button.closest('.chat-message-menu');
+      if (menu) menu.open = false;
       const mensagem = msgs.find(item => String(item.id) === button.getAttribute('data-message-id'));
       if (mensagem) executarAcaoMensagemChat(button.getAttribute('data-chat-message-action'), mensagem);
+    });
+  });
+
+  container.querySelectorAll('.chat-message-menu').forEach(menu => {
+    menu.addEventListener('toggle', () => {
+      if (!menu.open) return;
+      container.querySelectorAll('.chat-message-menu[open]').forEach(outroMenu => {
+        if (outroMenu !== menu) outroMenu.open = false;
+      });
     });
   });
 
