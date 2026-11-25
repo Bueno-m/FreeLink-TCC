@@ -1049,6 +1049,51 @@ function inicializarIndexPage() {
   }
 }
 
+function obterUrlPerfilPublicador(projeto, usuariosDisponiveis) {
+  if (!projeto) return '';
+
+  const idProjeto = projeto.criadorId == null ? '' : String(projeto.criadorId).trim();
+  const emailProjeto = String(projeto.criadorEmail || '').trim().toLowerCase();
+  const normalizarId = id => String(id == null ? '' : id).replace(/^(db_|google_)/i, '');
+  if (idProjeto && /^\d+$/.test(normalizarId(idProjeto))) {
+    return `perfil.html?id=${encodeURIComponent(idProjeto)}`;
+  }
+  if (emailProjeto) {
+    return `perfil.html?email=${encodeURIComponent(emailProjeto)}`;
+  }
+
+  const usuarios = Array.isArray(usuariosDisponiveis)
+    ? usuariosDisponiveis
+    : (typeof obterUsuarios === 'function' ? obterUsuarios() : []);
+  let publicador = usuarios.find(usuario => {
+    const idUsuario = normalizarId(usuario.id);
+    const dbIdUsuario = normalizarId(usuario.dbId);
+    const idAlvo = normalizarId(idProjeto);
+    return idAlvo && (idUsuario === idAlvo || dbIdUsuario === idAlvo);
+  });
+
+  if (!publicador && !idProjeto && !emailProjeto && projeto.empresa) {
+    const nomeEmpresa = String(projeto.empresa).trim().toLowerCase();
+    const correspondencias = usuarios.filter(usuario =>
+      String(usuario.empresa || usuario.nome || '').trim().toLowerCase() === nomeEmpresa
+    );
+    if (correspondencias.length === 1) publicador = correspondencias[0];
+  }
+
+  const idPublicador = idProjeto || (publicador && (publicador.dbId || publicador.id)) || '';
+  const emailPublicador = (publicador && publicador.email) || '';
+  if (idPublicador && /^\d+$/.test(normalizarId(idPublicador))) {
+    return `perfil.html?id=${encodeURIComponent(idPublicador)}`;
+  }
+  if (emailPublicador) {
+    return `perfil.html?email=${encodeURIComponent(emailPublicador)}`;
+  }
+  if (publicador && idPublicador) {
+    return `perfil.html?id=${encodeURIComponent(idPublicador)}`;
+  }
+  return '';
+}
+
 /**
  * Renderiza os 3 ou 4 projetos em destaque na Landing Page Vitrine
  */
@@ -1105,6 +1150,7 @@ function renderizarTrabalhos(termoBusca = '', categoriaFiltro = '', apenasMeusPr
 
   const todosTrabalhos = obterProjetos();
   const usuarioLogado = getCurrentUser();
+  const usuariosPublicadores = obterUsuarios();
 
   let lista = todosTrabalhos;
 
@@ -1154,11 +1200,16 @@ function renderizarTrabalhos(termoBusca = '', categoriaFiltro = '', apenasMeusPr
     const skills = Array.isArray(trabalho.habilidades) ? trabalho.habilidades : (trabalho.habilidades ? trabalho.habilidades.split(',') : []);
     const skillsHtml = skills.slice(0, 3).map(s => `<span class="skill-tag">${escapeHtml(s.trim())}</span>`).join('');
     const mostrarExcluir = apenasMeusProjetos && projetoPertenceAoUsuario(trabalho, usuarioLogado);
+    const urlPerfilPublicador = obterUrlPerfilPublicador(trabalho, usuariosPublicadores);
+    const nomePublicador = trabalho.empresa || 'Cliente FreeLink';
+    const publicadorHtml = urlPerfilPublicador
+      ? `<a class="project-publisher-link" data-owner-profile-link href="${escapeHtml(urlPerfilPublicador)}" title="Ver perfil de ${escapeHtml(nomePublicador)}" aria-label="Ver perfil de ${escapeHtml(nomePublicador)}">${escapeHtml(nomePublicador)} <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>`
+      : escapeHtml(nomePublicador);
 
     return `
       <div class="job-card" onclick="redirecionarParaDetalhes('${escapeHtml(trabalho.id)}')" style="cursor: pointer;" title="Clique para ver os detalhes do projeto">
         <h3>${escapeHtml(trabalho.titulo)}</h3>
-        <p class="company"><i class="fa-regular fa-building" style="color: var(--primary-color); margin-right: 5px;"></i>${escapeHtml(trabalho.empresa || 'Cliente FreeLink')}</p>
+        <p class="company"><i class="fa-regular fa-building" style="color: var(--primary-color); margin-right: 5px;"></i>${publicadorHtml}</p>
         <p class="location"><i class="fa-solid fa-location-dot" style="color: var(--primary-color); margin-right: 4px;"></i>${escapeHtml(trabalho.localizacao || 'Remoto')}</p>
         <p class="price">R$ ${escapeHtml(trabalho.orcamento)}</p>
         
@@ -1175,6 +1226,10 @@ function renderizarTrabalhos(termoBusca = '', categoriaFiltro = '', apenasMeusPr
       </div>
     `;
   }).join('');
+
+  container.querySelectorAll('[data-owner-profile-link]').forEach(link => {
+    link.addEventListener('click', event => event.stopPropagation());
+  });
 
   container.querySelectorAll('[data-project-delete]').forEach(button => {
     button.addEventListener('click', event => {
@@ -1873,6 +1928,7 @@ function carregarDetalhesProjeto() {
   const elemOrcamento = document.getElementById('detalhe-orcamento');
   const elemPrazo = document.getElementById('detalhe-prazo');
   const elemEmpresa = document.getElementById('detalhe-empresa');
+  const elemPerfilPublicador = document.getElementById('detalhe-perfil-publicador');
   const elemLocalizacao = document.getElementById('detalhe-localizacao');
   const elemData = document.getElementById('detalhe-data');
   const elemDescricao = document.getElementById('detalhe-descricao');
@@ -1885,6 +1941,17 @@ function carregarDetalhesProjeto() {
   if (elemOrcamento) elemOrcamento.textContent = `R$ ${orcLimpo}`;
   if (elemPrazo) elemPrazo.textContent = projeto.prazo;
   if (elemEmpresa) elemEmpresa.textContent = projeto.empresa || 'Cliente FreeLink';
+  if (elemPerfilPublicador) {
+    const urlPerfilPublicador = obterUrlPerfilPublicador(projeto);
+    if (urlPerfilPublicador) {
+      elemPerfilPublicador.href = urlPerfilPublicador;
+      elemPerfilPublicador.setAttribute('aria-label', `Ver perfil de ${projeto.empresa || 'quem publicou o projeto'}`);
+      elemPerfilPublicador.classList.remove('hidden');
+    } else {
+      elemPerfilPublicador.removeAttribute('href');
+      elemPerfilPublicador.classList.add('hidden');
+    }
+  }
   if (elemLocalizacao) elemLocalizacao.textContent = projeto.localizacao || 'Remoto';
   if (elemData) elemData.textContent = projeto.dataPublicacao || 'Publicado recentemente';
   if (elemDescricao) elemDescricao.textContent = projeto.descricao;

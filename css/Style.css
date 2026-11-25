@@ -4606,6 +4606,22 @@ textarea {
   overflow-wrap: anywhere;
 }
 
+.project-publisher-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  color: var(--primary-color);
+  font-weight: 700;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.project-publisher-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .project-budget-card {
   flex: 0 1 230px;
   min-width: 210px;
