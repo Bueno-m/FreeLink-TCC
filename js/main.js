@@ -3545,10 +3545,20 @@ window.avaliarCompletudePerfil = function(usuario) {
 
   const email = String(u.email).trim().toLowerCase();
   const novaConta = localStorage.getItem('freelink_conta_nova_' + email) === '1';
-  const isContratante = u.tipo === 'contratante';
+  const tipoConta = String(u.tipo || u.tipo_usuario || '').toLowerCase();
+  const isContratante = tipoConta === 'contratante' || tipoConta === 'cliente' || tipoConta === 'empresa' ||
+    String(u.tipoPessoa || '').toUpperCase() === 'PJ';
   const tem = (v) => Boolean(v && String(v).trim() !== '');
 
-  const itens = [
+  const setorPerfil = u.setor || String(u.especialidade || '').replace(/^Empresa\s*[·-]\s*/i, '');
+  const itens = isContratante ? [
+    { chave: 'razaoSocial', label: 'Razão social', aba: 'pane-company', campo: 'editCompanyLegalName', obrigatorio: true, ok: tem(u.razaoSocial) },
+    { chave: 'setor', label: 'Setor de atuação', aba: 'pane-company', campo: 'editCompanySector', obrigatorio: true, ok: tem(setorPerfil) },
+    { chave: 'localizacao', label: 'Localização da empresa', aba: 'pane-identificacao', campo: 'editLocation', obrigatorio: true, ok: tem(u.localizacao) },
+    { chave: 'sobreEmpresa', label: 'Apresentação da empresa', aba: 'pane-company', campo: 'editCompanyAbout', obrigatorio: true, ok: tem(u.sobreEmpresa || u.bio) },
+    { chave: 'servicosContratados', label: 'Serviços que contrata', aba: 'pane-company', campo: 'editCompanyServices', obrigatorio: true, ok: tem(u.servicosContratados) },
+    { chave: 'foto', label: 'Foto de Perfil', aba: 'pane-midia', campo: 'editAvatar', obrigatorio: false, ok: tem(u.foto || u.avatar) }
+  ] : [
     { chave: 'especialidade', label: 'Especialidade / Título', aba: 'pane-identificacao', campo: 'editSpecialty', obrigatorio: true, ok: tem(u.especialidade) },
     { chave: 'localizacao', label: 'Cidade / Localização', aba: 'pane-identificacao', campo: 'editLocation', obrigatorio: true, ok: tem(u.localizacao) },
     { chave: 'bio', label: 'Apresentação (Sobre Mim)', aba: 'pane-sobre', campo: 'editBio', obrigatorio: true, ok: tem(u.bio) },
@@ -3561,10 +3571,6 @@ window.avaliarCompletudePerfil = function(usuario) {
       { chave: 'taxaHoraria', label: 'Taxa Horária', aba: 'pane-condicoes', campo: 'editHourlyRate', obrigatorio: false, ok: tem(u.taxaHoraria) },
       { chave: 'experienciaTexto', label: 'Experiência Profissional', aba: 'pane-experiencia', campo: 'editExperience', obrigatorio: false, ok: tem(u.experienciaTexto) },
       { chave: 'portfolioTexto', label: 'Portfólio de Trabalhos', aba: 'pane-experiencia', campo: 'editPortfolio', obrigatorio: false, ok: tem(u.portfolioTexto || u.portfolio) }
-    );
-  } else {
-    itens.push(
-      { chave: 'portfolioTexto', label: 'Portfólio / Projetos da Empresa', aba: 'pane-experiencia', campo: 'editPortfolio', obrigatorio: false, ok: tem(u.portfolioTexto || u.portfolio) }
     );
   }
 
@@ -3587,7 +3593,11 @@ window.avaliarCompletudePerfil = function(usuario) {
 };
 
 function montarMensagemBotOnboarding(usuario, analise) {
-  const primeiroNome = (usuario && usuario.nome) ? usuario.nome.split(' ')[0] : 'Freelancer';
+  const tipoConta = String(usuario && (usuario.tipo || usuario.tipo_usuario || '')).toLowerCase();
+  const ehEmpresa = tipoConta === 'contratante' || tipoConta === 'cliente' || tipoConta === 'empresa' ||
+    String(usuario && usuario.tipoPessoa || '').toUpperCase() === 'PJ';
+  const nome = usuario && (ehEmpresa ? (usuario.empresa || usuario.nome) : usuario.nome);
+  const primeiroNome = nome ? nome.split(' ')[0] : (ehEmpresa ? 'Empresa' : 'Freelancer');
   const lista = analise.faltando.map(f => `• ${f.label}`).join('\n');
   return `Olá, ${primeiroNome}! 🤖 Eu sou o Assistente FreeLink.\n\nSeu perfil está em ${analise.percentual}%. Para aparecer melhor nas buscas e transmitir confiança, ainda falta preencher:\n${lista}\n\nClique no botão abaixo para completar seu perfil em menos de 2 minutos!`;
 }
@@ -3747,7 +3757,11 @@ function exibirNotificacaoBotGrande(usuario, analise) {
     document.body.appendChild(overlay);
   }
 
-  const primeiroNome = (usuario.nome || 'Olá').split(' ')[0];
+  const tipoConta = String(usuario.tipo || usuario.tipo_usuario || '').toLowerCase();
+  const ehEmpresa = tipoConta === 'contratante' || tipoConta === 'cliente' || tipoConta === 'empresa' ||
+    String(usuario.tipoPessoa || '').toUpperCase() === 'PJ';
+  const nomeExibicao = ehEmpresa ? (usuario.empresa || usuario.nome || 'Empresa') : (usuario.nome || 'Olá');
+  const primeiroNome = nomeExibicao.split(' ')[0];
   const tituloCard = analise.novaConta
     ? `Bem-vindo(a), ${primeiroNome}! Termine seu perfil`
     : `${primeiroNome}, seu perfil ainda está incompleto`;

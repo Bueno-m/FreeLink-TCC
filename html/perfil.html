@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FreeLink | Perfil Profissional</title>
   <link rel="stylesheet" href="../css/Style.css?v=8">
-  <link rel="stylesheet" href="../css/perfil.css?v=3">
+  <link rel="stylesheet" href="../css/perfil.css?v=4">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -99,12 +99,12 @@
           <div class="profile-meta-info">
             <span><i class="fa-solid fa-location-dot"></i> <span id="profileLocation">Localização não informada</span></span>
             <span><i class="fa-regular fa-envelope"></i> <span id="profileEmail">-</span></span>
-            <span><i class="fa-solid fa-shield-halved"></i> Perfil Cadastrado</span>
+            <span><i class="fa-solid fa-shield-halved"></i> <span id="profileRecordLabel">Perfil Cadastrado</span></span>
           </div>
         </div>
 
         <!-- Quick Stats Bar (Métricas Rápidas) -->
-        <div class="profile-quick-stats">
+        <div class="profile-quick-stats hidden" id="profileFreelancerStats" data-profile-kind="freelancer">
           <div class="stat-item">
             <span class="stat-label">Taxa Horária</span>
             <div class="stat-value highlight-green" id="dispTaxa">-</div>
@@ -123,13 +123,28 @@
           </div>
         </div>
 
+        <div class="profile-company-facts hidden" id="profileCompanyFacts" data-profile-kind="company">
+          <div class="company-fact">
+            <span class="stat-label">Setor</span>
+            <strong id="companyFactSector">Não informado</strong>
+          </div>
+          <div class="company-fact">
+            <span class="stat-label">Porte</span>
+            <strong id="companyFactSize">Não informado</strong>
+          </div>
+          <div class="company-fact">
+            <span class="stat-label">Orçamento médio</span>
+            <strong id="companyFactBudget">Não informado</strong>
+          </div>
+        </div>
+
       </div>
     </section>
 
     <!-- ====================================================================
          2. GRID DE CONTEÚDO (2 COLUNAS LIMPAS)
          ==================================================================== -->
-    <div class="profile-grid-layout">
+    <div class="profile-grid-layout hidden" id="profileFreelancerContent" data-profile-kind="freelancer">
       
       <!-- COLUNA LATERAL ESQUERDA -->
       <aside class="profile-sidebar-clean">
@@ -244,6 +259,69 @@
       </div>
     </div>
 
+    <div class="profile-company-layout hidden" id="profileCompanyContent" data-profile-kind="company">
+      <aside class="profile-sidebar-clean">
+        <section class="clean-card">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title"><i class="fa-regular fa-building"></i> Dados da empresa</h3>
+          </div>
+          <dl class="company-profile-details">
+            <div>
+              <dt>Razão social</dt>
+              <dd id="companyLegalName">Não informado</dd>
+            </div>
+            <div id="companyRepresentativeRow" class="hidden">
+              <dt>Responsável</dt>
+              <dd id="companyRepresentative"></dd>
+            </div>
+            <div id="companyRoleRow" class="hidden">
+              <dt>Cargo do responsável</dt>
+              <dd id="companyRepresentativeRole"></dd>
+            </div>
+          </dl>
+          <button type="button" class="btn-add-section edit-only" onclick="openEditModal(null, 'pane-company')">
+            <i class="fa-solid fa-pen"></i> Editar dados da empresa
+          </button>
+        </section>
+
+        <section class="clean-card hidden" id="companyOnlineCard">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title"><i class="fa-solid fa-link"></i> Presença online</h3>
+          </div>
+          <div class="company-online-links">
+            <a class="company-online-link hidden" id="companyWebsiteLink" target="_blank" rel="noopener noreferrer">
+              <i class="fa-solid fa-globe"></i> <span>Site</span>
+            </a>
+            <a class="company-online-link hidden" id="companySocialLink" target="_blank" rel="noopener noreferrer">
+              <i class="fa-solid fa-share-nodes"></i> <span>Rede social</span>
+            </a>
+          </div>
+        </section>
+      </aside>
+
+      <div class="profile-main-clean">
+        <section class="clean-card">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title"><i class="fa-regular fa-file-lines"></i> Sobre a empresa</h3>
+            <button type="button" class="btn-card-action edit-only" onclick="openEditModal(null, 'pane-company')" title="Editar apresentação da empresa">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
+          <div id="companyAboutSection"></div>
+        </section>
+
+        <section class="clean-card">
+          <div class="clean-card-header">
+            <h3 class="clean-card-title"><i class="fa-solid fa-handshake"></i> Serviços que contratamos</h3>
+            <button type="button" class="btn-card-action edit-only" onclick="openEditModal(null, 'pane-company')" title="Editar serviços contratados">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
+          <div id="companyServicesSection"></div>
+        </section>
+      </div>
+    </div>
+
   </main>
 
   <!-- ====================================================================
@@ -255,8 +333,8 @@
       <!-- Cabeçalho do Modal -->
       <div class="modern-modal-header">
         <div class="modal-header-titles">
-          <h2><i class="fa-solid fa-user-pen" style="color: var(--primary-color);"></i> Editar Meu Perfil</h2>
-          <p>Personalize suas informações públicas, competências e apresentação</p>
+          <h2><i class="fa-solid fa-user-pen" style="color: var(--primary-color);"></i> <span id="editModalTitle">Editar Meu Perfil</span></h2>
+          <p id="editModalDescription">Personalize suas informações públicas, competências e apresentação</p>
         </div>
         <button type="button" class="modern-modal-close" onclick="closeEditModal()" title="Fechar modal (Esc)">
           <i class="fa-solid fa-xmark"></i>
@@ -268,19 +346,22 @@
         <button type="button" class="modal-tab-btn active" data-tab="pane-identificacao" onclick="switchModalTab('pane-identificacao')">
           <i class="fa-regular fa-id-card"></i> Identificação
         </button>
+        <button type="button" class="modal-tab-btn hidden" data-profile-kind="company" data-tab="pane-company" onclick="switchModalTab('pane-company')">
+          <i class="fa-regular fa-building"></i> Dados da empresa
+        </button>
         <button type="button" class="modal-tab-btn" data-tab="pane-midia" onclick="switchModalTab('pane-midia')">
           <i class="fa-regular fa-image"></i> Fotos &amp; Mídia
         </button>
-        <button type="button" class="modal-tab-btn" data-tab="pane-condicoes" onclick="switchModalTab('pane-condicoes')">
+        <button type="button" class="modal-tab-btn" data-profile-kind="freelancer" data-tab="pane-condicoes" onclick="switchModalTab('pane-condicoes')">
           <i class="fa-regular fa-clock"></i> Condições
         </button>
-        <button type="button" class="modal-tab-btn" data-tab="pane-sobre" onclick="switchModalTab('pane-sobre')">
+        <button type="button" class="modal-tab-btn" data-profile-kind="freelancer" data-tab="pane-sobre" onclick="switchModalTab('pane-sobre')">
           <i class="fa-regular fa-file-lines"></i> Sobre Mim
         </button>
-        <button type="button" class="modal-tab-btn" data-tab="pane-skills" onclick="switchModalTab('pane-skills')">
+        <button type="button" class="modal-tab-btn" data-profile-kind="freelancer" data-tab="pane-skills" onclick="switchModalTab('pane-skills')">
           <i class="fa-solid fa-tags"></i> Competências
         </button>
-        <button type="button" class="modal-tab-btn" data-tab="pane-experiencia" onclick="switchModalTab('pane-experiencia')">
+        <button type="button" class="modal-tab-btn" data-profile-kind="freelancer" data-tab="pane-experiencia" onclick="switchModalTab('pane-experiencia')">
           <i class="fa-solid fa-briefcase"></i> Carreira &amp; Portfólio
         </button>
       </div>
@@ -294,21 +375,21 @@
           <div id="pane-identificacao" class="modal-tab-pane active">
             <div class="tip-box-clean">
               <i class="fa-solid fa-circle-info"></i>
-              <div>Seu nome e especialidade aparecem em destaque nas buscas de freelancers, cards de projetos e propostas no FreeLink.</div>
+              <div id="editIdentityTip">Seu nome e especialidade aparecem em destaque nas buscas de freelancers, cards de projetos e propostas no FreeLink.</div>
             </div>
 
             <div class="modal-section-title"><i class="fa-regular fa-id-card"></i> Dados Pessoais &amp; Visibilidade</div>
             
             <div class="modal-grid-2">
               <label class="input-group">
-                <span>Nome Completo *</span>
+                <span id="editNameLabel">Nome Completo *</span>
                 <div class="input-wrapper">
                   <i class="fa-regular fa-user"></i>
                   <input type="text" id="editName" required placeholder="Seu nome completo">
                 </div>
               </label>
 
-              <label class="input-group">
+              <label class="input-group" data-profile-kind="freelancer">
                 <span>Título / Especialidade Principal</span>
                 <div class="input-wrapper">
                   <i class="fa-solid fa-briefcase"></i>
@@ -318,7 +399,7 @@
             </div>
 
             <div class="modal-grid-2" style="margin-top: 14px;">
-              <label class="input-group">
+              <label class="input-group" data-profile-kind="freelancer">
                 <span>Tipo de Conta</span>
                 <div class="input-wrapper">
                   <i class="fa-solid fa-user-gear"></i>
@@ -330,13 +411,103 @@
               </label>
 
               <label class="input-group">
-                <span>Cidade e Estado / Localização</span>
+                <span id="editLocationLabel">Cidade e Estado / Localização</span>
                 <div class="input-wrapper">
                   <i class="fa-solid fa-location-dot"></i>
                   <input type="text" id="editLocation" placeholder="Ex: São Paulo - SP, Remoto...">
                 </div>
               </label>
             </div>
+          </div>
+
+          <div id="pane-company" class="modal-tab-pane hidden" data-profile-kind="company">
+            <div class="tip-box-clean">
+              <i class="fa-solid fa-circle-info"></i>
+              <div>Essas informações ajudam freelancers a conhecer sua empresa. O CNPJ fica privado e não aparece no perfil público.</div>
+            </div>
+
+            <div class="modal-section-title"><i class="fa-regular fa-building"></i> Identificação empresarial</div>
+            <div class="modal-grid-2">
+              <label class="input-group">
+                <span>Razão social</span>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-building"></i>
+                  <input type="text" id="editCompanyLegalName" placeholder="Razão social da empresa">
+                </div>
+              </label>
+              <label class="input-group">
+                <span>CNPJ (privado)</span>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-id-card"></i>
+                  <input type="text" id="editCompanyCnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00">
+                </div>
+              </label>
+              <label class="input-group">
+                <span>Setor de atuação</span>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-industry"></i>
+                  <input type="text" id="editCompanySector" placeholder="Ex.: Tecnologia, Saúde, Educação">
+                </div>
+              </label>
+              <label class="input-group">
+                <span>Porte da empresa</span>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-chart-bar"></i>
+                  <input type="text" id="editCompanySize" placeholder="Ex.: Pequena, Média ou Grande">
+                </div>
+              </label>
+              <label class="input-group">
+                <span>Orçamento médio</span>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-wallet"></i>
+                  <input type="text" id="editCompanyBudget" placeholder="Ex.: R$ 1.000 a R$ 5.000">
+                </div>
+              </label>
+              <label class="input-group">
+                <span>Responsável</span>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-user"></i>
+                  <input type="text" id="editCompanyRepresentative" placeholder="Nome do responsável">
+                </div>
+              </label>
+              <label class="input-group">
+                <span>Cargo do responsável</span>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-briefcase"></i>
+                  <input type="text" id="editCompanyRepresentativeRole" placeholder="Ex.: Gerente de Projetos">
+                </div>
+              </label>
+              <label class="input-group">
+                <span>Site</span>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-globe"></i>
+                  <input type="url" id="editCompanyWebsite" placeholder="https://www.suaempresa.com.br">
+                </div>
+              </label>
+              <label class="input-group">
+                <span>Rede social</span>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-share-nodes"></i>
+                  <input type="url" id="editCompanySocial" placeholder="https://www.linkedin.com/company/...">
+                </div>
+              </label>
+            </div>
+
+            <div class="modal-section-title"><i class="fa-regular fa-file-lines"></i> Apresentação e serviços</div>
+            <label class="input-group">
+              <span>Sobre a empresa</span>
+              <div class="input-wrapper" style="align-items: flex-start; padding-top: 10px;">
+                <i class="fa-solid fa-quote-left" style="margin-top: 4px;"></i>
+                <textarea id="editCompanyAbout" rows="5" placeholder="Apresente a empresa, sua atuação e seus objetivos." style="width: 100%; border: none; outline: none; background: transparent; padding: 4px 0 10px; font-family: inherit; font-size: 0.95rem; color: var(--text-color); resize: vertical; min-height: 120px;"></textarea>
+              </div>
+            </label>
+            <label class="input-group">
+              <span>Serviços que a empresa costuma contratar</span>
+              <div class="input-wrapper" style="align-items: flex-start; padding-top: 10px;">
+                <i class="fa-solid fa-handshake" style="margin-top: 4px;"></i>
+                <textarea id="editCompanyServices" rows="3" placeholder="Ex.: Desenvolvimento de sites, design, marketing digital" style="width: 100%; border: none; outline: none; background: transparent; padding: 4px 0 10px; font-family: inherit; font-size: 0.95rem; color: var(--text-color); resize: vertical;"></textarea>
+              </div>
+            </label>
           </div>
 
           <!-- ==========================================
@@ -390,7 +561,7 @@
           <!-- ==========================================
                ABA 3: VALORES & CONDIÇÕES
                ========================================== -->
-          <div id="pane-condicoes" class="modal-tab-pane">
+          <div id="pane-condicoes" class="modal-tab-pane" data-profile-kind="freelancer">
             <div class="tip-box-clean">
               <i class="fa-solid fa-handshake"></i>
               <div>Defina suas condições de atendimento para alinhar expectativas com clientes logo no primeiro contato.</div>
@@ -458,7 +629,7 @@
           <!-- ==========================================
                ABA 4: SOBRE MIM (APRESENTAÇÃO)
                ========================================== -->
-          <div id="pane-sobre" class="modal-tab-pane">
+          <div id="pane-sobre" class="modal-tab-pane" data-profile-kind="freelancer">
             <div class="tip-box-clean">
               <i class="fa-solid fa-pen-nib"></i>
               <div>Dica: Conte um resumo sobre sua trajetória, metodologia de desenvolvimento e diferenciais que você oferece.</div>
@@ -482,7 +653,7 @@
           <!-- ==========================================
                ABA 5: COMPETÊNCIAS & HABILIDADES
                ========================================== -->
-          <div id="pane-skills" class="modal-tab-pane">
+          <div id="pane-skills" class="modal-tab-pane" data-profile-kind="freelancer">
             <div class="tip-box-clean">
               <i class="fa-solid fa-tags"></i>
               <div>Adicione suas principais tecnologias, linguagens e ferramentas. Elas serão exibidas como pílulas no seu perfil.</div>
@@ -528,7 +699,7 @@
           <!-- ==========================================
                ABA 6: CARREIRA & PORTFÓLIO
                ========================================== -->
-          <div id="pane-experiencia" class="modal-tab-pane">
+          <div id="pane-experiencia" class="modal-tab-pane" data-profile-kind="freelancer">
             <div class="tip-box-clean">
               <i class="fa-solid fa-briefcase"></i>
               <div>Destaque seus projetos mais relevantes e sua trajetória para impressionar potenciais contratantes.</div>
@@ -578,7 +749,7 @@
   </div>
 
   <!-- SCRIPT PRINCIPAL & CONTROLADOR DO PERFIL -->
-  <script src="../js/main.js?v=14"></script>
+  <script src="../js/main.js?v=15"></script>
   <script>
     // ====================================================================
     // GERENCIAMENTO DINÂMICO E LIMPO DO PERFIL (FREELINK)
@@ -601,6 +772,84 @@
     // Variáveis em memória para remoção intencional de mídias
     let fotoRemovida = false;
     let bannerRemovido = false;
+
+    function ehPerfilEmpresa(usuario) {
+      const tipo = String(usuario && (usuario.tipo || usuario.tipo_usuario || '')).toLowerCase();
+      return tipo === 'contratante' || tipo === 'cliente' || tipo === 'empresa' ||
+        String(usuario && usuario.tipoPessoa || '').toUpperCase() === 'PJ';
+    }
+
+    function configurarTipoPerfil(empresa) {
+      document.querySelectorAll('[data-profile-kind]').forEach(element => {
+        element.classList.toggle('hidden', element.dataset.profileKind !== (empresa ? 'company' : 'freelancer'));
+      });
+    }
+
+    function definirTexto(id, valor, fallback) {
+      const elemento = document.getElementById(id);
+      if (elemento) elemento.textContent = valor && String(valor).trim() ? String(valor).trim() : fallback;
+    }
+
+    function configurarLinkEmpresa(id, valor) {
+      const link = document.getElementById(id);
+      if (!link) return false;
+
+      const endereco = String(valor || '').trim();
+      if (!endereco) {
+        link.classList.add('hidden');
+        return false;
+      }
+
+      try {
+        const url = new URL(/^https?:\/\//i.test(endereco) ? endereco : `https://${endereco}`);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('Protocolo de link inválido');
+        link.href = url.href;
+        const texto = link.querySelector('span');
+        if (texto) texto.textContent = url.hostname.replace(/^www\./i, '');
+        link.classList.remove('hidden');
+        return true;
+      } catch (error) {
+        link.classList.add('hidden');
+        return false;
+      }
+    }
+
+    function renderizarPerfilEmpresa(usuario) {
+      const setor = usuario.setor || String(usuario.especialidade || '').replace(/^Empresa\s*[·-]\s*/i, '');
+      definirTexto('companyFactSector', setor, 'Não informado');
+      definirTexto('companyFactSize', usuario.porte, 'Não informado');
+      definirTexto('companyFactBudget', usuario.orcamentoMedio, 'Não informado');
+      definirTexto('companyLegalName', usuario.razaoSocial, 'Não informado');
+      definirTexto('companyRepresentative', usuario.responsavel, '');
+      definirTexto('companyRepresentativeRole', usuario.cargoResponsavel, '');
+
+      const representanteRow = document.getElementById('companyRepresentativeRow');
+      if (representanteRow) representanteRow.classList.toggle('hidden', !String(usuario.responsavel || '').trim());
+      const cargoRow = document.getElementById('companyRoleRow');
+      if (cargoRow) cargoRow.classList.toggle('hidden', !String(usuario.cargoResponsavel || '').trim());
+
+      const sobre = String(usuario.sobreEmpresa || usuario.bio || '').trim();
+      const sobreSection = document.getElementById('companyAboutSection');
+      if (sobreSection) {
+        sobreSection.innerHTML = sobre
+          ? `<div class="bio-formatted-text">${escapeHtml(sobre)}</div>`
+          : '<div class="empty-state-clean"><p class="empty-state-text">Adicione uma apresentação para que freelancers conheçam melhor sua empresa.</p></div>';
+      }
+
+      const servicos = String(usuario.servicosContratados || '').split(/[\n,;]+/).map(item => item.trim()).filter(Boolean);
+      const servicosSection = document.getElementById('companyServicesSection');
+      if (servicosSection) {
+        servicosSection.innerHTML = servicos.length
+          ? `<div class="company-service-tags">${servicos.map(item => `<span class="skill-pill">${escapeHtml(item)}</span>`).join('')}</div>`
+          : '<div class="empty-state-clean"><p class="empty-state-text">Informe os serviços que sua empresa costuma contratar.</p></div>';
+      }
+
+      const possuiSite = configurarLinkEmpresa('companyWebsiteLink', usuario.site);
+      const possuiRedeSocial = configurarLinkEmpresa('companySocialLink', usuario.redeSocial);
+      const possuiLinks = possuiSite || possuiRedeSocial;
+      const linksCard = document.getElementById('companyOnlineCard');
+      if (linksCard) linksCard.classList.toggle('hidden', !possuiLinks);
+    }
 
     function obterUsuarioPerfil() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -645,6 +894,10 @@
       const usuario = usuarioForcado || obterUsuarioPerfil();
       if (!usuario) return;
 
+      const perfilEmpresa = ehPerfilEmpresa(usuario);
+      const nomePerfil = perfilEmpresa ? (usuario.empresa || usuario.nome || 'Sua empresa') : (usuario.nome || 'Seu Nome');
+      configurarTipoPerfil(perfilEmpresa);
+
       const urlParams = new URLSearchParams(window.location.search);
       const idParam = urlParams.get('id');
       const emailParam = urlParams.get('email');
@@ -661,7 +914,7 @@
           banner.innerHTML = `
             <span>
               <i class="fa-solid fa-user-check"></i> 
-              <strong>Perfil Público:</strong> Você está visualizando o perfil de <strong>${escapeHtml(usuario.nome)}</strong>.
+              <strong>Perfil Público:</strong> Você está visualizando o perfil de <strong>${escapeHtml(nomePerfil)}</strong>.
             </span>
             <button type="button" class="btn-exit-preview" onclick="window.history.length > 1 ? window.history.back() : window.location.href='index.html'">
               <i class="fa-solid fa-arrow-left"></i> Voltar ao FreeLink
@@ -672,7 +925,7 @@
           btnChatPub.style.display = 'inline-flex';
           btnChatPub.onclick = () => {
             if (typeof abrirChatDireto === 'function') {
-              abrirChatDireto(usuario.email, usuario.nome, 'Contato via Perfil');
+              abrirChatDireto(usuario.email, nomePerfil, 'Contato via Perfil');
             }
           };
         }
@@ -683,7 +936,7 @@
       // 1. Nome
       const elemNome = document.getElementById('profileName');
       if (elemNome) {
-        elemNome.textContent = usuario.nome || 'Seu Nome';
+        elemNome.textContent = nomePerfil;
       }
 
       // 2. Email
@@ -701,14 +954,18 @@
       // 4. Tipo / Status
       const elemStatus = document.getElementById('profileStatusText');
       if (elemStatus) {
-        elemStatus.textContent = usuario.tipo === 'contratante' ? 'Contratante Ativo' : 'Freelancer Ativo';
+        elemStatus.textContent = perfilEmpresa ? 'Empresa contratante' : 'Freelancer Ativo';
       }
+      definirTexto('profileRecordLabel', perfilEmpresa ? 'Perfil empresarial' : 'Perfil cadastrado', 'Perfil cadastrado');
 
       // 5. Especialidade
       const elemEspec = document.getElementById('profileSpecialty');
       if (elemEspec) {
-        if (usuario.especialidade && usuario.especialidade.trim() !== '') {
-          elemEspec.textContent = usuario.especialidade;
+        const tituloPerfil = perfilEmpresa
+          ? (usuario.setor || String(usuario.especialidade || '').replace(/^Empresa\s*[·-]\s*/i, '') || 'Empresa contratante')
+          : usuario.especialidade;
+        if (tituloPerfil && tituloPerfil.trim() !== '') {
+          elemEspec.textContent = tituloPerfil;
           elemEspec.style.color = 'var(--primary-color)';
         } else {
           elemEspec.textContent = 'Adicione sua especialidade / título profissional';
@@ -721,12 +978,12 @@
       const foto = usuario.foto || usuario.avatar;
       if (containerAvatar) {
         if (foto && foto.trim() !== '') {
-          containerAvatar.innerHTML = `<img src="${foto}" alt="${usuario.nome || 'Avatar'}" class="profile-avatar-img">`;
+          containerAvatar.innerHTML = `<img src="${escapeHtml(foto)}" alt="${escapeHtml(nomePerfil)}" class="profile-avatar-img">`;
         } else {
-          const inicial = (usuario.nome && usuario.nome.trim() !== '') ? usuario.nome.charAt(0).toUpperCase() : 'U';
+          const inicial = nomePerfil.trim() ? nomePerfil.charAt(0).toUpperCase() : 'U';
           containerAvatar.innerHTML = `
             <div class="profile-avatar-default">
-              <span>${inicial}</span>
+              <span>${escapeHtml(inicial)}</span>
             </div>
           `;
         }
@@ -766,6 +1023,8 @@
           elemAval.textContent = 'Sem avaliações';
         }
       }
+
+      if (perfilEmpresa) renderizarPerfilEmpresa(usuario);
 
       // 9. Sobre Mim
       const elemBio = document.getElementById('bioSection');
@@ -1039,8 +1298,9 @@
         const el = document.getElementById(id);
         if (el) el.value = val || '';
       };
+      const perfilEmpresa = ehPerfilEmpresa(usuario);
 
-      setVal('editName', usuario.nome || '');
+      setVal('editName', perfilEmpresa ? (usuario.empresa || usuario.nome || '') : (usuario.nome || ''));
       setVal('editSpecialty', usuario.especialidade || '');
       setVal('editLocation', usuario.localizacao || '');
       setVal('editHourlyRate', usuario.taxaHoraria || '');
@@ -1052,6 +1312,27 @@
       setVal('editCertifications', usuario.certificações || usuario.certificacoes || '');
       setVal('editExperience', usuario.experienciaTexto || '');
       setVal('editPortfolio', usuario.portfolioTexto || usuario.portfolio || '');
+      setVal('editCompanyLegalName', usuario.razaoSocial || '');
+      setVal('editCompanyCnpj', usuario.cnpj || usuario.documento || '');
+      setVal('editCompanySector', usuario.setor || '');
+      setVal('editCompanySize', usuario.porte || '');
+      setVal('editCompanyBudget', usuario.orcamentoMedio || '');
+      setVal('editCompanyRepresentative', usuario.responsavel || '');
+      setVal('editCompanyRepresentativeRole', usuario.cargoResponsavel || '');
+      setVal('editCompanyWebsite', usuario.site || '');
+      setVal('editCompanySocial', usuario.redeSocial || '');
+      setVal('editCompanyAbout', usuario.sobreEmpresa || usuario.bio || '');
+      setVal('editCompanyServices', usuario.servicosContratados || '');
+
+      definirTexto('editModalTitle', perfilEmpresa ? 'Editar Perfil da Empresa' : 'Editar Meu Perfil', '');
+      definirTexto('editModalDescription', perfilEmpresa
+        ? 'Atualize os dados e a apresentação pública da sua empresa'
+        : 'Personalize suas informações públicas, competências e apresentação', '');
+      definirTexto('editNameLabel', perfilEmpresa ? 'Nome fantasia / nome de exibição *' : 'Nome Completo *', '');
+      definirTexto('editLocationLabel', perfilEmpresa ? 'Localização da empresa' : 'Cidade e Estado / Localização', '');
+      definirTexto('editIdentityTip', perfilEmpresa
+        ? 'O nome da empresa e a localização aparecem no cabeçalho do perfil.'
+        : 'Seu nome e especialidade aparecem em destaque nas buscas de freelancers, cards de projetos e propostas no FreeLink.', '');
 
       const selTipo = document.getElementById('editTipo');
       if (selTipo) selTipo.value = usuario.tipo || 'freelancer';
@@ -1119,11 +1400,12 @@
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
-        if (targetTabId) {
-          switchModalTab(targetTabId);
-        } else {
-          switchModalTab('pane-identificacao');
+        let abaInicial = targetTabId || 'pane-identificacao';
+        const abaSolicitada = document.getElementById(abaInicial);
+        if (!abaSolicitada || abaSolicitada.classList.contains('hidden')) {
+          abaInicial = ehPerfilEmpresa(obterUsuarioPerfil()) ? 'pane-company' : 'pane-identificacao';
         }
+        switchModalTab(abaInicial);
 
         if (targetInputId) {
           setTimeout(() => {
@@ -1478,21 +1760,59 @@
           }
 
           try {
-            const dadosAtualizados = {
-              nome: document.getElementById('editName').value.trim(),
-              especialidade: document.getElementById('editSpecialty').value.trim(),
-              tipo: document.getElementById('editTipo') ? document.getElementById('editTipo').value : 'freelancer',
-              localizacao: document.getElementById('editLocation').value.trim(),
-              taxaHoraria: document.getElementById('editHourlyRate').value.trim(),
-              disponibilidade: document.getElementById('editAvailability').value.trim(),
-              tempoResposta: document.getElementById('editResponseTime').value.trim(),
-              bio: document.getElementById('editBio').value.trim(),
-              habilidades: document.getElementById('editSkills').value.trim(),
-              idiomas: document.getElementById('editLanguages').value.trim(),
-              certificações: document.getElementById('editCertifications').value.trim(),
-              experienciaTexto: document.getElementById('editExperience').value.trim(),
-              portfolioTexto: document.getElementById('editPortfolio').value.trim()
-            };
+            const usuarioAtual = obterUsuarioPerfil() || {};
+            const perfilEmpresa = ehPerfilEmpresa(usuarioAtual);
+            let dadosAtualizados;
+
+            if (perfilEmpresa) {
+              const cnpj = document.getElementById('editCompanyCnpj').value.trim();
+              if (cnpj && typeof validarCNPJ === 'function' && !validarCNPJ(cnpj)) {
+                if (typeof showToast === 'function') showToast('Informe um CNPJ válido ou deixe o campo vazio.', 'error');
+                else alert('Informe um CNPJ válido ou deixe o campo vazio.');
+                return;
+              }
+
+              const nomeEmpresa = document.getElementById('editName').value.trim();
+              const setor = document.getElementById('editCompanySector').value.trim();
+              const sobreEmpresa = document.getElementById('editCompanyAbout').value.trim();
+              dadosAtualizados = {
+                nome: nomeEmpresa,
+                empresa: nomeEmpresa,
+                tipo: usuarioAtual.tipo || 'contratante',
+                tipoPessoa: 'PJ',
+                localizacao: document.getElementById('editLocation').value.trim(),
+                razaoSocial: document.getElementById('editCompanyLegalName').value.trim(),
+                cnpj: cnpj,
+                documento: cnpj,
+                setor: setor,
+                porte: document.getElementById('editCompanySize').value.trim(),
+                orcamentoMedio: document.getElementById('editCompanyBudget').value.trim(),
+                responsavel: document.getElementById('editCompanyRepresentative').value.trim(),
+                cargoResponsavel: document.getElementById('editCompanyRepresentativeRole').value.trim(),
+                site: document.getElementById('editCompanyWebsite').value.trim(),
+                redeSocial: document.getElementById('editCompanySocial').value.trim(),
+                sobreEmpresa: sobreEmpresa,
+                bio: sobreEmpresa,
+                servicosContratados: document.getElementById('editCompanyServices').value.trim(),
+                especialidade: setor ? `Empresa · ${setor}` : 'Empresa contratante'
+              };
+            } else {
+              dadosAtualizados = {
+                nome: document.getElementById('editName').value.trim(),
+                especialidade: document.getElementById('editSpecialty').value.trim(),
+                tipo: document.getElementById('editTipo') ? document.getElementById('editTipo').value : 'freelancer',
+                localizacao: document.getElementById('editLocation').value.trim(),
+                taxaHoraria: document.getElementById('editHourlyRate').value.trim(),
+                disponibilidade: document.getElementById('editAvailability').value.trim(),
+                tempoResposta: document.getElementById('editResponseTime').value.trim(),
+                bio: document.getElementById('editBio').value.trim(),
+                habilidades: document.getElementById('editSkills').value.trim(),
+                idiomas: document.getElementById('editLanguages').value.trim(),
+                certificações: document.getElementById('editCertifications').value.trim(),
+                experienciaTexto: document.getElementById('editExperience').value.trim(),
+                portfolioTexto: document.getElementById('editPortfolio').value.trim()
+              };
+            }
 
             if (fotoRemovida) {
               dadosAtualizados.foto = '';

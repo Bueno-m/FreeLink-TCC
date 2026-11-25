@@ -255,6 +255,29 @@ body.dark-mode .profile-cover {
   border-top: 1px solid var(--border-color);
 }
 
+.profile-company-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-color);
+}
+
+.company-fact {
+  min-width: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+
+.company-fact strong {
+  display: block;
+  color: var(--text-heading);
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
 .stat-item {
   background: var(--bg-input);
   border: 1px solid var(--border-color);
@@ -296,6 +319,64 @@ body.dark-mode .profile-cover {
   grid-template-columns: 340px 1fr;
   gap: 26px;
   align-items: flex-start;
+}
+
+.profile-company-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 26px;
+  align-items: flex-start;
+}
+
+.company-profile-details {
+  display: grid;
+  gap: 16px;
+  margin: 0 0 20px;
+}
+
+.company-profile-details > div {
+  min-width: 0;
+}
+
+.company-profile-details dt {
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.company-profile-details dd {
+  margin: 0;
+  color: var(--text-heading);
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.company-online-links,
+.company-service-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.company-online-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--primary-color);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.company-online-link:hover {
+  border-color: var(--primary-color);
 }
 
 /* Cards Base */
@@ -1048,7 +1129,8 @@ body.dark-mode .modal-tab-btn:hover {
    ========================================= */
 
 @media (max-width: 900px) {
-  .profile-grid-layout {
+  .profile-grid-layout,
+  .profile-company-layout {
     grid-template-columns: 1fr;
   }
 
@@ -1280,6 +1362,7 @@ body.public-view-mode .profile-cover-btn {
 
   .profile-hero-card,
   .profile-grid-layout,
+  .profile-company-layout,
   .profile-sidebar-clean,
   .profile-main-clean,
   .clean-card {
@@ -1374,6 +1457,16 @@ body.public-view-mode .profile-cover-btn {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     padding-top: 16px;
+  }
+
+  .profile-company-facts {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding-top: 16px;
+  }
+
+  .company-fact {
+    padding: 11px;
   }
 
   .stat-item {
