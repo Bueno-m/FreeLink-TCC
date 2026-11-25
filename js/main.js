@@ -843,21 +843,11 @@ function atualizarInterfaceTemaConfig() {
   const temaAtual = localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
 
   if (btnClaro && btnEscuro) {
-    if (temaAtual === 'dark') {
-      btnEscuro.style.borderColor = 'var(--primary-color)';
-      btnEscuro.style.boxShadow = '0 0 0 2px var(--primary-color)';
-      btnEscuro.style.backgroundColor = 'var(--bg-card)';
-      btnClaro.style.borderColor = 'var(--border-color)';
-      btnClaro.style.boxShadow = 'none';
-      btnClaro.style.backgroundColor = 'var(--bg-input)';
-    } else {
-      btnClaro.style.borderColor = 'var(--primary-color)';
-      btnClaro.style.boxShadow = '0 0 0 2px var(--primary-color)';
-      btnClaro.style.backgroundColor = 'var(--bg-card)';
-      btnEscuro.style.borderColor = 'var(--border-color)';
-      btnEscuro.style.boxShadow = 'none';
-      btnEscuro.style.backgroundColor = 'var(--bg-input)';
-    }
+    const temaClaroAtivo = temaAtual !== 'dark';
+    btnClaro.classList.toggle('is-selected', temaClaroAtivo);
+    btnEscuro.classList.toggle('is-selected', !temaClaroAtivo);
+    btnClaro.setAttribute('aria-pressed', String(temaClaroAtivo));
+    btnEscuro.setAttribute('aria-pressed', String(!temaClaroAtivo));
   }
 }
 
@@ -912,6 +902,7 @@ function atualizarNavbarAutenticacao() {
         <a href="#como-funciona">Como Funciona</a>
         <a href="#categorias">Categorias</a>
         <a href="#projetos-destaque">Vagas em Aberto</a>
+        <a href="#configuracoes-home">Configurações</a>
       `;
     } else {
       navLinks.innerHTML = `
@@ -3814,111 +3805,250 @@ function garantirElementoChat() {
 // 11. TELA DE CONFIGURAÇÕES (configuracoes.html)
 // ====================================================================
 
-window.resetarBancoDados = function() {
-  if (confirm('Deseja restaurar todos os projetos e usuários para os valores padrão do TCC?')) {
-    localStorage.removeItem(STORAGE_KEYS.PROJECTS);
-    localStorage.removeItem(STORAGE_KEYS.USERS);
-    localStorage.removeItem(STORAGE_KEYS.LEGACY_PROJECTS);
-    localStorage.removeItem(STORAGE_KEYS.LEGACY_USERS);
-    salvarProjetos(PROJETOS_SEED);
-    salvarUsuarios(USUARIOS_SEED);
-    setFlashMessage('Dados iniciais restaurados com sucesso!', 'success');
-    window.location.reload();
+window.restaurarPreferencias = function() {
+  if (!confirm('Restaurar o tema, a localização e os avisos para o padrão? Os dados da sua conta não serão apagados.')) return;
+
+  try {
+    localStorage.removeItem(STORAGE_KEYS.THEME);
+    localStorage.removeItem(STORAGE_KEYS.LOCATION);
+    localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
+    document.body.classList.remove('dark-mode');
+    atualizarLogosTema('light');
+    atualizarInterfaceTemaConfig();
+
+    const inputLocalizacao = document.getElementById('input-localizacao');
+    const statusLocalizacao = document.getElementById('status-localizacao');
+    const checkProjetos = document.getElementById('check-notif-projetos');
+    const checkPropostas = document.getElementById('check-notif-propostas');
+    const statusNotificacoes = document.getElementById('status-notificacoes');
+
+    if (inputLocalizacao) inputLocalizacao.value = '';
+    if (statusLocalizacao) statusLocalizacao.textContent = 'Nenhuma localização salva neste navegador.';
+    if (checkProjetos) checkProjetos.checked = true;
+    if (checkPropostas) checkPropostas.checked = true;
+    if (statusNotificacoes) statusNotificacoes.textContent = 'Preferências restauradas para o padrão.';
+    showToast('Preferências restauradas. Os dados da sua conta foram mantidos.', 'success');
+  } catch (error) {
+    console.error('Erro ao restaurar preferências:', error);
+    showToast('Não foi possível restaurar as preferências neste navegador.', 'error');
   }
 };
 
 window.dispararNotificacaoTeste = function() {
-  showToast('🔔 [Notificação Freelink]: Nova proposta recebida no seu projeto!', 'info');
+  if (typeof window.Notification === 'undefined' || window.Notification.permission !== 'granted') {
+    showToast('O aviso interno está funcionando. Ative as notificações do navegador para testar um aviso do sistema.', 'info');
+    return;
+  }
+
+  try {
+    new window.Notification('FreeLink', {
+      body: 'As notificações do navegador estão funcionando.'
+    });
+  } catch (error) {
+    console.error('Erro ao exibir notificação de teste:', error);
+    showToast('Não foi possível exibir a notificação de teste.', 'error');
+  }
+};
+
+function atualizarStatusPermissaoNotificacoes() {
+  const status = document.getElementById('status-permissao-notificacoes');
+  const botao = document.getElementById('btn-permitir-notificacoes');
+  if (!status || !botao) return;
+
+  if (typeof window.Notification === 'undefined') {
+    status.textContent = 'Este navegador não oferece suporte a notificações do sistema.';
+    botao.disabled = true;
+    return;
+  }
+
+  if (window.Notification.permission === 'granted') {
+    status.textContent = 'Permissão concedida. O aviso de teste poderá ser exibido pelo navegador.';
+    botao.disabled = true;
+    botao.innerHTML = '<i class="fa-solid fa-check"></i> Ativado';
+  } else if (window.Notification.permission === 'denied') {
+    status.textContent = 'Permissão bloqueada pelo navegador. Altere-a nas permissões do site.';
+    botao.disabled = true;
+  } else {
+    status.textContent = 'Permita avisos do navegador para testar uma notificação do sistema.';
+  }
+}
+
+window.solicitarPermissaoNotificacoes = async function() {
+  if (typeof window.Notification === 'undefined') {
+    showToast('Este navegador não oferece suporte a notificações do sistema.', 'error');
+    atualizarStatusPermissaoNotificacoes();
+    return;
+  }
+
+  try {
+    const permissao = await window.Notification.requestPermission();
+    atualizarStatusPermissaoNotificacoes();
+    if (permissao === 'granted') {
+      showToast('Permissão para notificações concedida.', 'success');
+    } else if (permissao === 'denied') {
+      showToast('A permissão foi negada. Você pode alterá-la nas configurações do navegador.', 'info');
+    }
+  } catch (error) {
+    console.error('Erro ao solicitar permissão para notificações:', error);
+    showToast('Não foi possível solicitar permissão para notificações.', 'error');
+  }
 };
 
 window.detectarLocalizacao = function() {
   const statusLocalizacao = document.getElementById('status-localizacao');
   if (!navigator.geolocation) {
+    if (statusLocalizacao) statusLocalizacao.textContent = 'Este navegador não oferece suporte à localização. Informe uma cidade manualmente.';
     showToast('Geolocalização não é suportada neste navegador.', 'error');
     return;
   }
 
   if (statusLocalizacao) {
-    statusLocalizacao.innerHTML = `<i class="fa-solid fa-spinner fa-spin" style="color: var(--primary-color);"></i> Detectando localização aproximada...`;
+    statusLocalizacao.textContent = 'Solicitando localização aproximada...';
   }
 
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      const lat = pos.coords.latitude.toFixed(4);
-      const lon = pos.coords.longitude.toFixed(4);
+      const lat = pos.coords.latitude.toFixed(2);
+      const lon = pos.coords.longitude.toFixed(2);
       const locString = `Lat: ${lat}, Long: ${lon}`;
-      localStorage.setItem(STORAGE_KEYS.LOCATION, locString);
-      if (statusLocalizacao) {
-        statusLocalizacao.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--primary-color);"></i> Status: Localização detectada com sucesso (${locString})`;
+      try {
+        localStorage.setItem(STORAGE_KEYS.LOCATION, locString);
+        const inputLocalizacao = document.getElementById('input-localizacao');
+        if (inputLocalizacao) inputLocalizacao.value = locString;
+        if (statusLocalizacao) statusLocalizacao.textContent = `Localização aproximada salva neste navegador: ${locString}`;
+        showToast('Sua localização aproximada foi detectada e salva.', 'success');
+      } catch (error) {
+        console.error('Erro ao salvar localização:', error);
+        if (statusLocalizacao) statusLocalizacao.textContent = 'Não foi possível salvar a localização neste navegador.';
+        showToast('Não foi possível salvar a localização.', 'error');
       }
-      showToast('Sua localização foi detectada e salva!', 'success');
     },
     (err) => {
       console.warn('Erro de geolocalização:', err);
-      const fallbackLoc = 'São Paulo - SP (Automático)';
-      localStorage.setItem(STORAGE_KEYS.LOCATION, fallbackLoc);
-      if (statusLocalizacao) {
-        statusLocalizacao.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--primary-color);"></i> Status: Definido para ${fallbackLoc}`;
-      }
-      showToast('Localização padrão definida com sucesso!', 'info');
+      const mensagens = {
+        1: 'Permissão negada. Você pode informar uma cidade manualmente.',
+        2: 'Não foi possível determinar sua localização. Tente novamente ou informe uma cidade.',
+        3: 'A solicitação expirou. Tente novamente ou informe uma cidade.'
+      };
+      const mensagem = mensagens[err.code] || 'Não foi possível obter sua localização. Informe uma cidade manualmente.';
+      if (statusLocalizacao) statusLocalizacao.textContent = mensagem;
+      showToast(mensagem, 'error');
     },
-    { timeout: 8000 }
+    { timeout: 10000, maximumAge: 300000 }
   );
 };
 
 function configurarTelaConfiguracoes() {
   const btnClaro = document.getElementById('btn-tema-claro');
   const btnEscuro = document.getElementById('btn-tema-escuro');
-  const btnResetarBanco = document.getElementById('btn-resetar-banco');
+  const btnRestaurarPreferencias = document.getElementById('btn-resetar-preferencias');
   const btnTestarNotif = document.getElementById('btn-testar-notificacao');
+  const btnPermitirNotif = document.getElementById('btn-permitir-notificacoes');
+  const usuario = getCurrentUser();
+
+  const nomeUsuario = document.getElementById('config-nome-usuario');
+  const emailUsuario = document.getElementById('config-email-usuario');
+  const tipoUsuario = document.getElementById('config-tipo-usuario');
+  if (nomeUsuario) nomeUsuario.textContent = usuario && usuario.nome ? usuario.nome : 'Usuário FreeLink';
+  if (emailUsuario) emailUsuario.textContent = usuario && usuario.email ? usuario.email : '';
+  if (tipoUsuario) {
+    const tipo = String(usuario && (usuario.tipo || usuario.tipo_usuario) || '').toLowerCase();
+    tipoUsuario.textContent = tipo === 'freelancer' ? 'Freelancer' : (tipo ? 'Contratante' : 'Conta FreeLink');
+  }
+
+  const btnLogout = document.getElementById('btn-logout-settings');
+  if (btnLogout) btnLogout.addEventListener('click', abrirModalConfirmacaoLogout);
 
   if (btnClaro) btnClaro.addEventListener('click', () => aplicarTema('light'));
   if (btnEscuro) btnEscuro.addEventListener('click', () => aplicarTema('dark'));
   atualizarInterfaceTemaConfig();
 
-  if (btnResetarBanco) {
-    btnResetarBanco.addEventListener('click', window.resetarBancoDados);
+  if (btnRestaurarPreferencias) {
+    btnRestaurarPreferencias.addEventListener('click', window.restaurarPreferencias);
   }
 
   if (btnTestarNotif) {
     btnTestarNotif.addEventListener('click', window.dispararNotificacaoTeste);
   }
+  if (btnPermitirNotif) {
+    btnPermitirNotif.addEventListener('click', window.solicitarPermissaoNotificacoes);
+  }
+  atualizarStatusPermissaoNotificacoes();
 
-  // --- Geolocation ---
   const btnLocalizacao = document.getElementById('btn-obter-localizacao');
+  const btnSalvarLocalizacao = document.getElementById('btn-salvar-localizacao');
+  const btnLimparLocalizacao = document.getElementById('btn-limpar-localizacao');
+  const inputLocalizacao = document.getElementById('input-localizacao');
   const statusLocalizacao = document.getElementById('status-localizacao');
-
-  // Carrega localização previamente salva
   const locSalva = localStorage.getItem(STORAGE_KEYS.LOCATION);
-  if (locSalva && statusLocalizacao) {
-    statusLocalizacao.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--primary-color);"></i> Status: Localização ativa (${escapeHtml(locSalva)})`;
+  if (locSalva) {
+    if (inputLocalizacao) inputLocalizacao.value = locSalva;
+    if (statusLocalizacao) statusLocalizacao.textContent = `Localização salva neste navegador: ${locSalva}`;
   }
 
   if (btnLocalizacao) {
     btnLocalizacao.addEventListener('click', window.detectarLocalizacao);
   }
+  if (btnSalvarLocalizacao) {
+    btnSalvarLocalizacao.addEventListener('click', () => {
+      const valor = inputLocalizacao ? inputLocalizacao.value.trim() : '';
+      if (!valor) {
+        showToast('Informe uma cidade ou use a opção de detecção.', 'info');
+        if (inputLocalizacao) inputLocalizacao.focus();
+        return;
+      }
+      try {
+        localStorage.setItem(STORAGE_KEYS.LOCATION, valor);
+        if (statusLocalizacao) statusLocalizacao.textContent = `Localização salva neste navegador: ${valor}`;
+        showToast('Preferência de localização salva.', 'success');
+      } catch (error) {
+        console.error('Erro ao salvar localização:', error);
+        showToast('Não foi possível salvar a localização neste navegador.', 'error');
+      }
+    });
+  }
+  if (btnLimparLocalizacao) {
+    btnLimparLocalizacao.addEventListener('click', () => {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.LOCATION);
+        if (inputLocalizacao) inputLocalizacao.value = '';
+        if (statusLocalizacao) statusLocalizacao.textContent = 'Nenhuma localização salva neste navegador.';
+        showToast('Preferência de localização removida.', 'success');
+      } catch (error) {
+        console.error('Erro ao remover localização:', error);
+        showToast('Não foi possível remover a localização salva.', 'error');
+      }
+    });
+  }
 
-  // --- Notificações ---
   const checkProjetos = document.getElementById('check-notif-projetos');
   const checkPropostas = document.getElementById('check-notif-propostas');
+  const statusNotificacoes = document.getElementById('status-notificacoes');
 
   try {
     const notifsSalvas = JSON.parse(localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) || '{}');
-    if (checkProjetos && typeof notifsSalvas.projetos !== 'undefined') {
-      checkProjetos.checked = notifsSalvas.projetos;
-    }
-    if (checkPropostas && typeof notifsSalvas.propostas !== 'undefined') {
-      checkPropostas.checked = notifsSalvas.propostas;
-    }
-  } catch(e) {}
+    if (checkProjetos) checkProjetos.checked = typeof notifsSalvas.projetos === 'boolean' ? notifsSalvas.projetos : true;
+    if (checkPropostas) checkPropostas.checked = typeof notifsSalvas.propostas === 'boolean' ? notifsSalvas.propostas : true;
+  } catch (error) {
+    console.warn('Não foi possível carregar as preferências de notificação:', error);
+    if (checkProjetos) checkProjetos.checked = true;
+    if (checkPropostas) checkPropostas.checked = true;
+    if (statusNotificacoes) statusNotificacoes.textContent = 'Não foi possível carregar as preferências salvas.';
+  }
 
   function salvarNotificacoes() {
-    const prefs = {
-      projetos: checkProjetos ? checkProjetos.checked : true,
-      propostas: checkPropostas ? checkPropostas.checked : true
-    };
-    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(prefs));
-    showToast('Preferências de notificação salvas!', 'success');
+    try {
+      const prefs = {
+        projetos: checkProjetos ? checkProjetos.checked : true,
+        propostas: checkPropostas ? checkPropostas.checked : true
+      };
+      localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(prefs));
+      if (statusNotificacoes) statusNotificacoes.textContent = 'Preferências salvas neste navegador.';
+    } catch (error) {
+      console.error('Erro ao salvar preferências de notificação:', error);
+      if (statusNotificacoes) statusNotificacoes.textContent = 'Não foi possível salvar as preferências.';
+      showToast('Não foi possível salvar as preferências de notificação.', 'error');
+    }
   }
 
   if (checkProjetos) checkProjetos.addEventListener('change', salvarNotificacoes);

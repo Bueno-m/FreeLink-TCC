@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FreeLink | Configurações</title>
-  <link rel="stylesheet" href="../css/Style.css?v=3">
+  <link rel="stylesheet" href="../css/Style.css?v=4">
   <link rel="stylesheet" href="../css/login.css">
   <!-- Ícones FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -29,135 +29,146 @@
     </div>
   </header>
 
-  <!-- CONTEÚDO PRINCIPAL DE CONFIGURAÇÕES -->
-  <main class="container" style="max-width: 900px; margin: 40px auto;">
-    
-    <div style="margin-bottom: 30px;">
-      <h1 style="font-size: 28px; color: var(--text-heading); margin-bottom: 6px;">
-        <i class="fa-solid fa-gear" style="color: var(--primary-color);"></i> Configurações do Sistema
-      </h1>
-      <p style="color: var(--text-muted); font-size: 15px;">
-        Gerencie as preferências de tema, localização e notificações da sua conta no FreeLink.
-      </p>
-    </div>
-
-    <!-- SEÇÃO 1: APARÊNCIA E TEMA (MODO ESCURO / CLARO) -->
-    <section class="card-section" style="margin-bottom: 25px;">
-      <div class="section-header" style="margin-bottom: 15px;">
-        <h2 class="section-title" style="margin-bottom: 0;">
-          <i class="fa-solid fa-circle-half-stroke"></i> Aparência e Tema
-        </h2>
+  <main class="settings-page">
+    <header class="settings-page-header">
+      <div>
+        <span class="settings-eyebrow">Sua conta</span>
+        <h1><i class="fa-solid fa-gear"></i> Configurações</h1>
+        <p>Gerencie seu perfil, personalize a plataforma e controle suas preferências.</p>
       </div>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
-        Escolha o modo de visualização mais confortável para o seu uso no dia a dia.
-      </p>
+      <a href="index.html" class="settings-back-link"><i class="fa-solid fa-arrow-left"></i> Voltar ao início</a>
+    </header>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
-        <!-- Opção Modo Claro -->
-        <div id="btn-tema-claro" onclick="aplicarTema('light')" style="border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.25s ease; background: var(--bg-input);">
-          <i class="fa-solid fa-sun" style="font-size: 32px; color: #f59e0b; margin-bottom: 10px;"></i>
-          <h3 style="font-size: 16px; margin-bottom: 4px; color: var(--text-heading);">Modo Claro</h3>
-          <p style="font-size: 12px; color: var(--text-muted);">Visual padrão com fundo claro e detalhes verdes</p>
-        </div>
+    <nav class="settings-anchor-nav" aria-label="Seções de configurações">
+      <a href="#conta"><i class="fa-regular fa-user"></i> Conta</a>
+      <a href="#aparencia"><i class="fa-solid fa-circle-half-stroke"></i> Aparência</a>
+      <a href="#localizacao"><i class="fa-solid fa-location-dot"></i> Localização</a>
+      <a href="#notificacoes"><i class="fa-regular fa-bell"></i> Notificações</a>
+      <a href="#privacidade"><i class="fa-solid fa-shield-halved"></i> Dados e privacidade</a>
+    </nav>
 
-        <!-- Opção Modo Escuro -->
-        <div id="btn-tema-escuro" onclick="aplicarTema('dark')" style="border: 2px solid var(--border-color); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.25s ease; background: var(--bg-input);">
-          <i class="fa-solid fa-moon" style="font-size: 32px; color: #6366f1; margin-bottom: 10px;"></i>
-          <h3 style="font-size: 16px; margin-bottom: 4px; color: var(--text-heading);">Modo Escuro</h3>
-          <p style="font-size: 12px; color: var(--text-muted);">Tons escuros para reduzir cansaço visual</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SEÇÃO 2: LOCALIZAÇÃO PRÓPRIA -->
-    <section class="card-section" style="margin-bottom: 25px;">
-      <div class="section-header" style="margin-bottom: 15px;">
-        <h2 class="section-title" style="margin-bottom: 0;">
-          <i class="fa-solid fa-location-crosshairs"></i> Localização Própria
-        </h2>
-      </div>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
-        Utilize a localização do seu dispositivo para encontrar freelancers e projetos próximos a você.
-      </p>
-
-      <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+    <section class="settings-section" id="conta">
+      <div class="settings-section-heading">
+        <span class="settings-section-icon"><i class="fa-regular fa-user"></i></span>
         <div>
-          <h3 style="font-size: 16px; margin-bottom: 4px; color: var(--text-heading);">Usar minha localização atual</h3>
-          <p id="status-localizacao" style="font-size: 13px; color: var(--text-muted);">
-            <i class="fa-solid fa-circle-info" style="color: var(--blue-color);"></i> Status: Localização desativada (Padrão: Remoto)
-          </p>
+          <h2>Minha conta</h2>
+          <p>Confira seus dados e acesse a edição do perfil.</p>
         </div>
-
-        <div style="display: flex; gap: 10px;">
-          <button id="btn-obter-localizacao" onclick="detectarLocalizacao()" type="button" class="social-btn" style="padding: 10px 18px; font-size: 13px; cursor: pointer; width: auto;">
-            <i class="fa-solid fa-location-arrow" style="color: var(--primary-color);"></i> Detectar Agora
-          </button>
+      </div>
+      <div class="settings-account-card">
+        <div class="settings-account-avatar"><i class="fa-solid fa-user"></i></div>
+        <div class="settings-account-info">
+          <strong id="config-nome-usuario">Carregando conta...</strong>
+          <span id="config-email-usuario"></span>
+          <span id="config-tipo-usuario" class="settings-account-role"></span>
+        </div>
+        <div class="settings-actions">
+          <a href="perfil.html" class="settings-button settings-button-primary"><i class="fa-solid fa-pen"></i> Editar perfil</a>
+          <button id="btn-logout-settings" type="button" class="settings-button settings-button-secondary"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sair da conta</button>
         </div>
       </div>
     </section>
 
-    <!-- SEÇÃO 3: NOTIFICAÇÕES DO SITE -->
-    <section class="card-section" style="margin-bottom: 25px;">
-      <div class="section-header" style="margin-bottom: 15px;">
-        <h2 class="section-title" style="margin-bottom: 0;">
-          <i class="fa-regular fa-bell"></i> Notificações do Sistema
-        </h2>
-      </div>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
-        Controle os alertas e avisos que você recebe sobre projetos, propostas e atualizações.
-      </p>
-
-      <div style="display: flex; flex-direction: column; gap: 15px;">
-        <!-- Notificação 1: Novos Projetos -->
-        <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h4 style="font-size: 15px; margin-bottom: 3px; color: var(--text-heading);">Alertas de Novos Projetos</h4>
-            <p style="font-size: 13px; color: var(--text-muted);">Notificar quando novos trabalhos da sua área forem publicados</p>
-          </div>
-          <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="check-notif-projetos" checked style="width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer;">
-          </label>
-        </div>
-
-        <!-- Notificação 2: Novas Propostas -->
-        <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h4 style="font-size: 15px; margin-bottom: 3px; color: var(--text-heading);">Respostas e Propostas</h4>
-            <p style="font-size: 13px; color: var(--text-muted);">Notificar quando um freelancer enviar proposta para o seu projeto</p>
-          </div>
-          <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="check-notif-propostas" checked style="width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer;">
-          </label>
+    <section class="settings-section" id="aparencia">
+      <div class="settings-section-heading">
+        <span class="settings-section-icon"><i class="fa-solid fa-circle-half-stroke"></i></span>
+        <div>
+          <h2>Aparência</h2>
+          <p>Escolha o tema que prefere. Sua seleção fica salva neste navegador.</p>
         </div>
       </div>
-
-      <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
-        <button id="btn-testar-notificacao" onclick="dispararNotificacaoTeste()" type="button" class="login-btn" style="padding: 10px 20px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-bell"></i> Disparar Notificação de Teste
+      <div class="settings-theme-options">
+        <button id="btn-tema-claro" class="settings-theme-option" type="button" aria-pressed="false">
+          <i class="fa-solid fa-sun"></i>
+          <span class="settings-theme-title">Modo claro</span>
+          <span class="settings-theme-description">Visual padrão, com fundo claro.</span>
+        </button>
+        <button id="btn-tema-escuro" class="settings-theme-option" type="button" aria-pressed="false">
+          <i class="fa-solid fa-moon"></i>
+          <span class="settings-theme-title">Modo escuro</span>
+          <span class="settings-theme-description">Tons escuros para ambientes com pouca luz.</span>
         </button>
       </div>
     </section>
 
-    <!-- SEÇÃO 4: GERENCIAMENTO DE CONTA & DADOS DO TCC -->
-    <section class="card-section">
-      <div class="section-header" style="margin-bottom: 15px;">
-        <h2 class="section-title" style="margin-bottom: 0;">
-          <i class="fa-solid fa-database"></i> Dados Locais & Apresentação do TCC
-        </h2>
+    <section class="settings-section" id="localizacao">
+      <div class="settings-section-heading">
+        <span class="settings-section-icon"><i class="fa-solid fa-location-crosshairs"></i></span>
+        <div>
+          <h2>Localização</h2>
+          <p>Salve uma cidade ou use a localização aproximada do dispositivo como preferência.</p>
+        </div>
       </div>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">
-        Como este projeto funciona sem backend através do <strong>LocalStorage</strong>, você pode reiniciar os dados mockados a qualquer momento durante a banca.
-      </p>
-
-      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-        <button id="btn-resetar-banco" onclick="resetarBancoDados()" type="button" class="social-btn" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4); padding: 12px 20px; font-size: 14px; width: auto;">
-          <i class="fa-solid fa-rotate-left"></i> Restaurar Dados Iniciais (Reset)
-        </button>
+      <div class="settings-location-card">
+        <label for="input-localizacao">Cidade ou região</label>
+        <div class="settings-location-controls">
+          <input id="input-localizacao" type="text" maxlength="100" placeholder="Ex.: São Paulo, SP" autocomplete="address-level2">
+          <button id="btn-salvar-localizacao" type="button" class="settings-button settings-button-primary"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+          <button id="btn-obter-localizacao" type="button" class="settings-button settings-button-secondary"><i class="fa-solid fa-location-arrow"></i> Detectar</button>
+          <button id="btn-limpar-localizacao" type="button" class="settings-button settings-button-danger"><i class="fa-regular fa-trash-can"></i> Remover</button>
+        </div>
+        <p id="status-localizacao" class="settings-status" aria-live="polite">Nenhuma localização salva neste navegador.</p>
+        <p class="settings-help-text">A localização detectada é aproximada e só é salva após sua autorização. Essa preferência não altera o endereço do seu perfil.</p>
       </div>
     </section>
 
+    <section class="settings-section" id="notificacoes">
+      <div class="settings-section-heading">
+        <span class="settings-section-icon"><i class="fa-regular fa-bell"></i></span>
+        <div>
+          <h2>Notificações</h2>
+          <p>Escolha quais avisos da plataforma deseja acompanhar.</p>
+        </div>
+      </div>
+      <div class="settings-toggle-list">
+        <label class="settings-toggle-row" for="check-notif-projetos">
+          <span><strong>Novos projetos</strong><small>Alertas sobre oportunidades e trabalhos publicados.</small></span>
+          <input type="checkbox" id="check-notif-projetos">
+        </label>
+        <label class="settings-toggle-row" for="check-notif-propostas">
+          <span><strong>Propostas e respostas</strong><small>Avisos sobre propostas recebidas ou atualizadas.</small></span>
+          <input type="checkbox" id="check-notif-propostas">
+        </label>
+      </div>
+      <div class="settings-browser-notification">
+        <div>
+          <strong>Notificações do navegador</strong>
+          <p id="status-permissao-notificacoes" class="settings-help-text" aria-live="polite">Verificando suporte do navegador...</p>
+        </div>
+        <button id="btn-permitir-notificacoes" type="button" class="settings-button settings-button-secondary">
+          <i class="fa-regular fa-bell"></i> Ativar no navegador
+        </button>
+      </div>
+      <div class="settings-notification-footer">
+        <p id="status-notificacoes" class="settings-status" aria-live="polite">As preferências são salvas neste navegador.</p>
+        <button id="btn-testar-notificacao" type="button" class="settings-button settings-button-secondary"><i class="fa-solid fa-bell"></i> Testar aviso</button>
+      </div>
+    </section>
+
+    <section class="settings-section" id="privacidade">
+      <div class="settings-section-heading">
+        <span class="settings-section-icon"><i class="fa-solid fa-shield-halved"></i></span>
+        <div>
+          <h2>Dados e privacidade</h2>
+          <p>Saiba onde suas preferências são armazenadas e restaure somente as configurações locais.</p>
+        </div>
+      </div>
+      <div class="settings-privacy-card">
+        <div>
+          <strong><i class="fa-solid fa-database"></i> Seus dados da conta</strong>
+          <p>Informações da conta, perfil, projetos e propostas são sincronizados com o serviço FreeLink. Tema, localização e preferências de avisos ficam neste navegador.</p>
+        </div>
+        <div class="settings-reset-row">
+          <div>
+            <strong>Restaurar preferências deste navegador</strong>
+            <p>Volta o tema para claro e remove a localização e as preferências de avisos salvas localmente. Seus dados da conta não serão apagados.</p>
+          </div>
+          <button id="btn-resetar-preferencias" type="button" class="settings-button settings-button-danger"><i class="fa-solid fa-rotate-left"></i> Restaurar preferências</button>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <script src="../js/main.js?v=3"></script>
+  <script src="../js/main.js?v=4"></script>
 </body>
 </html>
