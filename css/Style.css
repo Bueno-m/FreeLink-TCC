@@ -444,6 +444,20 @@ body.dark-mode .brand-logo {
   gap: 15px;
 }
 
+.categories-extra[hidden] {
+  display: none;
+}
+
+.categories-toggle {
+  display: block;
+  margin: 18px auto 0;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
 .category-item {
   background: var(--bg-input);
   border: 1px solid var(--border-color);

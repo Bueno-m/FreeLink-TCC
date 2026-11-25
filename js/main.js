@@ -1297,6 +1297,17 @@ function configurarBuscaIndex() {
   }
   if (selectCategoria) selectCategoria.addEventListener('change', dispararBusca);
 
+  const toggleCategorias = document.getElementById('toggle-categories');
+  const categoriasExtra = document.getElementById('categories-extra');
+  if (toggleCategorias && categoriasExtra) {
+    toggleCategorias.addEventListener('click', () => {
+      const expandido = toggleCategorias.getAttribute('aria-expanded') === 'true';
+      toggleCategorias.setAttribute('aria-expanded', String(!expandido));
+      categoriasExtra.hidden = expandido;
+      toggleCategorias.textContent = expandido ? 'Ver todas as áreas (13)' : 'Mostrar menos';
+    });
+  }
+
   const itensCategorias = document.querySelectorAll('.category-item');
   itensCategorias.forEach(item => {
     item.addEventListener('click', () => {
