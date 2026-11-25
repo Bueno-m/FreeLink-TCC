@@ -2433,6 +2433,7 @@ window.aceitarProposta = function(projetoId, propostaId) {
           remetenteId: 'sistema',
           remetenteNome: 'FreeLink',
           texto: msgSistemaAceite,
+          criadoEm: new Date().toISOString(),
           dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
         }
       ]
@@ -2801,6 +2802,7 @@ window.submeterAvaliacao = function() {
         remetenteId: 'sistema',
         remetenteNome: 'FreeLink',
         texto: msgFim,
+        criadoEm: new Date().toISOString(),
         dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       });
       salvarChats(chats);
@@ -3012,6 +3014,17 @@ function obterChats() {
   }
 }
 
+function formatarHorarioMensagemChat(mensagem) {
+  const instante = mensagem && (mensagem.criadoEm || mensagem.criado_em);
+  if (instante) {
+    const data = new Date(instante);
+    if (Number.isFinite(data.getTime())) {
+      return data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+  return String(mensagem && mensagem.dataHora || '');
+}
+
 function salvarChats(chats) {
   try {
     localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(chats));
@@ -3133,6 +3146,7 @@ async function abrirSalaChat({ chatId, titulo, outroNome, outroEmail, projetoId,
         remetenteEmail: isSalaBot ? 'bot@freelink.com' : '',
         remetenteNome: isSalaBot ? 'Assistente FreeLink' : 'FreeLink',
         texto: msgInicialTexto,
+        criadoEm: new Date().toISOString(),
         dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       }] : []
     };
@@ -3474,6 +3488,7 @@ function renderizarMensagensChat(chat) {
         <div class="chat-bubble chat-bubble-system">
           <i class="fa-solid fa-circle-check" style="color: var(--primary-color); margin-right: 4px;"></i>
           ${escapeHtml(m.texto)}
+          <span class="chat-msg-time">${escapeHtml(formatarHorarioMensagemChat(m))}</span>
         </div>
       `;
     }
@@ -3502,7 +3517,7 @@ function renderizarMensagensChat(chat) {
         ${!isMinha ? `<div style="font-size: 11px; font-weight: 700; color: var(--primary-color); margin-bottom: 2px;">${isBotMsg ? '<i class="fa-solid fa-robot" style="margin-right: 4px;"></i>' : ''}${escapeHtml(m.remetenteNome || '')}</div>` : ''}
         <div style="white-space: pre-line;">${escapeHtml(m.texto)}</div>
         ${botaoBotHtml}
-        <span class="chat-msg-time">${escapeHtml(m.dataHora || '')}</span>
+        <span class="chat-msg-time">${escapeHtml(formatarHorarioMensagemChat(m))}</span>
       </div>
     `;
   }).join('');
@@ -3518,6 +3533,15 @@ window.enviarMensagemChat = async function() {
 
   const texto = input.value.trim();
   if (!texto) return;
+  if (!window.FreeLinkChatModeration) {
+    console.error('O filtro de conteúdo do chat não foi carregado.');
+    showToast('Não foi possível verificar a mensagem. Recarregue a página e tente novamente.', 'error');
+    return;
+  }
+  if (window.FreeLinkChatModeration.contemTermoExplicito(texto)) {
+    showToast('A mensagem contém termos impróprios. Revise o texto antes de enviar.', 'error');
+    return;
+  }
 
   const { chatId, titulo, projetoId, propostaId, outroEmail, outroNome } = window.chatAtivo;
   const isSalaBot = String(chatId || '').startsWith('bot_');
@@ -3566,6 +3590,7 @@ window.enviarMensagemChat = async function() {
     remetenteEmail: usuarioLogado.email || '',
     remetenteNome: usuarioLogado.nome || 'Você',
     texto: texto,
+    criadoEm: new Date().toISOString(),
     dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   });
   chats[chatId] = chat;
@@ -3752,6 +3777,7 @@ async function responderBotOnboardingNoChat(chatId, textoUsuario) {
     remetenteEmail: 'bot@freelink.com',
     remetenteNome: 'Assistente FreeLink',
     texto: resposta,
+    criadoEm: new Date().toISOString(),
     dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   });
   chats[chatId] = chat;
@@ -3780,6 +3806,7 @@ async function garantirChatBotOnboarding(usuario, analise) {
         remetenteEmail: 'bot@freelink.com',
         remetenteNome: 'Assistente FreeLink',
         texto: msgInicial,
+        criadoEm: new Date().toISOString(),
         dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       }]
     };

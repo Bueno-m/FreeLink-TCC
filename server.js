@@ -2,6 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
+const { contemTermoExplicito } = require('./js/chat-moderacao');
 
 const app = express();
 app.use(cors()); // Permite que seu frontend converse com este backend
@@ -646,8 +647,22 @@ async function garantirTabelasExtra() {
             remetente_email VARCHAR(150),
             remetente_nome VARCHAR(150) NOT NULL,
             conteudo TEXT NOT NULL,
-            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            criado_em TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
         )`,
+        `DO $$
+        DECLARE tipo_criado_em TEXT;
+        BEGIN
+            SELECT data_type INTO tipo_criado_em
+            FROM information_schema.columns
+            WHERE table_schema = current_schema()
+              AND table_name = 'chat_mensagem'
+              AND column_name = 'criado_em';
+            IF tipo_criado_em = 'timestamp without time zone' THEN
+                ALTER TABLE CHAT_MENSAGEM
+                ALTER COLUMN criado_em TYPE TIMESTAMPTZ
+                USING criado_em AT TIME ZONE current_setting('TIMEZONE');
+            END IF;
+        END $$`,
         `CREATE INDEX IF NOT EXISTS idx_chat_sala ON CHAT_MENSAGEM (id_sala, id_mensagem)`
     ];
     for (const sql of comandos) {
@@ -747,16 +762,18 @@ async function semearUsuariosDemo() {
 garantirTabelasExtra();
 
 function formatarMsgChat(m) {
-    const d = m.criado_em ? new Date(m.criado_em) : new Date();
-    const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const d = m.criado_em ? new Date(m.criado_em) : null;
+    const instanteValido = d && Number.isFinite(d.getTime()) ? d : null;
     return {
         id: m.id_mensagem,
         remetenteId: m.remetente_id,
         remetenteEmail: m.remetente_email || '',
         remetenteNome: m.remetente_nome,
         texto: m.conteudo,
-        dataHora: hora,
-        criadoEm: m.criado_em
+        dataHora: instanteValido
+            ? instanteValido.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
+            : '',
+        criadoEm: instanteValido ? instanteValido.toISOString() : null
     };
 }
 
@@ -854,18 +871,11 @@ app.post('/api/chats/abrir', autenticar, async (req, res) => {
             const remNome = mensagemBot ? 'Assistente FreeLink' : 'FreeLink';
             try {
                 const resSys = await db.query(
-                    'INSERT INTO CHAT_MENSAGEM (id_sala, remetente_id, remetente_email, remetente_nome, conteudo) VALUES ($1, $2, $3, $4, $5) RETURNING id_mensagem',
+                    'INSERT INTO CHAT_MENSAGEM (id_sala, remetente_id, remetente_email, remetente_nome, conteudo) VALUES ($1, $2, $3, $4, $5) RETURNING *',
                     [salaId, remId, remEmail, remNome, String(textoInicial)]
                 );
                 return res.json({
-                    mensagens: [{
-                        id: resSys.rows[0].id_mensagem,
-                        remetenteId: remId,
-                        remetenteEmail: remEmail,
-                        remetenteNome: remNome,
-                        texto: String(textoInicial),
-                        dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                    }]
+                    mensagens: [formatarMsgChat(resSys.rows[0])]
                 });
             } catch (erroSys) {
                 return res.json({ mensagens: [] });
@@ -900,6 +910,9 @@ app.post('/api/chats/:chatId/mensagens', autenticar, async (req, res) => {
     const { texto, sistema, bot, titulo, projetoId, propostaId, outroEmail, outroNome } = req.body || {};
     const conteudo = String(texto || '').trim();
     if (!conteudo) return res.status(400).json({ erro: 'Mensagem vazia' });
+    if (contemTermoExplicito(conteudo)) {
+        return res.status(400).json({ erro: 'A mensagem contém termos impróprios. Revise o texto antes de enviar.' });
+    }
     const isMsgBot = Boolean(bot && chatId.startsWith('bot_'));
 
     try {
@@ -929,21 +942,14 @@ app.post('/api/chats/:chatId/mensagens', autenticar, async (req, res) => {
         );
 
         const rIns = await db.query(
-            'INSERT INTO CHAT_MENSAGEM (id_sala, remetente_id, remetente_email, remetente_nome, conteudo) VALUES ($1, $2, $3, $4, $5) RETURNING id_mensagem',
+            'INSERT INTO CHAT_MENSAGEM (id_sala, remetente_id, remetente_email, remetente_nome, conteudo) VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [chatId, remetenteId, remetenteEmail, remetenteNome, conteudo]
         );
 
         await db.query('UPDATE CHAT_SALA SET atualizado_em = CURRENT_TIMESTAMP WHERE id_sala = $1', [chatId]);
 
         res.status(201).json({
-            mensagem: {
-                id: rIns.rows[0].id_mensagem,
-                remetenteId,
-                remetenteEmail,
-                remetenteNome,
-                texto: conteudo,
-                dataHora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-            }
+            mensagem: formatarMsgChat(rIns.rows[0])
         });
     } catch (erro) {
         return res.status(500).json({ erro: 'Erro ao enviar mensagem' });
