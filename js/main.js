@@ -1024,6 +1024,8 @@ function inicializarIndexPage() {
 
   if (!landingVisitante && !feedAutenticado) return;
 
+  configurarToggleCategorias();
+
   const autenticado = isAuthenticated();
 
   if (!autenticado) {
@@ -1214,6 +1216,19 @@ function configurarAbasTrabalhos() {
   }
 }
 
+function configurarToggleCategorias() {
+  const toggleCategorias = document.getElementById('toggle-categories');
+  const categoriasExtra = document.getElementById('categories-extra');
+  if (!toggleCategorias || !categoriasExtra) return;
+
+  toggleCategorias.addEventListener('click', () => {
+    const expandido = toggleCategorias.getAttribute('aria-expanded') === 'true';
+    toggleCategorias.setAttribute('aria-expanded', String(!expandido));
+    categoriasExtra.hidden = expandido;
+    toggleCategorias.textContent = expandido ? 'Ver todas as áreas' : 'Mostrar menos';
+  });
+}
+
 function configurarBuscaIndex() {
   const inputBusca = document.getElementById('search-input');
   const selectCategoria = document.getElementById('search-category');
@@ -1288,17 +1303,6 @@ function configurarBuscaIndex() {
     });
   }
   if (selectCategoria) selectCategoria.addEventListener('change', dispararBusca);
-
-  const toggleCategorias = document.getElementById('toggle-categories');
-  const categoriasExtra = document.getElementById('categories-extra');
-  if (toggleCategorias && categoriasExtra) {
-    toggleCategorias.addEventListener('click', () => {
-      const expandido = toggleCategorias.getAttribute('aria-expanded') === 'true';
-      toggleCategorias.setAttribute('aria-expanded', String(!expandido));
-      categoriasExtra.hidden = expandido;
-      toggleCategorias.textContent = expandido ? 'Ver todas as áreas (13)' : 'Mostrar menos';
-    });
-  }
 
   const itensCategorias = document.querySelectorAll('.category-item');
   itensCategorias.forEach(item => {
