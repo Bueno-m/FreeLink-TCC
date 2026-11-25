@@ -374,11 +374,15 @@ function salvarProjetos(projetos, projetoAlterado) {
 async function salvarProjetoNoServidor(projeto) {
   if (!projeto || !projeto.id) return;
   try {
-    await fetch('/api/projetos', {
+    const headers = { 'Content-Type': 'application/json' };
+    const token = localStorage.getItem('freelink_token');
+    if (token) headers.Authorization = 'Bearer ' + token;
+    const res = await fetch('/api/projetos', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ projeto })
     });
+    if (!res.ok) console.warn('Não foi possível sincronizar projeto com o servidor:', res.status);
   } catch (e) {
     console.warn('Não foi possível sincronizar projeto com o servidor:', e);
   }
@@ -1149,6 +1153,7 @@ function renderizarTrabalhos(termoBusca = '', categoriaFiltro = '', apenasMeusPr
   container.innerHTML = trabalhosFiltrados.map(trabalho => {
     const skills = Array.isArray(trabalho.habilidades) ? trabalho.habilidades : (trabalho.habilidades ? trabalho.habilidades.split(',') : []);
     const skillsHtml = skills.slice(0, 3).map(s => `<span class="skill-tag">${escapeHtml(s.trim())}</span>`).join('');
+    const mostrarExcluir = apenasMeusProjetos && projetoPertenceAoUsuario(trabalho, usuarioLogado);
 
     return `
       <div class="job-card" onclick="redirecionarParaDetalhes('${escapeHtml(trabalho.id)}')" style="cursor: pointer;" title="Clique para ver os detalhes do projeto">
@@ -1166,9 +1171,100 @@ function renderizarTrabalhos(termoBusca = '', categoriaFiltro = '', apenasMeusPr
           <span><i class="fa-regular fa-clock"></i> ${escapeHtml(trabalho.prazo || 'A combinar')}</span>
           <span><i class="fa-regular fa-folder"></i> ${escapeHtml(trabalho.categoria)}</span>
         </div>
+        ${mostrarExcluir ? `<button type="button" class="project-delete-button" data-project-delete="${escapeHtml(trabalho.id)}"><i class="fa-regular fa-trash-can"></i> Excluir projeto</button>` : ''}
       </div>
     `;
   }).join('');
+
+  container.querySelectorAll('[data-project-delete]').forEach(button => {
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      const projeto = trabalhosFiltrados.find(item => String(item.id) === button.dataset.projectDelete);
+      if (projeto) abrirModalExclusaoProjeto(projeto);
+    });
+  });
+}
+
+function projetoPertenceAoUsuario(projeto, usuario) {
+  if (!projeto || !usuario || projeto.criadorId == null) return false;
+  const usuarioId = usuario.dbId || usuario.id;
+  if (usuarioId == null) return false;
+  const normalizarId = id => String(id).replace(/^db_/, '');
+  return normalizarId(projeto.criadorId) === normalizarId(usuarioId);
+}
+
+function abrirModalExclusaoProjeto(projeto) {
+  const modal = document.createElement('div');
+  modal.className = 'confirm-modal-overlay';
+  modal.innerHTML = `
+    <div class="confirm-modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmar-exclusao-titulo">
+      <div class="confirm-modal-icon"><i class="fa-regular fa-trash-can"></i></div>
+      <h3 class="confirm-modal-title" id="confirmar-exclusao-titulo">Excluir projeto?</h3>
+      <p class="confirm-modal-desc">Tem certeza de que deseja excluir “${escapeHtml(projeto.titulo || 'este projeto')}”? Esta ação não pode ser desfeita.</p>
+      <p class="project-delete-error" role="alert"></p>
+      <div class="confirm-modal-actions">
+        <button type="button" class="confirm-modal-btn-cancel">Cancelar</button>
+        <button type="button" class="confirm-modal-btn-confirm">Excluir projeto</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  let excluindo = false;
+  const fechar = () => {
+    if (excluindo) return;
+    document.removeEventListener('keydown', aoTeclar);
+    modal.remove();
+  };
+  const aoTeclar = event => {
+    if (event.key === 'Escape') fechar();
+  };
+  const cancelar = modal.querySelector('.confirm-modal-btn-cancel');
+  const confirmar = modal.querySelector('.confirm-modal-btn-confirm');
+  const erro = modal.querySelector('.project-delete-error');
+
+  cancelar.addEventListener('click', fechar);
+  modal.addEventListener('click', event => {
+    if (event.target === modal) fechar();
+  });
+  document.addEventListener('keydown', aoTeclar);
+
+  confirmar.addEventListener('click', async () => {
+    excluindo = true;
+    confirmar.disabled = true;
+    cancelar.disabled = true;
+    confirmar.textContent = 'Excluindo...';
+    erro.textContent = '';
+
+    try {
+      const token = localStorage.getItem('freelink_token');
+      if (!token) throw new Error('Sua sessão expirou. Entre novamente para excluir o projeto.');
+      const res = await fetch(`/api/projetos/${encodeURIComponent(projeto.id)}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      let dados;
+      try {
+        dados = await res.json();
+      } catch (error) {
+        throw new Error('O servidor retornou uma resposta inválida.');
+      }
+      if (!res.ok) throw new Error(dados.erro || 'Não foi possível excluir o projeto.');
+
+      salvarProjetos(obterProjetos().filter(item => String(item.id) !== String(projeto.id)));
+      excluindo = false;
+      fechar();
+      renderizarTrabalhos('', '', true);
+      showToast('Projeto excluído com sucesso.', 'success');
+    } catch (error) {
+      console.error('Não foi possível excluir o projeto:', error);
+      excluindo = false;
+      erro.textContent = error.message || 'Não foi possível excluir o projeto. Tente novamente.';
+      confirmar.disabled = false;
+      cancelar.disabled = false;
+      confirmar.textContent = 'Excluir projeto';
+    }
+  });
 }
 
 function redirecionarParaDetalhes(id) {

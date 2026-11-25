@@ -35,6 +35,11 @@ function autenticar(req, res, next) {
     }
 }
 
+function autenticarOpcional(req, res, next) {
+    if (!req.headers.authorization) return next();
+    return autenticar(req, res, next);
+}
+
 function lerPerfil(json) {
     try { return json ? JSON.parse(json) : {}; } catch (e) { return {}; }
 }
@@ -545,19 +550,45 @@ app.post('/api/projetos/seed', async (req, res) => {
     }
 });
 
-app.post('/api/projetos', async (req, res) => {
+app.post('/api/projetos', autenticarOpcional, async (req, res) => {
     const projeto = req.body && req.body.projeto;
     if (!projeto || !projeto.id) return res.status(400).json({ erro: 'Projeto inválido' });
+    const criadorId = req.idUsuario ? String(req.idUsuario) : null;
+    const projetoSalvo = Object.assign({}, projeto, { criadorId });
     const sql = `
-        INSERT INTO PLATAFORMA_PROJETO (id, dados_json)
-        VALUES ($1, $2)
-        ON CONFLICT (id) DO UPDATE SET dados_json = EXCLUDED.dados_json, atualizado_em = CURRENT_TIMESTAMP
+        INSERT INTO PLATAFORMA_PROJETO (id, dados_json, criador_id)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (id) DO UPDATE SET
+            dados_json = (EXCLUDED.dados_json::jsonb || jsonb_build_object('criadorId', PLATAFORMA_PROJETO.criador_id))::text,
+            atualizado_em = CURRENT_TIMESTAMP
     `;
     try {
-        await db.query(sql, [String(projeto.id), JSON.stringify(projeto)]);
-        res.json({ mensagem: 'Projeto salvo', projeto });
+        await db.query(sql, [String(projeto.id), JSON.stringify(projetoSalvo), criadorId]);
+        res.json({ mensagem: 'Projeto salvo', projeto: projetoSalvo });
     } catch (erro) {
         return res.status(500).json({ erro: 'Erro ao salvar projeto' });
+    }
+});
+
+app.delete('/api/projetos/:id', autenticar, async (req, res) => {
+    try {
+        const { rows } = await db.query(
+            'SELECT criador_id FROM PLATAFORMA_PROJETO WHERE id = $1',
+            [String(req.params.id)]
+        );
+        if (!rows.length) return res.status(404).json({ erro: 'Projeto não encontrado' });
+        if (String(rows[0].criador_id) !== String(req.idUsuario)) {
+            return res.status(403).json({ erro: 'Você não tem permissão para excluir este projeto' });
+        }
+
+        const resultado = await db.query(
+            'DELETE FROM PLATAFORMA_PROJETO WHERE id = $1 AND criador_id = $2',
+            [String(req.params.id), String(req.idUsuario)]
+        );
+        if (!resultado.rowCount) return res.status(404).json({ erro: 'Projeto não encontrado' });
+        return res.json({ mensagem: 'Projeto excluído com sucesso' });
+    } catch (erro) {
+        return res.status(500).json({ erro: 'Erro ao excluir projeto' });
     }
 });
 
@@ -576,9 +607,16 @@ async function garantirTabelasExtra() {
         `CREATE TABLE IF NOT EXISTS PLATAFORMA_PROJETO (
             id VARCHAR(80) PRIMARY KEY,
             dados_json TEXT NOT NULL,
+            criador_id VARCHAR(80),
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
+        `ALTER TABLE PLATAFORMA_PROJETO ADD COLUMN IF NOT EXISTS criador_id VARCHAR(80)`,
+        `UPDATE PLATAFORMA_PROJETO AS p
+            SET criador_id = u.id_usuario::text
+            FROM USUARIO AS u
+            WHERE p.criador_id IS NULL
+              AND (p.dados_json::jsonb ->> 'criadorId') IN (u.id_usuario::text, 'db_' || u.id_usuario::text)`,
         `DROP TRIGGER IF EXISTS trg_plataforma_projeto_atualizado_em ON PLATAFORMA_PROJETO`,
         `CREATE TRIGGER trg_plataforma_projeto_atualizado_em
             BEFORE UPDATE ON PLATAFORMA_PROJETO

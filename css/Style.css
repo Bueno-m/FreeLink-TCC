@@ -1006,6 +1006,38 @@ body.dark-mode .brand-logo {
   color: var(--text-muted);
 }
 
+.project-delete-button {
+  margin-top: 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.project-delete-button:hover {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: #ef4444;
+}
+
+.project-delete-button:disabled,
+.confirm-modal-btn-cancel:disabled,
+.confirm-modal-btn-confirm:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.project-delete-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin: -12px 0 16px;
+}
+
 /* =========================================
    RESPONSIVIDADE
    ========================================= */
@@ -4509,4 +4541,404 @@ body,
 
 .chat-bot-action-btn:hover {
   filter: brightness(1.07);
+}
+
+/* Ajustes de layout para telas intermediárias e estreitas */
+img,
+picture,
+video,
+canvas {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+.project-detail-shell {
+  max-width: 950px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.project-detail-card {
+  padding: 35px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.project-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.project-detail-primary {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.project-detail-title {
+  margin-bottom: 12px;
+  color: var(--text-heading);
+  font-size: clamp(22px, 3vw, 26px);
+  font-weight: 800;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.project-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+.project-detail-meta > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.project-budget-card {
+  flex: 0 1 230px;
+  min-width: 210px;
+  padding: 20px 26px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--bg-input);
+  text-align: right;
+}
+
+.project-detail-description {
+  padding: 22px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-input);
+  color: var(--text-color);
+  font-size: 15px;
+  line-height: 1.8;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1200px) {
+  .landing-section {
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+
+  .footer-container,
+  .footer-bottom {
+    width: calc(100% - 32px);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+    margin-top: 24px;
+  }
+
+  .card-section {
+    padding: 22px;
+  }
+
+  .landing-section {
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+
+  .landing-section-title {
+    font-size: clamp(25px, 5vw, 32px);
+  }
+
+  .landing-main-metric-card {
+    padding: 24px;
+  }
+
+  .how-card {
+    padding: 28px 24px;
+  }
+
+  .view-tabs {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    flex: 1 1 160px;
+    justify-content: center;
+  }
+
+  .project-detail-shell {
+    margin-top: 24px;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .project-detail-card {
+    padding: 24px;
+  }
+
+  .project-budget-card {
+    flex-basis: 100%;
+    width: 100%;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .candidate-profile-modal-card {
+    max-height: calc(100vh - 32px);
+  }
+
+  .freelink-bot-spotlight-card {
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .navbar .logo {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .navbar .logo > a {
+    flex: 0 0 auto;
+  }
+
+  .navbar .nav-toggle {
+    flex: 0 0 auto;
+  }
+
+  .auth-buttons {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+
+  #auth-buttons-container > div {
+    gap: 6px !important;
+  }
+
+  .container {
+    margin-top: 18px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .card-section {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .section-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .view-tabs-container {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .view-tabs {
+    width: 100%;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .tab-btn {
+    width: 100%;
+    flex-basis: auto;
+    justify-content: flex-start;
+    padding: 10px 12px;
+  }
+
+  .jobs-grid,
+  .vitrine-jobs-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vitrine-job-header {
+    flex-wrap: wrap;
+  }
+
+  .vitrine-job-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .btn-proposta-vitrine {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .project-detail-shell {
+    margin: 16px auto;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .project-detail-card {
+    padding: 16px;
+  }
+
+  .project-detail-header {
+    gap: 14px;
+  }
+
+  .project-budget-card,
+  .project-detail-description {
+    padding: 16px;
+  }
+
+  #modal-proposta,
+  #modal-perfil-candidato,
+  #modal-avaliacao {
+    padding: 8px !important;
+  }
+
+  #modal-proposta .login-card,
+  .candidate-profile-modal-card,
+  .review-modal-card {
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
+    border-radius: 16px;
+  }
+
+  .candidate-profile-modal-card {
+    width: 100%;
+  }
+
+  .cpm-body {
+    padding: 44px 16px 18px;
+  }
+
+  .cpm-footer {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 12px 16px;
+  }
+
+  .cpm-footer > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .review-modal-card {
+    padding: 22px 16px;
+  }
+
+  .star-rating-row {
+    gap: 4px;
+  }
+
+  .star-icon-btn {
+    font-size: 30px;
+  }
+
+  #form-avaliacao-projeto > div:last-child {
+    flex-direction: column;
+  }
+
+  #form-avaliacao-projeto > div:last-child > button {
+    width: 100%;
+  }
+
+  .freelink-chats-drawer {
+    top: 68px;
+    right: 12px;
+    max-height: calc(100vh - 80px);
+  }
+
+  .bot-spotlight-header {
+    padding: 18px;
+  }
+
+  .bot-spotlight-actions {
+    flex-direction: column;
+  }
+
+  .bot-cta-primary,
+  .bot-cta-secondary {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .landing-cta-banner {
+    padding: 34px 18px;
+    border-radius: 18px;
+  }
+
+  .landing-cta-banner h2 {
+    font-size: 25px;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand-logo {
+    height: 32px;
+    max-width: 90px;
+  }
+
+  .navbar .logo {
+    gap: 4px;
+  }
+
+  #auth-buttons-container #btn-navbar-chat,
+  #auth-buttons-container > div > a[title^="Meu Perfil"],
+  #auth-buttons-container #btn-logout-navbar {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    justify-content: center;
+    gap: 0;
+  }
+
+  #auth-buttons-container #btn-navbar-chat {
+    padding: 0;
+  }
+
+  #auth-buttons-container #btn-navbar-chat > span:not(.navbar-chat-badge),
+  #auth-buttons-container > div > a[title^="Meu Perfil"] > span {
+    display: none;
+  }
+
+  #auth-buttons-container #btn-logout-navbar {
+    padding: 0 !important;
+    font-size: 0 !important;
+  }
+
+  #auth-buttons-container #btn-logout-navbar i {
+    font-size: 14px;
+  }
+
+  .auth-buttons .btn-login,
+  .auth-buttons .btn-register {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+
+  .landing-main-metric-card {
+    padding: 18px;
+  }
+
+  .metric-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
