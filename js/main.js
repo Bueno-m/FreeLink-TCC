@@ -3997,33 +3997,77 @@ window.solicitarPermissaoNotificacoes = async function() {
   }
 };
 
+function pareceLocalizacaoEmCoordenadas(valor) {
+  return /^\s*lat(?:itude)?\s*:\s*[-+]?\d+(?:\.\d+)?\s*,\s*long(?:itude)?\s*:\s*[-+]?\d+(?:\.\d+)?\s*$/i.test(String(valor || ''));
+}
+
+function formatarCidadeRegiao(dados) {
+  const cidade = String(dados.city || dados.locality || '').trim();
+  const subdivision = String(dados.principalSubdivision || '').trim();
+  const subdivisionCode = String(dados.principalSubdivisionCode || '').trim();
+  const codigoUf = subdivisionCode.match(/^BR-([A-Z]{2})$/i);
+  const regiao = codigoUf ? codigoUf[1].toUpperCase() : subdivision;
+
+  if (cidade && regiao && cidade.toLocaleLowerCase('pt-BR') !== regiao.toLocaleLowerCase('pt-BR')) {
+    return `${cidade}, ${regiao}`;
+  }
+  return cidade || regiao;
+}
+
+async function obterCidadeRegiao(latitude, longitude) {
+  const url = new URL('https://api.bigdatacloud.net/data/reverse-geocode-client');
+  url.searchParams.set('latitude', latitude);
+  url.searchParams.set('longitude', longitude);
+  url.searchParams.set('localityLanguage', 'pt');
+
+  const response = await fetch(url.toString(), {
+    headers: { Accept: 'application/json' }
+  });
+  if (!response.ok) {
+    throw new Error(`O serviço de localização respondeu com HTTP ${response.status}.`);
+  }
+
+  const dados = await response.json();
+  const localidade = formatarCidadeRegiao(dados);
+  if (!localidade) {
+    throw new Error('O serviço não identificou uma cidade ou região para esta posição.');
+  }
+  return localidade;
+}
+
 window.detectarLocalizacao = function() {
   const statusLocalizacao = document.getElementById('status-localizacao');
+  const inputLocalizacao = document.getElementById('input-localizacao');
+  const btnLocalizacao = document.getElementById('btn-obter-localizacao');
   if (!navigator.geolocation) {
     if (statusLocalizacao) statusLocalizacao.textContent = 'Este navegador não oferece suporte à localização. Informe uma cidade manualmente.';
     showToast('Geolocalização não é suportada neste navegador.', 'error');
     return;
   }
 
+  if (btnLocalizacao) btnLocalizacao.disabled = true;
   if (statusLocalizacao) {
-    statusLocalizacao.textContent = 'Solicitando localização aproximada...';
+    statusLocalizacao.textContent = 'Solicitando a localização do dispositivo...';
   }
 
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const lat = pos.coords.latitude.toFixed(2);
-      const lon = pos.coords.longitude.toFixed(2);
-      const locString = `Lat: ${lat}, Long: ${lon}`;
+    async (pos) => {
       try {
+        if (statusLocalizacao) statusLocalizacao.textContent = 'Identificando cidade ou região...';
+        const locString = await obterCidadeRegiao(pos.coords.latitude, pos.coords.longitude);
         localStorage.setItem(STORAGE_KEYS.LOCATION, locString);
-        const inputLocalizacao = document.getElementById('input-localizacao');
         if (inputLocalizacao) inputLocalizacao.value = locString;
         if (statusLocalizacao) statusLocalizacao.textContent = `Localização aproximada salva neste navegador: ${locString}`;
-        showToast('Sua localização aproximada foi detectada e salva.', 'success');
+        showToast(`Cidade ou região detectada: ${locString}`, 'success');
       } catch (error) {
-        console.error('Erro ao salvar localização:', error);
-        if (statusLocalizacao) statusLocalizacao.textContent = 'Não foi possível salvar a localização neste navegador.';
-        showToast('Não foi possível salvar a localização.', 'error');
+        console.error('Não foi possível identificar ou salvar a cidade/região:', error);
+        const mensagem = error instanceof Error
+          ? error.message
+          : 'Não foi possível identificar a cidade ou região. Informe-a manualmente.';
+        if (statusLocalizacao) statusLocalizacao.textContent = `${mensagem} Você também pode informar a cidade manualmente.`;
+        showToast('Não foi possível identificar a cidade ou região.', 'error');
+      } finally {
+        if (btnLocalizacao) btnLocalizacao.disabled = false;
       }
     },
     (err) => {
@@ -4036,8 +4080,9 @@ window.detectarLocalizacao = function() {
       const mensagem = mensagens[err.code] || 'Não foi possível obter sua localização. Informe uma cidade manualmente.';
       if (statusLocalizacao) statusLocalizacao.textContent = mensagem;
       showToast(mensagem, 'error');
+      if (btnLocalizacao) btnLocalizacao.disabled = false;
     },
-    { timeout: 10000, maximumAge: 300000 }
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
   );
 };
 
@@ -4097,8 +4142,15 @@ function configurarTelaConfiguracoes() {
   const statusLocalizacao = document.getElementById('status-localizacao');
   const locSalva = localStorage.getItem(STORAGE_KEYS.LOCATION);
   if (locSalva) {
-    if (inputLocalizacao) inputLocalizacao.value = locSalva;
-    if (statusLocalizacao) statusLocalizacao.textContent = `Localização salva neste navegador: ${locSalva}`;
+    if (pareceLocalizacaoEmCoordenadas(locSalva)) {
+      localStorage.removeItem(STORAGE_KEYS.LOCATION);
+      if (statusLocalizacao) {
+        statusLocalizacao.textContent = 'A localização antiga estava salva como coordenadas e foi removida. Use Detectar para obter sua cidade ou região.';
+      }
+    } else {
+      if (inputLocalizacao) inputLocalizacao.value = locSalva;
+      if (statusLocalizacao) statusLocalizacao.textContent = `Localização salva neste navegador: ${locSalva}`;
+    }
   }
 
   if (btnLocalizacao) {
@@ -4109,6 +4161,11 @@ function configurarTelaConfiguracoes() {
       const valor = inputLocalizacao ? inputLocalizacao.value.trim() : '';
       if (!valor) {
         showToast('Informe uma cidade ou use a opção de detecção.', 'info');
+        if (inputLocalizacao) inputLocalizacao.focus();
+        return;
+      }
+      if (pareceLocalizacaoEmCoordenadas(valor)) {
+        showToast('Informe uma cidade ou região, ou use Detectar para identificá-la.', 'info');
         if (inputLocalizacao) inputLocalizacao.focus();
         return;
       }
