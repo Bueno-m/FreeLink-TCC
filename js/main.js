@@ -2700,6 +2700,76 @@ function resolverEmailUsuario({ email, id, nome }) {
   return encontrado && encontrado.email ? String(encontrado.email).trim().toLowerCase() : '';
 }
 
+function obterContatosComPropostasAceitas(usuarioLogado) {
+  if (!usuarioLogado) return [];
+
+  const meuId = usuarioLogado.id == null ? '' : String(usuarioLogado.id);
+  const meuEmail = String(usuarioLogado.email || '').trim().toLowerCase();
+  const meuNome = String(usuarioLogado.nome || '').trim().toLowerCase();
+  const tipoUsuario = String(usuarioLogado.tipo || usuarioLogado.tipo_usuario || '').trim().toLowerCase();
+  const souContratante = tipoUsuario === 'contratante' || tipoUsuario === 'cliente';
+  const souFreelancer = tipoUsuario === 'freelancer';
+  if (!souContratante && !souFreelancer) return [];
+
+  const contatos = new Map();
+  const projetos = obterProjetos();
+
+  const souCriadorDoProjeto = projeto =>
+    (projeto.criadorId != null && meuId && String(projeto.criadorId) === meuId) ||
+    (projeto.criadorEmail && meuEmail && String(projeto.criadorEmail).trim().toLowerCase() === meuEmail) ||
+    (projeto.empresa && meuNome && String(projeto.empresa).trim().toLowerCase() === meuNome);
+
+  const propostaEhMinha = proposta =>
+    (proposta.usuarioId != null && meuId && String(proposta.usuarioId) === meuId) ||
+    (proposta.usuarioEmail && meuEmail && String(proposta.usuarioEmail).trim().toLowerCase() === meuEmail);
+
+  const adicionarContato = (projeto, proposta, contato, tipo) => {
+    const email = resolverEmailUsuario(contato);
+    if (!email || email === meuEmail) return;
+
+    const projetoId = String(projeto.id || '');
+    const propostaId = String(proposta.id || '');
+    const chave = `${projetoId}:${propostaId || email}`;
+    if (contatos.has(chave)) return;
+
+    contatos.set(chave, {
+      email,
+      nome: contato.nome || email,
+      tipo,
+      projetoId,
+      propostaId,
+      projetoTitulo: projeto.titulo || 'Projeto'
+    });
+  };
+
+  projetos.forEach(projeto => {
+    const propostasAceitas = (Array.isArray(projeto.listaPropostas) ? projeto.listaPropostas : [])
+      .filter(proposta => String(proposta.status || '').toLowerCase() === 'aceita');
+
+    if (souContratante && souCriadorDoProjeto(projeto)) {
+      propostasAceitas.forEach(proposta => {
+        adicionarContato(projeto, proposta, {
+          email: proposta.usuarioEmail,
+          id: proposta.usuarioId,
+          nome: proposta.usuarioNome
+        }, 'Freelancer');
+      });
+    } else if (souFreelancer) {
+      propostasAceitas.filter(propostaEhMinha).forEach(proposta => {
+        adicionarContato(projeto, proposta, {
+          email: projeto.criadorEmail,
+          id: projeto.criadorId,
+          nome: projeto.empresa
+        }, 'Empresa');
+      });
+    }
+  });
+
+  return Array.from(contatos.values()).sort((a, b) =>
+    a.nome.localeCompare(b.nome, 'pt-BR') || a.projetoTitulo.localeCompare(b.projetoTitulo, 'pt-BR')
+  );
+}
+
 function obterVistosChat() {
   try {
     return JSON.parse(localStorage.getItem('freelink_chat_vistos') || '{}') || {};
@@ -2970,9 +3040,9 @@ window.abrirChatProjeto = function(projetoId, propostaId) {
   const chatId = `chat_${projetoId}_${propostaId}`;
 
   const isCliente = usuarioLogado && (
-    (proj.criadorId && proj.criadorId === usuarioLogado.id) ||
-    (proj.criadorEmail && usuarioLogado.email && proj.criadorEmail.toLowerCase() === usuarioLogado.email.toLowerCase()) ||
-    (proj.empresa && usuarioLogado.nome && proj.empresa.toLowerCase() === usuarioLogado.nome.toLowerCase())
+    (proj.criadorId != null && usuarioLogado.id != null && String(proj.criadorId) === String(usuarioLogado.id)) ||
+    (proj.criadorEmail && usuarioLogado.email && String(proj.criadorEmail).trim().toLowerCase() === String(usuarioLogado.email).trim().toLowerCase()) ||
+    (proj.empresa && usuarioLogado.nome && String(proj.empresa).trim().toLowerCase() === String(usuarioLogado.nome).trim().toLowerCase())
   );
 
   const outroNome = isCliente ? (prop ? prop.usuarioNome : 'Freelancer') : proj.empresa;
@@ -3052,7 +3122,7 @@ function renderizarListaConversasDrawer(salas, erroSessaoMsg) {
     listEl.innerHTML = `
       <div style="text-align: center; padding: 26px 14px; color: var(--text-muted); font-size: 13px;">
         <i class="fa-regular fa-comment-dots" style="font-size: 28px; display: block; margin-bottom: 8px; opacity: 0.6;"></i>
-        Nenhuma conversa ainda.<br>Escolha um contato abaixo ou aceite uma proposta em um projeto!
+        Nenhuma conversa ainda.<br>Aceite uma proposta recebida ou aguarde a aprovação da sua proposta para iniciar uma conversa.
       </div>
     `;
     return;
@@ -3140,7 +3210,13 @@ window.abrirListaConversas = async function() {
         return;
       }
       const opt = sel.options[sel.selectedIndex];
-      abrirChatDireto(sel.value, opt.getAttribute('data-nome') || sel.value, 'Conversa Direta');
+      const projetoId = opt.getAttribute('data-projeto-id');
+      const propostaId = opt.getAttribute('data-proposta-id');
+      if (projetoId && propostaId) {
+        abrirChatProjeto(projetoId, propostaId);
+      } else {
+        abrirChatDireto(sel.value, opt.getAttribute('data-nome') || sel.value, 'Conversa Direta');
+      }
     });
 
     if (!chatDrawerClickOutsideRegistrado) {
@@ -3163,26 +3239,19 @@ window.abrirListaConversas = async function() {
 
   const selEl = document.getElementById('chatsDrawerContatoSelect');
   const token = localStorage.getItem('freelink_token');
-  const meuEmail = String(usuarioLogado.email || '').toLowerCase();
 
-  // Popula seletor de contatos reais do banco de dados (com fallback local)
+  // Só mostra contatos ligados a propostas aceitas nos projetos do usuário.
   if (selEl) {
-    let usuariosLista = [];
-    try {
-      const resU = await fetch('/api/usuarios');
-      if (resU.ok) {
-        const dataU = await resU.json();
-        usuariosLista = Array.isArray(dataU.usuarios) ? dataU.usuarios : [];
-      }
-    } catch (e) {}
-
-    if (!usuariosLista.length) {
-      usuariosLista = obterUsuarios();
-    }
-
-    const outros = usuariosLista.filter(u => u.email && u.email.toLowerCase() !== meuEmail);
-    selEl.innerHTML = `<option value="">Iniciar nova conversa com...</option>` +
-      outros.map(u => `<option value="${escapeHtml(u.email)}" data-nome="${escapeHtml(u.nome)}">${escapeHtml(u.nome)} (${u.tipo === 'contratante' ? 'Empresa' : 'Freelancer'})</option>`).join('');
+    const contatos = obterContatosComPropostasAceitas(usuarioLogado);
+    const placeholder = contatos.length
+      ? 'Iniciar nova conversa com...'
+      : 'Sem propostas aceitas para conversar';
+    selEl.innerHTML = `<option value="">${placeholder}</option>` +
+      contatos.map(contato =>
+        `<option value="${escapeHtml(contato.email)}" data-nome="${escapeHtml(contato.nome)}" data-projeto-id="${escapeHtml(contato.projetoId)}" data-proposta-id="${escapeHtml(contato.propostaId)}">${escapeHtml(contato.nome)} (${contato.tipo}) — ${escapeHtml(contato.projetoTitulo)}</option>`
+      ).join('');
+    const btnIniciar = drawer.querySelector('#btnIniciarNovaConversa');
+    if (btnIniciar) btnIniciar.disabled = contatos.length === 0;
   }
 
   // Carrega salas do servidor

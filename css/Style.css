@@ -3568,6 +3568,11 @@ body,
   background: var(--primary-light);
 }
 
+.btn-navbar-chat:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .freelink-chats-drawer {
   position: fixed;
   top: 72px;
