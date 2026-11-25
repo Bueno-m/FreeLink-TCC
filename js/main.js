@@ -902,7 +902,7 @@ function atualizarNavbarAutenticacao() {
         <a href="#como-funciona">Como Funciona</a>
         <a href="#categorias">Categorias</a>
         <a href="#projetos-destaque">Vagas em Aberto</a>
-        <a href="#configuracoes-home">Configurações</a>
+        <a href="configuracoes.html">Configurações</a>
       `;
     } else {
       navLinks.innerHTML = `
