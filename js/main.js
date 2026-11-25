@@ -804,10 +804,11 @@ function atualizarLogosTema(tema) {
                           window.location.pathname.includes('\\html\\') ||
                           document.querySelector('link[href*="../css/"]');
   const prefix = isHtmlSubfolder ? '../' : '';
-  const novoSrc = `${prefix}img/imagem.png`;
+  const arquivoLogo = tema === 'dark' ? 'logo-dark.png' : 'imagem.png';
+  const novoSrc = `${prefix}img/${arquivoLogo}`;
 
   logos.forEach(logo => {
-    logo.src = novoSrc;
+    if (logo.getAttribute('src') !== novoSrc) logo.src = novoSrc;
   });
 }
 
